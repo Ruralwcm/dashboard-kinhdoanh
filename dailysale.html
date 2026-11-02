@@ -91,6 +91,28 @@ main > .sec-h:first-child{margin-top:4px}
 
 /* panel + table */
 .panel{background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:var(--sh);overflow:hidden}
+/* --- bảng kiểu RSM KPIs --- */
+#tDim{border-collapse:separate;border-spacing:0;font-size:12.5px}
+#tDim thead th{background:#0F2A4A;color:#fff;border-bottom:1px solid #23456B;border-right:1px solid #23456B;
+  font-size:11px;font-weight:700;letter-spacing:0;text-transform:none;padding:7px 8px;white-space:nowrap;position:static;cursor:default}
+#tDim thead tr.grp th{background:#173A63;font-size:11.5px;letter-spacing:.5px;text-transform:uppercase;text-align:center}
+#tDim thead tr.sub th{font-size:10.5px;color:#CFDCEC;font-weight:600;line-height:1.25;max-width:96px;white-space:normal;text-align:right}
+#tDim thead th.name{text-align:left;min-width:190px}
+#tDim td{border-bottom:1px solid #EDF1F7;border-right:1px solid #F4F7FB;padding:7px 8px}
+#tDim td.name{text-align:left;font-weight:700;min-width:190px}
+#tDim td .cnt{display:block;font-size:10.5px;font-weight:600;color:#7D8BA1;letter-spacing:.2px}
+#tDim tr.lvl1 td{background:#EAF1FA;font-weight:800}
+#tDim tr.lvl1:hover td{background:#E1EBF8}
+#tDim tr.lvl2 td{background:#fff}
+#tDim tr.lvl2 td.name{padding-left:24px;font-weight:600;position:relative}
+#tDim tr.lvl2 td.name:before{content:"";position:absolute;left:12px;top:50%;width:6px;height:1px;background:#C4D0E0}
+#tDim tr.lvl2:hover td{background:#F8FAFD}
+#tDim tr.total td{background:#0F2A4A;color:#fff;font-weight:800;border-bottom:0}
+#tDim tr.total td .cnt{color:#B9C9DC}
+#tDim tr.clickable{cursor:pointer}
+.badge{display:inline-block;min-width:54px;text-align:center;border-radius:4px;padding:1.5px 6px;color:#fff;font-size:11.5px;font-weight:800;letter-spacing:.2px}
+.b-green{background:#0E9F6E} .b-orange{background:#E0872B} .b-red{background:#D32F2F} .b-none{background:#DFE6EF;color:#7D8BA1}
+.pos{color:#0B7A54;font-weight:700} .neg{color:#B3261E;font-weight:700} .mut{color:#9AA7B8}
 .seg{display:inline-flex;background:#F1F4F9;border-radius:9px;padding:2px;gap:2px}
 .seg button{border:0;background:transparent;border-radius:7px;padding:6px 12px;font-size:12.5px;font-weight:700;color:var(--ink2);cursor:pointer;white-space:nowrap}
 .seg button.on{background:#fff;color:var(--navy);box-shadow:0 1px 3px rgba(16,32,64,.12)}
@@ -270,7 +292,15 @@ function agg(rows){
   const yd = s('yd')/n, ydl = s('ydl')/n;
   const rev = s('m'), tarM = s('mt'), revY = s('y'), tarY = s('yt');
   const loss = s('lo'), shrink = s('sh'), stock = s('st'), cogs = rows.reduce((a,r)=>a+(r.dio>0?r.st/r.dio:0),0);
+  const pctD=(a,b)=>b>0?(a/b-1)*100:NaN;
+  const MTDD = (D && D.meta && D.meta.mtdDays) || 30;
+  const mlyRev = s('mdl') * MTDD;
   return {
+    dbill:s('bl'), dbillL:s('dbl'), mbill:s('mb'), mbillL:s('mbl'),
+    billLV: pctD(s('bl'), s('dbl')), bsLV: pctD(s('bs')/n, s('dbs')/n),
+    mbLV: pctD(s('mb'), s('mbl')), mbsLV: pctD(s('mbs')/n, s('mbsl')/n),
+    salesLVM: mlyRev>0?(rev/mlyRev-1)*100:NaN, mlyRev, revD:s('d'),
+    gapM2: tarM>0? rev-tarM : NaN,
     n, spd, spdL, tt: spdL>0?(spd/spdL-1)*100:NaN, ht: spd>0&&s('dt')>0 ? spd/(s('dt')/n)*100 : NaN,
     rev, tarM, htM: tarM>0?rev/tarM*100:NaN, gapM: rev-tarM,
     revY, tarY, htY: tarY>0?revY/tarY*100:NaN,
@@ -455,69 +485,80 @@ function renderActs(rows){
   });
 }
 
-/* ---- dimension table ---- */
+/* ---- dimension table: layout RSM KPIs (DAY | MTD) ---- */
 const DIMLBL = {mi:'Miền',vu:'Vùng',ti:'Tỉnh / TP',gd:'Giám đốc vùng',ql:'Quản lý khu vực'};
+const CHILD = {mi:'vu',vu:'ti',ti:null,gd:'ql',ql:null};
+const KEYOF = {mi:'mi',vu:'vu',ti:'ti',gd:'gd',ql:'ql'};
+
+const bdg = v => { const s=sane(v);
+  if(!isFinite(s)) return '<span class="badge b-none">—</span>';
+  const c = s>=100?'b-green':s>=93?'b-orange':'b-red';
+  return `<span class="badge ${c}">${F.pct(s)}</span>`; };
+const pv = v => !isFinite(v) ? '<span class="mut">—</span>' : `<span class="${v>=0?'pos':'neg'}">${F.sgn(v)}</span>`;
+const gp = v => !isFinite(v) ? '<span class="mut">—</span>' :
+  (v<0 ? `<span class="neg">(${F.n(Math.abs(v))})</span>` : `<span class="pos">${F.n(v)}</span>`);
+
+function sortAgg(list){ return list.sort((x,y)=>{ const a=sane(x.a.htM), b=sane(y.a.htM);
+  if(!isFinite(a)) return 1; if(!isFinite(b)) return -1; return a-b; }); }
+
 function renderDim(rows){
-  const groups = [...byDim(rows,DIM)].map(([k,v])=>({k, n:v.length, a:agg(v)})).filter(g=>g.n>0);
-  const dir = sortDim.dir;
-  groups.sort((x,y)=>{
-    const k=sortDim.k;
-    let vx,vy;
-    if(k==='nm'){ vx=x.k; vy=y.k; return dir*String(vx).localeCompare(String(vy),'vi'); }
-    if(k==='n'){ vx=x.n; vy=y.n; }
-    else if(k==='rev'){ vx=x.a.rev; vy=y.a.rev; }
-    else if(k==='htM'){ vx=x.a.htM||-1; vy=y.a.htM||-1; }
-    else if(k==='tt'){ vx=x.a.tt||-999; vy=y.a.tt||-999; }
-    else { vx=x.a[k]; vy=y.a[k]; }
-    vx = isFinite(vx)?vx:-1e9; vy = isFinite(vy)?vy:-1e9;
-    return (vx-vy)*dir;
-  });
+  const l1 = KEYOF[DIM], l2 = CHILD[DIM];
+  const mk = k => { const g=[...byDim(rows,k)].map(([key,v])=>({k:key, n:v.length, a:agg(v)})); return sortAgg(g); };
+  const tops = mk(l1);
   const t = agg(rows);
-  const th = (k,label,cls) => `<th data-k="${k}" class="${cls||''} ${sortDim.k===k?('s-'+(sortDim.dir===1?'asc':'desc')):''}">${label}</th>`;
-  const maxHT = 110;
-  const body = groups.map(g=>{
-    const a=g.a;
-    return `<tr class="clickable" data-dim="${DIM}" data-val="${String(g.k).replace(/"/g,'&quot;')}">
-      <td><div class="nm">${g.k}</div><div class="sm">${F.n(g.n)} cửa hàng</div></td>
-      <td class="num">${F.spd(a.spd)}</td>
-      <td class="num"><span class="tag ${a.tt>=0?'t-good':'t-bad'}">${F.sgn(a.tt)}</span></td>
-      <td class="num"><span class="heat" style="color:${HT0.color(sane(a.ht))}">${F.pct(sane(a.ht))}</span></td>
-      <td class="num">${F.money(a.rev)}</td>
-      <td class="num"><span class="tag ${HT0.tag(sane(a.htM))}">${F.pct(sane(a.htM))}</span><span class="bar-mini"><i style="width:${Math.max(2,Math.min(100,(a.htM/maxHT)*100))}%;background:${HT0.color(sane(a.htM))}"></i></span></td>
-      <td class="num">${F.n1(a.dio)}</td>
-      <td class="num"><span class="tag ${Math.abs(a.lossPct)>1?'t-bad':'t-warn'}">${F.pct(Math.abs(a.lossPct))}</span></td>
-      <td style="text-align:center"><span class="tag ${HT0.tag(sane(a.htM))}">${VERDICT(sane(a.htM))}</span></td>
-    </tr>`;
-  }).join('');
+
+  const cells = a => `
+    <td class="num">${F.n(a.revD)}</td>
+    <td class="num">${pv(a.tt)}</td>
+    <td class="num">${pv(a.billLV)}</td>
+    <td class="num">${pv(a.bsLV)}</td>
+    <td class="num">${F.n(a.rev)}</td>
+    <td class="num">${bdg(a.htM)}</td>
+    <td class="num">${pv(a.salesLVM)}</td>
+    <td class="num">${F.n(a.rev)}</td>
+    <td class="num">${F.n(a.tarM)}</td>
+    <td class="num">${bdg(a.htM)}</td>
+    <td class="num">${gp(a.gapM2)}</td>
+    <td class="num">${pv(a.mbLV)}</td>
+    <td class="num">${pv(a.mbsLV)}</td>`;
+
+  let body = '';
+  for(const g of tops){
+    body += `<tr class="lvl1 clickable" data-k="${l1}" data-v="${esc(g.k)}">
+      <td class="name">${g.k}<span class="cnt">${F.n(g.n)} CH</span></td>${cells(g.a)}</tr>`;
+    if(l2){
+      const sub = sortAgg([...byDim(rows.filter(r=>r[l1]===g.k), l2)].map(([key,v])=>({k:key,n:v.length,a:agg(v)})));
+      for(const c of sub){
+        body += `<tr class="lvl2 clickable" data-k="${l2}" data-v="${esc(c.k)}">
+          <td class="name">${c.k}<span class="cnt">${F.n(c.n)} CH</span></td>${cells(c.a)}</tr>`;
+      }
+    }
+  }
   document.getElementById('tDim').innerHTML = `
-    <thead><tr>
-      ${th('nm',DIMLBL[DIM]||'Địa bàn','')}
-      ${th('spd','SPD ngày')}${th('tt','%TT vs LY')}${th('ht','%HT ngày')}
-      ${th('rev','DT MTD')}${th('htM','%HT MTD')}${th('dio','DIO (ngày)')}
-      ${th('lossPct','Hủy / DT')}<th style="text-align:center;cursor:default">Đánh giá</th>
-    </tr></thead>
-    <tbody>${body||'<tr><td colspan="9" class="empty-row">Không có dữ liệu</td></tr>'}
-    <tr class="total"><td>TỔNG / TB</td><td class="num">${F.spd(t.spd)}</td>
-      <td class="num">${F.sgn(t.tt)}</td><td class="num">${F.pct(t.ht)}</td>
-      <td class="num">${F.money(t.rev)}</td><td class="num">${F.pct(t.htM)}</td>
-      <td class="num">${F.n1(t.dio)}</td><td class="num">${F.pct(Math.abs(t.lossPct))}</td><td></td></tr>
+    <thead>
+      <tr class="grp">
+        <th rowspan="2" class="name">${DIMLBL[DIM]||'Địa bàn'}</th>
+        <th colspan="4" class="gday">DAY</th>
+        <th colspan="9" class="gmtd">MTD — lũy kế tháng</th>
+      </tr>
+      <tr class="sub">
+        <th>Sales (tr)</th><th>Sales vs LY</th><th>Bill vs LY</th><th>Bill size vs LY</th>
+        <th>Sales (tr)</th><th>% MTD vs Target</th><th>Sales vs LY</th><th>RR</th><th>Target</th>
+        <th>% RR vs Target</th><th>GAP</th><th>Bill vs LY</th><th>Bill size vs LY</th>
+      </tr>
+    </thead>
+    <tbody>${body||'<tr><td colspan="14" class="empty-row">Không có dữ liệu</td></tr>'}
+      <tr class="total"><td class="name">TỔNG CỘNG<span class="cnt">${F.n(rows.length)} CH</span></td>${cells(t)}</tr>
     </tbody>`;
-  document.querySelectorAll('#tDim th[data-k]').forEach(h=>h.onclick=()=>{
-    const k=h.dataset.k;
-    if(sortDim.k===k) sortDim.dir*=-1; else { sortDim.k=k; sortDim.dir = (k==='nm'||k==='dio'||k==='lossPct')?1:-1; }
-    renderDim(currentRows());
-  });
   document.querySelectorAll('#tDim tbody tr.clickable').forEach(tr=>tr.onclick=()=>{
-    const d=tr.dataset.dim, v=tr.dataset.val;
-    if(d==='mi'){ FILT.mi=v; FILT.vu=''; FILT.ti=''; }
-    else if(d==='vu'){ FILT.vu=v; FILT.ti=''; }
-    else if(d==='ti'){ FILT.ti=v; }
-    else if(d==='gd'){ FILT.gd=v; }
-    else if(d==='ql'){ FILT.ql=v; }
-    refreshFilters(); render();
-    window.scrollTo({top:0,behavior:'smooth'});
+    const k=tr.dataset.k, v=tr.dataset.v;
+    FILT[k]=v;
+    if(k==='mi'){ FILT.vu=''; FILT.ti=''; } else if(k==='vu'){ FILT.ti=''; }
+    else if(k==='gd'){ FILT.ql=''; }
+    refreshFilters(); render(); window.scrollTo({top:0,behavior:'smooth'});
   });
 }
+const esc = s => String(s).replace(/"/g,'&quot;');
 
 /* ---- group table ---- */
 function renderGrp(rows){
