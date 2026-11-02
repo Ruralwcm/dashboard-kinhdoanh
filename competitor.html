@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="light">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Competitor chi tiết — WinMart+ Rural</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<header>
+  <div class="hl"><a class="logo" href="index.html">W</a>
+    <div><h1>Báo cáo Competitor — Chồng lấn &amp; Impact</h1><div class="sub" id="sub">Đang tải...</div></div>
+  </div>
+  <div style="display:flex;gap:8px;align-items:center">
+    <nav id="nav"></nav><button class="icon-btn" onclick="toggleTheme()">🌓</button>
+  </div>
+</header>
+
+<main>
+  <div class="kpis" id="kpis"></div>
+
+  <div class="grid g21">
+    <div class="card"><div class="ch"><h3>📉 Impact theo tuần — Threat vs Control</h3><span class="badge b-r" id="badgeW12"></span></div>
+      <div class="cw"><canvas id="cImpact" height="120"></canvas></div></div>
+    <div class="card"><div class="ch"><h3>📐 Net impact W12 theo khoảng cách</h3></div><div class="cw"><canvas id="cDist" height="230"></canvas></div></div>
+  </div>
+
+  <div class="grid g11">
+    <div class="card"><div class="ch"><h3>🛒 Thực tế · Baseline · Control</h3></div><div class="cw"><canvas id="cThree" height="185"></canvas></div></div>
+    <div class="card"><div class="ch"><h3>🏷️ Cơ cấu chồng lấn theo khoảng cách</h3></div><div class="cw"><canvas id="cPie" height="185"></canvas></div></div>
+  </div>
+
+  <div class="filters">
+    <select id="fKc"><option value="">Mọi khoảng cách</option>
+      <option value="<100m">&lt;100m</option><option value="100-300m">100–300m</option>
+      <option value="300-500m">300–500m</option><option value="500m-1km">500m–1km</option></select>
+    <select id="fGdv"><option value="">Tất cả GĐV</option></select>
+    <select id="fTinh"><option value="">Tất cả Tỉnh</option></select>
+    <input id="fSearch" placeholder="🔍 Tìm mã SAP / tên CH / tên đối thủ...">
+    <button onclick="doExport()">📥 Xuất CSV</button>
+    <span class="cnt" id="cnt"></span>
+  </div>
+
+  <div class="card" style="margin-bottom:18px">
+    <div class="ch"><h3>🔗 Danh sách cặp CH – Đối thủ (≤1km)</h3><span class="badge b-o" id="cntPair"></span></div>
+    <div class="scroll"><table id="tblPair"><thead></thead><tbody></tbody></table></div>
+    <div class="pager" id="pagerPair"></div>
+  </div>
+
+  <div class="card">
+    <div class="ch"><h3>🚨 CH bị ảnh hưởng — Net % W12</h3><span class="badge b-r" id="cntStore"></span></div>
+    <div class="scroll"><table id="tblStore"><thead></thead><tbody></tbody></table></div>
+    <div class="pager" id="pagerStore"></div>
+  </div>
+</main>
+<footer><span>© 2026 WinMart+ Rural</span><span>Nguồn: market.ra_soat_doi_thu (BHX 09/2026) · market.chong_lan_ch_doi_thu · ops.weekly_sales</span></footer>
+
+<script src="common.js"></script>
+<script>
+let D={}, PAIRS=[], STORES=[];
+buildNav('competitor.html');
+
+const PAIR_COLS=[
+  {k:'ma_sap',t:'Mã CH'},{k:'ten_ch',t:'Tên CH'},{k:'gdv',t:'GĐV'},{k:'qlkv',t:'QLKV'},
+  {k:'tinh',t:'Tỉnh'},{k:'thuong_hieu',t:'Đối thủ'},{k:'ten_dt',t:'Tên đối thủ'},
+  {k:'khoang_cach_m',t:'KC (m)',num:1,fmt:v=>fmtN(v)},
+  {k:'nhom_kc',t:'Nhóm KC',fmt:v=>`<span class="chip">${v||'—'}</span>`},
+  {k:'w0dt',t:'KH đối thủ'},
+];
+const STORE_COLS=[
+  {k:'sap',t:'Mã SAP'},{k:'name',t:'Cửa hàng'},{k:'gdv',t:'GĐV'},{k:'tinh',t:'Tỉnh'},
+  {k:'kc',t:'KC (m)',num:1,fmt:v=>fmtN(v)},
+  {k:'nhom_kc',t:'Nhóm KC',fmt:v=>`<span class="chip">${v||'—'}</span>`},
+  {k:'w0',t:'W0'},
+  {k:'base',t:'SPD base',num:1,sign:1,fmt:v=>v==null?'—':Number(v).toFixed(1)},
+  {k:'w12v',t:'SPD W12',num:1,sign:1,fmt:v=>v==null?'—':Number(v).toFixed(1)},
+  {k:'net_w4',t:'Net W4',num:1,sign:1,fmt:v=>fmtPct(v)},
+  {k:'net_w12',t:'Net W12',num:1,sign:1,fmt:v=>fmtPct(v)},
+];
+
+async function load(){
+  const [dd, db] = await Promise.all([
+    fetch('cp_detail.json?'+Date.now()).then(r=>r.json()),
+    fetch('data.json?'+Date.now()).then(r=>r.json()).catch(()=>null)
+  ]);
+  D=dd;
+  PAIRS = D.pairs.map(r=>{const o={};D.pairs_cols.forEach((c,i)=>o[c]=r[i]);
+    o.w0dt = [o.ngay_kt,o.thang_kt,o.nam_kt].every(x=>x!=null) ? `${o.ngay_kt}/${o.thang_kt}/${o.nam_kt}` : '—';
+    return o;});
+  STORES = D.stores.map(r=>{const o={};D.stores_cols.forEach((c,i)=>o[c]=r[i]);o.w12v=o.w12;return o;});
+
+  const m=D.meta||{};
+  document.getElementById('sub').textContent =
+    `${fmtN(m.overlap_stores)} CH chồng lấn · ${fmtN(m.overlap_pairs)} cặp · ${fmtN(m.threat_stores)} CH phân tích impact · cập nhật ${m.generated||''}`;
+
+  const uniq=(f)=>[...new Set(STORES.map(f).filter(Boolean))].sort((a,b)=>String(a).localeCompare(String(b),'vi'));
+  fillSel('fGdv',uniq(r=>r.gdv)); fillSel('fTinh',uniq(r=>r.tinh));
+  ['fKc','fGdv','fTinh'].forEach(id=>document.getElementById(id).onchange=applyF);
+  document.getElementById('fSearch').oninput=applyF;
+
+  renderKpis(); renderCharts();
+  window.tPair = DataTable({tableId:'tblPair',cols:PAIR_COLS,data:PAIRS,pageSize:80,sortKey:'khoang_cach_m',sortDir:1});
+  window.tStore = DataTable({tableId:'tblStore',cols:STORE_COLS,data:STORES,pageSize:80,sortKey:'net_w12',sortDir:1});
+  document.getElementById('cntPair').textContent = fmtN(PAIRS.length)+' cặp';
+  document.getElementById('cntStore').textContent = fmtN(STORES.length)+' CH';
+  applyF();
+}
+
+function fillSel(id,arr){
+  const s=document.getElementById(id), first=s.options[0].textContent;
+  s.innerHTML=`<option value="">${first}</option>`+arr.map(v=>`<option>${v}</option>`).join('');
+}
+
+function applyF(){
+  const kc=document.getElementById('fKc').value, g=document.getElementById('fGdv').value;
+  const t=document.getElementById('fTinh').value, q=document.getElementById('fSearch').value.toLowerCase().trim();
+
+  const p = PAIRS.filter(r=>(!kc||r.nhom_kc===kc)&&(!g||r.gdv===g)&&(!t||r.tinh===t)&&
+    (!q||[r.ma_sap,r.ten_ch,r.ten_dt,r.gdv].join(' ').toLowerCase().includes(q)));
+  const s = STORES.filter(r=>(!kc||r.nhom_kc===kc)&&(!g||r.gdv===g)&&(!t||r.tinh===t)&&
+    (!q||[r.sap,r.name,r.gdv].join(' ').toLowerCase().includes(q)));
+  window.tPair.setData(p); window.tStore.setData(s);
+  document.getElementById('cntPair').textContent = fmtN(p.length)+' cặp';
+  document.getElementById('cntStore').textContent = fmtN(s.length)+' CH';
+}
+
+function renderKpis(){
+  const agg=D.aggregate||{}, w12=(agg.net||[]).slice(-1)[0], gi=(agg.imp||[]).slice(-1)[0];
+  const m=D.meta||{}, bd=D.by_distance||{};
+  document.getElementById('badgeW12').textContent='Net W12: '+fmtPct(w12);
+  const cards=[
+    {l:'CH chồng lấn',v:fmtN(m.overlap_stores),c:'#ef4444',n:fmtN(m.overlap_pairs)+' cặp'},
+    {l:'CH phân tích',v:fmtN(m.threat_stores),c:'#f59e0b',n:'đủ baseline + control'},
+    {l:'Net impact W12',v:fmtPct(w12),c:w12<0?'#ef4444':'#10b981',n:'đã trừ control'},
+    {l:'Gross impact W12',v:fmtPct(gi),c:'#f59e0b',n:'so baseline'},
+    {l:'<100m',v:fmtPct(bd['<100m']?.avg_net_w12),c:'#dc2626',n:(bd['<100m']?.stores||0)+' CH'},
+    {l:'500m–1km',v:fmtPct(bd['500m-1km']?.avg_net_w12),c:'#8b5cf6',n:(bd['500m-1km']?.stores||0)+' CH'},
+  ];
+  document.getElementById('kpis').innerHTML=cards.map(c=>
+    `<div class="kpi" style="--c:${c.c}"><div class="lbl">${c.l}</div><div class="val" style="color:${c.c}">${c.v}</div><div class="note">${c.n}</div></div>`).join('');
+}
+
+function renderCharts(){
+  const agg=D.aggregate||{}, weeks=agg.weeks||[];
+  mk('cImpact','line',{labels:weeks,datasets:[
+    {label:'Net % (Threat − Control)',data:agg.net,borderColor:'#ef4444',backgroundColor:'#ef444415',
+      fill:true,tension:.3,borderWidth:2.5,pointRadius:3,pointBackgroundColor:'#ef4444'},
+    {label:'Gross % (so baseline)',data:agg.imp,borderColor:'#f59e0b',borderDash:[5,4],tension:.3,borderWidth:1.8,pointRadius:0}
+  ]},{plugins:{legend:{position:'top',labels:{usePointStyle:true,boxWidth:8}}},scales:{y:{ticks:{callback:v=>v+'%'}}}});
+
+  const bd=D.by_distance||{}, keys=['<100m','100-300m','300-500m','500m-1km'].filter(k=>bd[k]);
+  mk('cDist','bar',{labels:keys,datasets:[{label:'Net % W12',data:keys.map(k=>bd[k].avg_net_w12),
+    backgroundColor:['#dc2626','#ef4444','#f59e0b','#10b981']}]},
+    {plugins:{legend:{display:false},tooltip:{callbacks:{afterLabel:c=>`${bd[keys[c.dataIndex]].stores} CH`}}},
+     scales:{y:{ticks:{callback:v=>v+'%'}}}});
+
+  mk('cThree','line',{labels:weeks,datasets:[
+    {label:'Thực tế',data:agg.act,borderColor:'#3b82f6',tension:.3,borderWidth:2,pointRadius:0},
+    {label:'Baseline',data:agg.base,borderColor:'#94a3b8',borderDash:[4,4],borderWidth:1.5,pointRadius:0},
+    {label:'Control',data:agg.ctrl,borderColor:'#10b981',tension:.3,borderWidth:1.5,pointRadius:0}
+  ]},{plugins:{legend:{position:'top',labels:{usePointStyle:true,boxWidth:8}}}});
+
+  // pie: count stores by KC bucket
+  const cnt={}; STORES.forEach(s=>{cnt[s.nhom_kc]=(cnt[s.nhom_kc]||0)+1});
+  const order=['<100m','100-300m','300-500m','500m-1km'].filter(k=>cnt[k]);
+  mk('cPie','doughnut',{labels:order,datasets:[{data:order.map(k=>cnt[k]),
+    backgroundColor:['#dc2626','#ef4444','#f59e0b','#10b981'],borderWidth:0}]},
+    {plugins:{legend:{position:'bottom',labels:{boxWidth:10,font:{size:11}}}}});
+}
+
+function doExport(){
+  const kc=document.getElementById('fKc').value, g=document.getElementById('fGdv').value;
+  const t=document.getElementById('fTinh').value, q=document.getElementById('fSearch').value.toLowerCase().trim();
+  const out=STORES.filter(r=>(!kc||r.nhom_kc===kc)&&(!g||r.gdv===g)&&(!t||r.tinh===t)&&
+    (!q||[r.sap,r.name,r.gdv].join(' ').toLowerCase().includes(q)));
+  exportCsv('competitor_impact_'+new Date().toISOString().slice(0,10)+'.csv', STORE_COLS, out);
+}
+
+load();
+</script>
+</body></html>
