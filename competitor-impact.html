@@ -17,9 +17,7 @@
 </header>
 
 <div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:12.5px;color:#92400e">
-  ⚙️ <b>Bản tính lại</b> — danh sách đối thủ BHX 09/2026 (3,907 CH) + sales tới 30/10/2026 · phương pháp Threat vs Control · <b>Control: ưu tiên cùng Huyện nếu ≥5 CH, ngược lại cùng Tỉnh</b> (rule chốt 02/11).
-  Bản gốc (logic chuẩn) tại <a href="competitor.html" style="color:#92400e;font-weight:700">⚔️ Competitor</a>.
-</div>
+  ⚙️ <b>Mở rộng phạm vi</b> — <b>toàn bộ 3.907 đối thủ BHX</b> (mọi năm khai trương) × <b>toàn bộ 2.910 cửa hàng</b> · sales tới 30/10/2026 · Control: <b>cùng Huyện nếu ≥5 CH, ngược lại cùng Tỉnh</b>. Bản gốc (logic chuẩn của anh Hảo) tại <a href="competitor.html" style="color:#92400e;font-weight:700">⚔️ Competitor</a>.</div>
 <main>
   <div class="kpis" id="kpis"></div>
 
@@ -40,6 +38,12 @@
       <option value="300-500m">300–500m</option><option value="500m-1km">500m–1km</option></select>
     <select id="fGdv"><option value="">Tất cả GĐV</option></select>
     <select id="fTinh"><option value="">Tất cả Tỉnh</option></select>
+    <select id="fStatus"><option value="">Mọi trạng thái</option>
+      <option value="computed">Đã tính được</option>
+      <option value="no_control">Thiếu control (≥5)</option>
+      <option value="no_baseline">Thiếu baseline</option>
+      <option value="no_sales">Không có sales</option>
+    </select>
     <input id="fSearch" placeholder="🔍 Tìm mã SAP / tên CH / tên đối thủ...">
     <button onclick="doExport()">📥 Xuất CSV</button>
     <span class="cnt" id="cnt"></span>
@@ -80,6 +84,10 @@ const STORE_COLS=[
   {k:'w12v',t:'SPD W12',num:1,sign:1,fmt:v=>v==null?'—':Number(v).toFixed(1)},
   {k:'net_w4',t:'Net W4',num:1,sign:1,fmt:v=>fmtPct(v)},
   {k:'net_w12',t:'Net W12',num:1,sign:1,fmt:v=>fmtPct(v)},
+  {k:'status',t:'Trạng thái',fmt:v=>{
+    const map={computed:['Đã tính','g'],no_control:['Thiếu control','o'],
+      no_baseline:['Thiếu baseline','r'],no_sales:['Không có sales','r'],too_recent:['Quá mới','o'],bad_date:['Ngày lỗi','r']};
+    const [t,c]=map[v]||[v,'']; return `<span class="chip ${c}">${t}</span>`;}},
 ];
 
 async function load(){
@@ -94,12 +102,13 @@ async function load(){
   STORES = D.stores.map(r=>{const o={};D.stores_cols.forEach((c,i)=>o[c]=r[i]);o.w12v=o.w12;return o;});
 
   const m=D.meta||{};
+  const cov=D.coverage||{};
   document.getElementById('sub').textContent =
-    `${fmtN(m.overlap_stores)} CH chồng lấn · ${fmtN(m.overlap_pairs)} cặp · ${fmtN(m.threat_stores)} CH phân tích impact · cập nhật ${m.generated||''}`;
+    `Toàn bộ ${fmtN(cov.competitor_stores_total)} đối thủ × ${fmtN(cov.stores_total)} CH · ${fmtN(m.overlap_pairs)} cặp ≤1km · ${fmtN(cov.stores_with_threat)} CH bị ảnh hưởng · ${fmtN(cov.computed)} tính được impact · ${m.generated||''}`;
 
   const uniq=(f)=>[...new Set(STORES.map(f).filter(Boolean))].sort((a,b)=>String(a).localeCompare(String(b),'vi'));
   fillSel('fGdv',uniq(r=>r.gdv)); fillSel('fTinh',uniq(r=>r.tinh));
-  ['fKc','fGdv','fTinh'].forEach(id=>document.getElementById(id).onchange=applyF);
+  ['fKc','fGdv','fTinh','fStatus'].forEach(id=>document.getElementById(id).onchange=applyF);
   document.getElementById('fSearch').oninput=applyF;
 
   renderKpis(); renderCharts();
@@ -118,10 +127,11 @@ function fillSel(id,arr){
 function applyF(){
   const kc=document.getElementById('fKc').value, g=document.getElementById('fGdv').value;
   const t=document.getElementById('fTinh').value, q=document.getElementById('fSearch').value.toLowerCase().trim();
+  const st=document.getElementById('fStatus').value;
 
   const p = PAIRS.filter(r=>(!kc||r.nhom_kc===kc)&&(!g||r.gdv===g)&&(!t||r.tinh===t)&&
     (!q||[r.ma_sap,r.ten_ch,r.ten_dt,r.gdv].join(' ').toLowerCase().includes(q)));
-  const s = STORES.filter(r=>(!kc||r.nhom_kc===kc)&&(!g||r.gdv===g)&&(!t||r.tinh===t)&&
+  const s = STORES.filter(r=>(!kc||r.nhom_kc===kc)&&(!g||r.gdv===g)&&(!t||r.tinh===t)&&(!st||r.status===st)&&
     (!q||[r.sap,r.name,r.gdv].join(' ').toLowerCase().includes(q)));
   window.tPair.setData(p); window.tStore.setData(s);
   document.getElementById('cntPair').textContent = fmtN(p.length)+' cặp';
@@ -129,16 +139,16 @@ function applyF(){
 }
 
 function renderKpis(){
-  const agg=D.aggregate||{}, w12=(agg.net||[]).slice(-1)[0], gi=(agg.imp||[]).slice(-1)[0];
-  const m=D.meta||{}, bd=D.by_distance||{};
-  document.getElementById('badgeW12').textContent='Net W12: '+fmtPct(w12);
+  const cov=D.coverage||{}, st=cov.status||{}, bd=D.by_distance||{};
+  const w12=(D.aggregate&&D.aggregate.net)?D.aggregate.net.slice(-1)[0]:null;
+  const gi=(D.aggregate&&D.aggregate.imp)?D.aggregate.imp.slice(-1)[0]:null;
   const cards=[
-    {l:'CH chồng lấn',v:fmtN(m.overlap_stores),c:'#ef4444',n:fmtN(m.overlap_pairs)+' cặp'},
-    {l:'CH phân tích',v:fmtN(m.threat_stores),c:'#f59e0b',n:'đủ baseline + control'},
+    {l:'Cửa hàng (tổng)',v:fmtN(cov.stores_total),c:'#3b82f6',n:fmtN(cov.stores_active)+' đang hoạt động'},
+    {l:'CH có đối thủ ≤1km',v:fmtN(cov.stores_with_threat),c:'#ef4444',n:(cov.pct_active_affected||0)+'% CH active'},
+    {l:'CH tính được impact',v:fmtN(cov.computed),c:'#f59e0b',n:(cov.pct_trackable||0)+'% số CH bị ảnh hưởng'},
     {l:'Net impact W12',v:fmtPct(w12),c:w12<0?'#ef4444':'#10b981',n:'đã trừ control'},
     {l:'Gross impact W12',v:fmtPct(gi),c:'#f59e0b',n:'so baseline'},
-    {l:'<100m',v:fmtPct(bd['<100m']?.avg_net_w12),c:'#dc2626',n:(bd['<100m']?.stores||0)+' CH'},
-    {l:'500m–1km',v:fmtPct(bd['500m-1km']?.avg_net_w12),c:'#8b5cf6',n:(bd['500m-1km']?.stores||0)+' CH'},
+    {l:'<100m',v:fmtPct(bd['<100m']?.avg_net_w12),c:'#dc2626',n:(bd['<100m']?.stores||0)+' CH tính được'},
   ];
   document.getElementById('kpis').innerHTML=cards.map(c=>
     `<div class="kpi" style="--c:${c.c}"><div class="lbl">${c.l}</div><div class="val" style="color:${c.c}">${c.v}</div><div class="note">${c.n}</div></div>`).join('');
