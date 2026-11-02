@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="light">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DailySale chi tiết — WinMart+ Rural</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<header>
+  <div class="hl"><a class="logo" href="index.html">W</a>
+    <div><h1>Báo cáo DailySale chi tiết</h1><div class="sub" id="sub">Đang tải...</div></div>
+  </div>
+  <div style="display:flex;gap:8px;align-items:center">
+    <nav id="nav"></nav>
+    <button class="icon-btn" onclick="toggleTheme()">🌓</button>
+  </div>
+</header>
+
+<main>
+  <div class="kpis" id="kpis"></div>
+
+  <div class="grid g21">
+    <div class="card"><div class="ch"><h3>📊 Doanh thu theo ngày (60 ngày)</h3></div><div class="cw"><canvas id="cDaily" height="105"></canvas></div></div>
+    <div class="card"><div class="ch"><h3>🎯 % Đạt target theo GĐV</h3></div><div class="cw"><canvas id="cTarget" height="230"></canvas></div></div>
+  </div>
+
+  <div class="filters">
+    <select id="fMien"><option value="">Tất cả Miền</option></select>
+    <select id="fGdv"><option value="">Tất cả GĐV</option></select>
+    <select id="fTinh"><option value="">Tất cả Tỉnh</option></select>
+    <select id="fStatus"><option value="">Mọi trạng thái</option></select>
+    <input id="fSearch" placeholder="🔍 Tìm mã SAP / tên CH / QLKV...">
+    <button onclick="doExport()">📥 Xuất CSV</button>
+    <span class="cnt" id="cnt"></span>
+  </div>
+
+  <div class="card">
+    <div class="ch"><h3>📋 Bảng DailySale — chi tiết theo cửa hàng</h3>
+      <span class="badge b-g" id="note">SPD: trđ/ngày · SL: trđ</span></div>
+    <div class="scroll"><table id="tbl"><thead></thead><tbody></tbody></table></div>
+    <div class="pager" id="pager"></div>
+  </div>
+</main>
+<footer><span>© 2026 WinMart+ Rural</span><span>Nguồn: ops.daily_sale_v7 · nhấn tiêu đề cột để sắp xếp</span></footer>
+
+<script src="common.js"></script>
+<script>
+let D={}, COLS=[], RAW=[], OV={};
+buildNav('dailysale.html');
+
+const COLS_DEF=[
+  {k:'sap',   t:'Mã SAP'},
+  {k:'name',  t:'Cửa hàng'},
+  {k:'mien',  t:'Miền'},
+  {k:'tinh',  t:'Tỉnh'},
+  {k:'gdv',   t:'GĐV'},
+  {k:'qlkv',  t:'QLKV'},
+  {k:'nhomdt',t:'Nhóm DT'},
+  {k:'d_spd', t:'SPD ngày', num:1, sign:1, fmt:v=>v==null?'—':Number(v).toFixed(1)},
+  {k:'d_bill',t:'Bill/ngày', num:1, sign:1, fmt:v=>fmtN(v)},
+  {k:'w_spd', t:'SPD tuần', num:1, sign:1, fmt:v=>v==null?'—':Number(v).toFixed(1)},
+  {k:'m_spd', t:'SPD tháng', num:1, sign:1, fmt:v=>v==null?'—':Number(v).toFixed(1)},
+  {k:'ytd_spd',t:'SPD YTD', num:1, sign:1, fmt:v=>v==null?'—':Number(v).toFixed(1)},
+  {k:'mtd_rev',t:'MTD Rev', num:1, sign:1, fmt:v=>fmtB(v)},
+  {k:'mtd_target',t:'Target MTD', num:1, sign:1, fmt:v=>fmtB(v)},
+  {k:'ach',   t:'% Đạt', num:1, fmt:v=>v==null?'—':v.toFixed(1)+'%', clsFn:v=>v==null?'':(v>=100?'pos':v>=90?'':'neg')},
+  {k:'shrink',t:'Shrinkage', num:1, sign:1, fmt:v=>fmtB(v)},
+  {k:'loss',  t:'Loss', num:1, sign:1, fmt:v=>fmtB(v)},
+  {k:'total_sl',t:'Tổng S&L', num:1, sign:1, fmt:v=>fmtB(v)},
+  {k:'stock', t:'Tồn kho', num:1, sign:1, fmt:v=>fmtB(v)},
+  {k:'dio',   t:'DIO (ngày)', num:1, sign:1, fmt:v=>v==null?'—':Number(v).toFixed(0)},
+  {k:'doithu',t:'Đối thủ'},
+];
+
+async function load(){
+  const [dd, db] = await Promise.all([
+    fetch('ds_detail.json?'+Date.now()).then(r=>r.json()),
+    fetch('data.json?'+Date.now()).then(r=>r.json()).catch(()=>null)
+  ]);
+  D=dd; OV=db||{};
+  // map rows -> objects
+  RAW = D.rows.map(r=>{
+    const o={}; D.cols.forEach((c,i)=>o[c]=r[i]);
+    o.ach = (o.mtd_target>0 && o.mtd_rev!=null) ? o.mtd_rev/o.mtd_target*100 : null;
+    o.dio = (o.cogs30>0 && o.stock!=null) ? o.stock/o.cogs30 : null;
+    return o;
+  });
+  COLS = COLS_DEF;
+
+  document.getElementById('sub').textContent =
+    `${fmtN(RAW.length)} cửa hàng · dữ liệu Daily Sale V7 (20/10/2026)`;
+
+  // filters
+  const uniq=(f)=>[...new Set(RAW.map(f).filter(Boolean))].sort((a,b)=>String(a).localeCompare(String(b),'vi'));
+  fill('fMien',uniq(r=>r.mien)); fill('fGdv',uniq(r=>r.gdv));
+  fill('fTinh',uniq(r=>r.tinh)); fill('fStatus',uniq(r=>r.ttrang));
+  ['fMien','fGdv','fTinh','fStatus'].forEach(id=>document.getElementById(id).onchange=applyFilter);
+  document.getElementById('fSearch').oninput=applyFilter;
+
+  renderKpis(RAW); renderCharts();
+  window.__tbl = DataTable({tableId:'tbl', pagerId:'pager', cols:COLS, data:RAW, pageSize:100, sortKey:'d_spd', sortDir:-1});
+}
+
+function fill(id,arr){
+  const s=document.getElementById(id);
+  const first=s.options[0].textContent;
+  s.innerHTML=`<option value="">${first}</option>`+arr.map(v=>`<option>${v}</option>`).join('');
+}
+
+function applyFilter(){
+  const m=document.getElementById('fMien').value, g=document.getElementById('fGdv').value;
+  const t=document.getElementById('fTinh').value, st=document.getElementById('fStatus').value;
+  const q=document.getElementById('fSearch').value.toLowerCase().trim();
+  const out=RAW.filter(r=>
+    (!m||r.mien===m)&&(!g||r.gdv===g)&&(!t||r.tinh===t)&&(!st||r.ttrang===st)&&
+    (!q || [r.sap,r.name,r.qlkv,r.gdv,r.tinh].join(' ').toLowerCase().includes(q)));
+  window.__tbl.setData(out);
+  renderKpis(out);
+}
+
+function renderKpis(rows){
+  const sum=(f)=>rows.reduce((s,r)=>s+(r[f]||0),0);
+  const spd=sum('d_spd'), rev=sum('mtd_rev'), tgt=sum('mtd_target');
+  const sl=sum('total_sl'), stock=sum('stock');
+  const ach = tgt>0? rev/tgt*100 : null;
+  const cards=[
+    {l:'Số cửa hàng',v:fmtN(rows.length),c:'#3b82f6',n:'theo bộ lọc'},
+    {l:'Tổng SPD/ngày',v:fmtB(spd),c:'#10b981',n:`TB ${(spd/(rows.length||1)).toFixed(1)} tr/CH`},
+    {l:'MTD Revenue',v:fmtB(rev),c:'#8b5cf6',n:'lũy kế tháng'},
+    {l:'% Đạt target',v:ach?ach.toFixed(1)+'%':'—',c:ach>=100?'#10b981':ach>=90?'#f59e0b':'#ef4444',n:'MTD / Target MTD'},
+    {l:'Tổng S&L',v:fmtB(sl),c:sl<0?'#ef4444':'#10b981',n:'Shrink + Loss + Coupon'},
+    {l:'Tồn kho',v:fmtB(stock),c:'#f59e0b',n:'Stock CD'},
+  ];
+  document.getElementById('kpis').innerHTML=cards.map(c=>
+    `<div class="kpi" style="--c:${c.c}"><div class="lbl">${c.l}</div><div class="val" style="color:${c.c}">${c.v}</div><div class="note">${c.n}</div></div>`).join('');
+}
+
+function renderCharts(){
+  const dl=OV.daily30||[];
+  mk('cDaily','line',{labels:dl.map(x=>{const d=new Date(x.d);return d.getDate()+'/'+(d.getMonth()+1)}),
+    datasets:[{label:'Doanh thu (trđ)',data:dl.map(x=>x.rev),borderColor:'#3b82f6',
+      backgroundColor:'#3b82f622',fill:true,tension:.3,pointRadius:0,borderWidth:2}]},
+    {plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>(v/1000).toFixed(1)+' tỷ'}}}});
+
+  const gs=(OV.gdv_spd||[]);
+  mk('cTarget','bar',{labels:gs.map(g=>g.gdv),
+    datasets:[{label:'% đạt MTD',data:gs.map(g=>g.pct_target),
+      backgroundColor:gs.map(g=>g.pct_target>=100?'#10b981cc':g.pct_target>=90?'#f59e0bcc':'#ef4444cc')}]},
+    {indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{max:130,ticks:{callback:v=>v+'%'}}}});
+}
+
+function doExport(){
+  const rows=[]; // export current filtered view
+  const tbl=document.getElementById('tbl');
+  const data=window.__tbl ? RAW.filter(()=>true) : RAW;
+  // rebuild filter
+  const m=document.getElementById('fMien').value, g=document.getElementById('fGdv').value;
+  const t=document.getElementById('fTinh').value, st=document.getElementById('fStatus').value;
+  const q=document.getElementById('fSearch').value.toLowerCase().trim();
+  const out=RAW.filter(r=>
+    (!m||r.mien===m)&&(!g||r.gdv===g)&&(!t||r.tinh===t)&&(!st||r.ttrang===st)&&
+    (!q || [r.sap,r.name,r.qlkv,r.gdv,r.tinh].join(' ').toLowerCase().includes(q)));
+  exportCsv('dailysale_'+new Date().toISOString().slice(0,10)+'.csv', COLS, out);
+}
+
+load();
+</script>
+</body></html>
