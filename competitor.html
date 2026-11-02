@@ -239,6 +239,35 @@ table th{color:var(--ink-2)}
 .mst-nav a:hover{background:rgba(255,255,255,.2);color:#fff}
 .mst-nav a.on{background:#fff;color:#0b1b4d;border-color:#fff}
 </style>
+
+<style>
+/* ══ HEADER CHUẨN DASHBOARD (02/11/2026): 1 hàng 62px, nav 4 mục bên phải ══ */
+:root{--hh:62px}
+html,body{height:100%}
+body{overflow:hidden}
+.page{max-width:none;height:100vh;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.mast{position:sticky;top:0;z-index:100;height:var(--hh);min-height:var(--hh);padding:0 22px;
+      display:flex;align-items:center;gap:14px;flex-wrap:nowrap;overflow:hidden;
+      background:linear-gradient(120deg,#0b1b4d 0%,#1e3a8a 100%)}
+.mast h1{font-size:16px;font-weight:700;color:#fff;margin:0;letter-spacing:-.2px;
+         display:flex;align-items:center;gap:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:44vw}
+.mast .sub{display:none}
+.mast .mst-nav{margin-left:auto;padding:0;border:none;background:transparent;flex-wrap:nowrap;gap:5px}
+.mst-nav a{display:inline-flex;align-items:center;justify-content:center;height:32px;padding:0 12px;font-size:12px;line-height:1;white-space:nowrap;box-sizing:border-box}
+.ver-badge{font-size:10px;font-weight:600;padding:1px 7px;border-radius:8px;margin-left:0;
+           background:rgba(255,255,255,.16);color:#fff;border:1px solid rgba(255,255,255,.22)}
+.vtabs{position:static;padding:0 22px}
+.filter-bar-full{position:static;padding:9px 22px}
+.content-grid{flex:1 1 auto;min-height:0;overflow:auto;padding:12px 22px 18px}
+@media(max-width:1100px){
+  html,body{height:auto}
+  body{overflow:auto}
+  .page{height:auto;overflow:visible}
+  .mast{height:auto;min-height:var(--hh);flex-wrap:wrap;padding:8px 14px}
+  .mast h1{max-width:none;white-space:normal}
+  .content-grid{overflow:visible}
+}
+</style>
 </head>
 <body>
 <div class="page">
