@@ -82,7 +82,7 @@ async function load(){
   document.getElementById('fSearch').oninput=applyF;
 
   renderCharts();
-  window.tbl = DataTable({tableId:'tbl',cols:COLS,data:ROWS,pageSize:100,sortKey:'total',sortDir:1});
+  window.tbl = DataTable({tableId:'tbl',pagerId:'pager',cols:COLS,data:ROWS,pageSize:100,sortKey:'total',sortDir:1});
   applyF();
 }
 
