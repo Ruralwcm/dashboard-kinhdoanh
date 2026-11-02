@@ -1,346 +1,145 @@
 <!DOCTYPE html>
 <html lang="vi" data-theme="light">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard Kinh Doanh — WinMart+ Rural</title>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tổng quan kinh doanh — WinMart+ Rural</title>
+<link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<style>
-:root{
-  --bg:#f2f4f8;--card:#fff;--text:#0f1e3d;--text2:#64748b;--border:#e2e8f0;
-  --navy:#0b1b4d;--navy2:#1e3a8a;--accent:#10b981;--accent2:#f59e0b;
-  --red:#ef4444;--redbg:#fee2e2;--greenbg:#d1fae5;--orangebg:#fef3c7;
-  --shadow:0 1px 3px rgba(15,30,61,.08),0 4px 12px rgba(15,30,61,.04);
-  --radius:14px;
-}
-[data-theme="dark"]{
-  --bg:#0a1224;--card:#141f38;--text:#e8eefc;--text2:#8ba0c4;--border:#22304d;
-  --redbg:#5c1a1a55;--greenbg:#0d4a3a55;--orangebg:#5c421a55;
-  --shadow:0 1px 3px rgba(0,0,0,.4),0 4px 12px rgba(0,0,0,.3);
-}
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased}
-header{background:linear-gradient(120deg,var(--navy) 0%,var(--navy2) 100%);color:#fff;padding:14px 28px;display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;position:sticky;top:0;z-index:100;box-shadow:0 4px 20px rgba(11,27,77,.25)}
-.hl{display:flex;align-items:center;gap:14px}
-.logo{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#10b981,#059669);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;box-shadow:0 4px 12px rgba(16,185,129,.35)}
-h1{font-size:17px;font-weight:700;letter-spacing:-.3px}
-.sub{font-size:11px;opacity:.7;margin-top:2px}
-.hr{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-select,button{padding:8px 14px;border-radius:9px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.1);color:#fff;font-size:13px;cursor:pointer;font-family:inherit;transition:.15s}
-select:hover,button:hover{background:rgba(255,255,255,.2)}
-select option{color:#0f1e3d;background:#fff}
-.btn-g{background:linear-gradient(135deg,#10b981,#059669)!important;border:none!important;font-weight:600}
-.icon-btn{width:38px;height:38px;padding:0;font-size:16px}
-main{padding:22px 28px;max-width:1640px;margin:0 auto}
-.tabs{display:flex;gap:6px;margin-bottom:18px;background:var(--card);padding:6px;border-radius:12px;box-shadow:var(--shadow);width:fit-content}
-.tab{padding:9px 20px;border-radius:8px;font-size:13.5px;font-weight:600;cursor:pointer;color:var(--text2);border:none;background:none;transition:.15s}
-.tab.on{background:linear-gradient(135deg,var(--navy),var(--navy2));color:#fff;box-shadow:0 2px 8px rgba(11,27,77,.25)}
-.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:18px}
-.kpi{background:var(--card);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow);border:1px solid var(--border);position:relative;overflow:hidden}
-.kpi::after{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--c,#3b82f6)}
-.kpi .lbl{font-size:11px;color:var(--text2);text-transform:uppercase;font-weight:700;letter-spacing:.6px}
-.kpi .val{font-size:25px;font-weight:800;letter-spacing:-.8px;margin-top:5px}
-.kpi .note{font-size:11.5px;color:var(--text2);margin-top:3px}
-.grid{display:grid;gap:18px;margin-bottom:18px}
-.g21{grid-template-columns:2fr 1fr}
-.g11{grid-template-columns:1fr 1fr}
-.g3{grid-template-columns:repeat(3,1fr)}
-.card{background:var(--card);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow);border:1px solid var(--border)}
-.ch{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:10px;flex-wrap:wrap}
-.ch h3{font-size:14.5px;font-weight:700}
-.badge{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:700}
-.b-g{background:var(--greenbg);color:#059669}.b-r{background:var(--redbg);color:#dc2626}.b-o{background:var(--orangebg);color:#d97706}
-.cw{position:relative;width:100%}
-table{width:100%;border-collapse:collapse;font-size:12.5px}
-th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
-th{color:var(--text2);font-size:10.5px;text-transform:uppercase;font-weight:700;letter-spacing:.5px}
-tbody tr:hover{background:rgba(59,130,246,.05);cursor:pointer}
-.neg{color:#ef4444;font-weight:700}.pos{color:#10b981;font-weight:700}
-.scroll{max-height:420px;overflow:auto}
-.loading{padding:50px;text-align:center;color:var(--text2)}
-footer{border-top:1px solid var(--border);padding:12px 28px;display:flex;justify-content:space-between;font-size:11.5px;color:var(--text2);flex-wrap:wrap;gap:8px}
-.chip{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600;background:var(--bg);border:1px solid var(--border)}
-@media(max-width:1250px){.g21,.g11,.g3{grid-template-columns:1fr}}
-@media(max-width:760px){header{flex-direction:column;align-items:stretch}.kpis{grid-template-columns:repeat(2,1fr)}main{padding:14px}}
-</style>
 </head>
 <body>
 <header>
-  <div class="hl">
-    <div class="logo">W</div>
-    <div>
-      <h1>Dashboard Kinh Doanh — WinMart+ Rural</h1>
-      <div class="sub" id="sub">Đang tải...</div>
-    </div>
+  <div class="hl"><a class="logo" href="index.html">W</a>
+    <div><h1>Dashboard Kinh Doanh — Tổng quan</h1><div class="sub" id="sub">Đang tải...</div></div>
   </div>
-  <div class="hr">
-    <select id="fGdv" onchange="renderOverview()"><option value="">Tất cả GĐV</option></select>
-    <select id="fDist" onchange="renderImpact()">
-      <option value="">Mọi khoảng cách</option>
-      <option value="<100m">&lt;100m</option><option value="100-300m">100–300m</option>
-      <option value="300-500m">300–500m</option><option value="500m-1km">500m–1km</option>
-    </select>
-    <button class="btn-g" onclick="exportCsv()">📥 Xuất CSV</button>
-    <button class="icon-btn" onclick="toggleTheme()">🌓</button>
+  <div style="display:flex;gap:8px;align-items:center">
+    <nav id="nav"></nav><button class="icon-btn" onclick="toggleTheme()">🌓</button>
   </div>
 </header>
 
 <main>
-  <div class="tabs">
-    <button class="tab on" data-tab="ov" onclick="switchTab('ov')">📊 Tổng quan kinh doanh</button>
-    <button class="tab" data-tab="cp" onclick="switchTab('cp')">⚔️ Đối thủ &amp; Chồng lấn</button>
+  <div class="kpis" id="kpis"></div>
+
+  <div class="grid g21">
+    <div class="card"><div class="ch"><h3>📈 Doanh thu theo ngày (60 ngày gần nhất)</h3><span class="badge b-g" id="dataBadge"></span></div>
+      <div class="cw"><canvas id="cDaily" height="110"></canvas></div></div>
+    <div class="card"><div class="ch"><h3>🎯 % Đạt target theo GĐV</h3></div><div class="cw"><canvas id="cTarget" height="235"></canvas></div></div>
   </div>
 
-  <!-- ============ TAB OVERVIEW ============ -->
-  <section id="tab-ov">
-    <div class="kpis" id="kpis"></div>
-    <div class="grid g21">
-      <div class="card"><div class="ch"><h3>📈 Doanh thu theo ngày (60 ngày gần nhất)</h3><span class="badge b-g">Dữ liệu tới 30/10/2026</span></div><div class="cw"><canvas id="cDaily" height="110"></canvas></div></div>
-      <div class="card"><div class="ch"><h3>🎯 % Đạt target theo GĐV</h3></div><div class="cw"><canvas id="cTarget" height="240"></canvas></div></div>
-    </div>
-    <div class="grid g11">
-      <div class="card"><div class="ch"><h3>🏪 SPD theo GĐV (trđ/ngày)</h3></div><div class="cw"><canvas id="cSpd" height="260"></canvas></div></div>
-      <div class="card"><div class="ch"><h3>📍 Top tỉnh theo doanh thu (30 ngày)</h3></div><div class="cw"><canvas id="cProv" height="260"></canvas></div></div>
-    </div>
-    <div class="grid g21">
-      <div class="card"><div class="ch"><h3>📊 Doanh thu theo tháng</h3></div><div class="cw"><canvas id="cMonth" height="130"></canvas></div></div>
-      <div class="card"><div class="ch"><h3>💸 Shrinkage &amp; Loss theo GĐV</h3></div><div class="cw"><canvas id="cSL" height="150"></canvas></div></div>
-    </div>
-  </section>
+  <div class="grid g11">
+    <div class="card"><div class="ch"><h3>🏪 SPD theo GĐV (trđ/ngày)</h3><a href="dailysale.html" style="font-size:12px;color:#3b82f6;text-decoration:none;font-weight:600">Chi tiết →</a></div>
+      <div class="cw"><canvas id="cSpd" height="255"></canvas></div></div>
+    <div class="card"><div class="ch"><h3>📍 Top tỉnh theo doanh thu (30 ngày)</h3></div><div class="cw"><canvas id="cProv" height="255"></canvas></div></div>
+  </div>
 
-  <!-- ============ TAB COMPETITOR ============ -->
-  <section id="tab-cp" style="display:none">
-    <div class="kpis" id="kpisCp"></div>
-    <div class="grid g21">
-      <div class="card">
-        <div class="ch"><h3>📉 Impact theo tuần — Threat vs Control</h3><span class="badge b-r" id="netBadge"></span></div>
-        <div class="cw"><canvas id="cImpact" height="120"></canvas></div>
-        <div style="font-size:11.5px;color:var(--text2);margin-top:10px;line-height:1.6">
-          <b>Net %</b> = (Thực tế − Baseline)/Baseline − (Control tuần này − Control baseline)/Control baseline.
-          Baseline = trung bình 8 tuần trước W0 (tuần đối thủ khai trương). Control = CH cùng huyện/tỉnh, không chồng lấn ≤1km.
-        </div>
-      </div>
-      <div class="card"><div class="ch"><h3>📐 Net impact W12 theo khoảng cách</h3></div><div class="cw"><canvas id="cDist" height="240"></canvas></div></div>
-    </div>
-    <div class="grid g3">
-      <div class="card"><div class="ch"><h3>🛒 Thực tế vs Baseline vs Control</h3></div><div class="cw"><canvas id="cThree" height="200"></canvas></div></div>
-      <div class="card"><div class="ch"><h3>🏷️ Cơ cấu CH chồng lấn theo khoảng cách</h3></div><div class="cw"><canvas id="cOverlapPie" height="200"></canvas></div></div>
-      <div class="card"><div class="ch"><h3>🗺️ Top tỉnh có CH chồng lấn</h3></div><div class="cw"><canvas id="cTinh" height="200"></canvas></div></div>
-    </div>
-    <div class="card">
-      <div class="ch"><h3>🚨 CH bị ảnh hưởng nặng nhất (Net % W12)</h3><span class="badge b-o" id="topCnt"></span></div>
-      <div class="scroll"><table id="tblTop"><thead><tr>
-        <th>Mã SAP</th><th>Cửa hàng</th><th>GĐV</th><th>Tỉnh</th><th>KC đối thủ</th><th>Nhóm KC</th><th>W0</th><th>SPD base</th><th>SPD hiện tại</th><th>Net %</th>
-      </tr></thead><tbody></tbody></table></div>
-    </div>
-  </section>
+  <div class="grid g21">
+    <div class="card"><div class="ch"><h3>📊 Doanh thu theo tháng</h3></div><div class="cw"><canvas id="cMonth" height="130"></canvas></div></div>
+    <div class="card"><div class="ch"><h3>💸 Shrinkage &amp; Loss theo GĐV</h3><a href="shrinkloss.html" style="font-size:12px;color:#3b82f6;text-decoration:none;font-weight:600">Chi tiết →</a></div>
+      <div class="cw"><canvas id="cSL" height="150"></canvas></div></div>
+  </div>
+
+  <div class="grid g21">
+    <div class="card"><div class="ch"><h3>📉 Impact đối thủ theo tuần — Net vs Gross</h3><a href="competitor.html" style="font-size:12px;color:#3b82f6;text-decoration:none;font-weight:600">Chi tiết →</a></div>
+      <div class="cw"><canvas id="cImpact" height="120"></canvas></div></div>
+    <div class="card"><div class="ch"><h3>📐 Net impact W12 theo khoảng cách</h3></div><div class="cw"><canvas id="cDist" height="230"></canvas></div></div>
+  </div>
+
+  <div class="card">
+    <div class="ch"><h3>🚨 Top 10 CH bị ảnh hưởng nặng nhất</h3><span class="badge b-r">Net % W12</span></div>
+    <div class="scroll" style="max-height:360px"><table id="tbl"><thead></thead><tbody></tbody></table></div>
+  </div>
 </main>
+<footer><span>© 2026 WinMart+ Rural</span><span id="foot">Nguồn: BigQuery rural-data-analystic</span></footer>
 
-<footer>
-  <span>© 2026 WinMart+ Rural · Dashboard Kinh Doanh</span>
-  <span id="foot">Nguồn: BigQuery rural-data-analystic</span>
-</footer>
-
+<script src="common.js"></script>
 <script>
-let D = {}, CH = {};
-const PAL = ['#3b82f6','#10b981','#f59e0b','#8b5cf6','#ec4899','#06b6d4','#84cc16','#f97316','#6366f1','#14b8a6'];
-
-const fmtB = v => v==null ? '—' : (v/1000).toFixed(1) + ' tỷ';
-const fmtN = v => v==null ? '—' : Math.round(v).toLocaleString('vi-VN');
-const pct = v => v==null ? '—' : (v>0?'+':'') + v.toFixed(1) + '%';
+let D={};
+buildNav('index.html');
 
 async function load(){
-  try{
-    const r = await fetch('data.json?' + Date.now());
-    D = await r.json();
-    const m = D.meta || {};
-    document.getElementById('sub').textContent =
-      `${m.source_sales||''} · Đối thủ: ${m.source_competitor||''} · Cập nhật ${m.generated||''}`;
-    document.getElementById('foot').textContent =
-      `Nguồn: BigQuery rural-data-analystic · ${m.overlap_stores||0} CH chồng lấn · ${m.threat_stores||0} CH phân tích`;
-    const sel = document.getElementById('fGdv');
-    (D.gdv_spd||[]).forEach(g=>{ const o=document.createElement('option'); o.value=g.gdv; o.textContent=g.gdv; sel.appendChild(o); });
-    renderOverview(); renderImpact();
-  }catch(e){
-    document.getElementById('kpis').innerHTML = '<div class="loading" style="color:#ef4444">❌ Lỗi tải dữ liệu: '+e.message+'</div>';
-  }
+  D = await fetch('data.json?'+Date.now()).then(r=>r.json());
+  const m=D.meta||{};
+  document.getElementById('sub').textContent =
+    `Daily Sale V7 · ${fmtN(D.kpi?.stores)} CH · ${m.overlap_stores||0} CH chồng lấn đối thủ`;
+  document.getElementById('foot').textContent =
+    `Nguồn: BigQuery rural-data-analystic · cập nhật ${m.generated||''}`;
+  document.getElementById('dataBadge').textContent = m.source_sales||'';
+  renderKpis(); renderCharts(); renderTable();
 }
 
-function switchTab(k){
-  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on', t.dataset.tab===k));
-  document.getElementById('tab-ov').style.display = k==='ov'?'':'none';
-  document.getElementById('tab-cp').style.display = k==='cp'?'':'none';
-  if(k==='cp') setTimeout(renderImpact,30);
-}
-
-/* ---------- OVERVIEW ---------- */
-function renderOverview(){
-  const k = D.kpi||{};
-  const sel = document.getElementById('fGdv').value;
-  const gdvs = (D.gdv_spd||[]).filter(g=>!sel||g.gdv===sel);
-  const sum = (arr,f)=>arr.reduce((s,x)=>s+(x[f]||0),0);
-
-  const stores = sel ? sum(gdvs,'stores') : k.stores;
-  const spd = sum(gdvs,'spd');
-  const mtd = sel ? null : k.mtd_rev;
-  const tgt = sel ? null : k.mtd_target;
-  const sl = (D.gdv_spd||[]).filter(g=>!sel||g.gdv===sel).reduce((s,g)=>s+(g.total_sl||0),0);
-  const ach = (mtd&&tgt) ? (mtd/tgt*100) : null;
-
-  const cards = [
-    {l:'Tổng SPD/ngày', v:fmtB(spd), c:'#3b82f6', n:`${fmtN(stores)} CH đang hoạt động`},
-    {l:'MTD Revenue', v: mtd? fmtB(mtd):'—', c:'#8b5cf6', n: tgt? 'Target: '+fmtB(tgt):'theo GĐV đã lọc'},
-    {l:'% Đạt target MTD', v: ach? ach.toFixed(1)+'%':'—', c: ach>=100?'#10b981':ach>=90?'#f59e0b':'#ef4444', n: ach? (ach>=100?'Vượt target':'Dưới target'):''},
-    {l:'Tổng S&L', v:fmtB(sl), c: sl<0?'#ef4444':'#10b981', n:'Shrinkage + Loss + Coupon'},
-    {l:'SPD TB/CH', v: ((sum(gdvs,'spd')/(stores||1))).toFixed(1)+' tr', c:'#06b6d4', n:'Doanh thu/ngày/CH'},
-    {l:'CH có đối thủ', v:(k.pct_comp||0)+'%', c:'#f59e0b', n:`${(D.overlap?.summary||[]).reduce((s,x)=>s+(x.cap||0),0)} cặp trong 1km`},
+function renderKpis(){
+  const k=D.kpi||{};
+  const ach = k.mtd_target>0 ? k.mtd_rev/k.mtd_target*100 : null;
+  const m=D.meta||{};
+  const cards=[
+    {l:'Tổng SPD/ngày',v:fmtB(k.total_spd),c:'#3b82f6',n:fmtN(k.stores)+' CH đang hoạt động'},
+    {l:'MTD Revenue',v:fmtB(k.mtd_rev),c:'#8b5cf6',n:'Target: '+fmtB(k.mtd_target)},
+    {l:'% Đạt target',v:ach?ach.toFixed(1)+'%':'—',c:ach>=100?'#10b981':ach>=90?'#f59e0b':'#ef4444',n:ach>=100?'Vượt target':'Dưới target'},
+    {l:'Tổng S&L',v:fmtB(k.total_sl),c:k.total_sl<0?'#ef4444':'#10b981',n:'Shrink + Loss + Coupon'},
+    {l:'SPD TB/CH',v:(k.avg_spd||0).toFixed(1)+' tr',c:'#06b6d4',n:'doanh thu/ngày/CH'},
+    {l:'CH chồng lấn đối thủ',v:fmtN(m.overlap_stores),c:'#f59e0b',n:`Net impact W12: ${fmtPct(D.impact?.aggregate?.net?.slice(-1)[0])}`},
   ];
-  document.getElementById('kpis').innerHTML = cards.map(c=>
-    `<div class="kpi" style="--c:${c.c}"><div class="lbl">${c.l}</div><div class="val" style="color:${c.c}">${c.v}</div><div class="note">${c.n||''}</div></div>`).join('');
+  document.getElementById('kpis').innerHTML=cards.map(c=>
+    `<div class="kpi" style="--c:${c.c}"><div class="lbl">${c.l}</div><div class="val" style="color:${c.c}">${c.v}</div><div class="note">${c.n}</div></div>`).join('');
+}
 
-  // daily
-  const dl = D.daily30||[];
-  mk('cDaily','line',{
-    labels: dl.map(x=>{const d=new Date(x.d);return d.getDate()+'/'+(d.getMonth()+1)}),
-    datasets:[{label:'Doanh thu (trđ)',data:dl.map(x=>x.rev),borderColor:'#3b82f6',backgroundColor:'#3b82f622',fill:true,tension:.3,pointRadius:0,borderWidth:2}]
-  },{plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>(v/1000).toFixed(1)+' tỷ'}}}});
+function renderCharts(){
+  const dl=D.daily30||[];
+  mk('cDaily','line',{labels:dl.map(x=>{const d=new Date(x.d);return d.getDate()+'/'+(d.getMonth()+1)}),
+    datasets:[{label:'Doanh thu (trđ)',data:dl.map(x=>x.rev),borderColor:'#3b82f6',backgroundColor:'#3b82f622',
+      fill:true,tension:.3,pointRadius:0,borderWidth:2}]},
+    {plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>(v/1000).toFixed(1)+' tỷ'}}}});
 
-  // target by gdv
-  mk('cTarget','bar',{
-    labels: gdvs.map(g=>g.gdv),
-    datasets:[{label:'% đạt MTD',data:gdvs.map(g=>g.pct_target),
-      backgroundColor: gdvs.map(g=> g.pct_target>=100?'#10b981cc': g.pct_target>=90?'#f59e0bcc':'#ef4444cc')}]
-  },{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{max:130,ticks:{callback:v=>v+'%'}}}});
+  const gs=D.gdv_spd||[];
+  mk('cTarget','bar',{labels:gs.map(g=>g.gdv),datasets:[{label:'% đạt MTD',data:gs.map(g=>g.pct_target),
+    backgroundColor:gs.map(g=>g.pct_target>=100?'#10b981cc':g.pct_target>=90?'#f59e0bcc':'#ef4444cc')}]},
+    {indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{max:130,ticks:{callback:v=>v+'%'}}}});
 
-  // spd
-  mk('cSpd','bar',{
-    labels: gdvs.map(g=>g.gdv),
-    datasets:[{label:'SPD (trđ/ngày)',data:gdvs.map(g=>g.spd/1000),backgroundColor:'#3b82f6cc'}]
-  },{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{ticks:{callback:v=>v.toFixed(0)+' tr'}}}});
+  mk('cSpd','bar',{labels:gs.map(g=>g.gdv),datasets:[{label:'SPD (trđ/ngày)',data:gs.map(g=>g.spd/1000),
+    backgroundColor:'#3b82f6cc'}]},
+    {indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{ticks:{callback:v=>v.toFixed(0)+' tr'}}}});
 
-  // province
-  const pv = D.province||[];
-  mk('cProv','bar',{labels: pv.map(p=>p.tinh),
-    datasets:[{label:'Doanh thu (trđ)',data:pv.map(p=>p.rev),backgroundColor:'#8b5cf6cc'}]},
+  const pv=D.province||[];
+  mk('cProv','bar',{labels:pv.map(p=>p.tinh),datasets:[{label:'Doanh thu (trđ)',data:pv.map(p=>p.rev),
+    backgroundColor:'#8b5cf6cc'}]},
     {indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{ticks:{callback:v=>(v/1000).toFixed(0)+' tỷ'}}}});
 
-  // monthly
-  const mo = D.monthly||[];
-  mk('cMonth','bar',{labels: mo.map(x=>'T'+x.mo+'/'+String(x.yr).slice(2)),
+  const mo=D.monthly||[];
+  mk('cMonth','bar',{labels:mo.map(x=>'T'+x.mo+'/'+String(x.yr).slice(2)),
     datasets:[{label:'Doanh thu (tỷ)',data:mo.map(x=>x.rev/1000),
-      backgroundColor: mo.map(x=>x.yr===2026?'#3b82f6cc':'#94a3b8aa')}]},
+      backgroundColor:mo.map(x=>x.yr===2026?'#3b82f6cc':'#94a3b8aa')}]},
     {plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>v.toFixed(0)+' tỷ'}}}});
 
-  // S&L
-  mk('cSL','bar',{labels: gdvs.map(g=>g.gdv),datasets:[
-    {label:'Shrinkage',data:gdvs.map(g=>Math.abs(g.shrink||0)/1000),backgroundColor:'#ef4444aa'},
-    {label:'Loss',data:gdvs.map(g=>Math.abs(g.loss||0)/1000),backgroundColor:'#f59e0baa'}
-  ]},{indexAxis:'y',plugins:{legend:{position:'top',labels:{usePointStyle:true,boxWidth:8}}},
-      scales:{x:{stacked:true,ticks:{callback:v=>v.toFixed(0)+' tr'}},y:{stacked:true}}});
-}
+  mk('cSL','bar',{labels:gs.map(g=>g.gdv),datasets:[
+    {label:'Shrinkage',data:gs.map(g=>Math.abs(g.shrink||0)/1000),backgroundColor:'#ef4444aa'},
+    {label:'Loss',data:gs.map(g=>Math.abs(g.loss||0)/1000),backgroundColor:'#f59e0baa'}]},
+    {indexAxis:'y',plugins:{legend:{position:'top',labels:{usePointStyle:true,boxWidth:8}}},
+     scales:{x:{stacked:true,ticks:{callback:v=>v.toFixed(0)+' tr'}},y:{stacked:true}}});
 
-/* ---------- COMPETITOR ---------- */
-function renderImpact(){
-  const I = D.impact||{};
-  const agg = I.aggregate||{};
-  const weeks = agg.weeks||[];
-  const w12 = agg.net? agg.net[agg.net.length-1]:null;
-  const w12imp = agg.imp? agg.imp[agg.imp.length-1]:null;
+  const agg=D.impact?.aggregate||{};
+  mk('cImpact','line',{labels:agg.weeks||[],datasets:[
+    {label:'Net %',data:agg.net,borderColor:'#ef4444',backgroundColor:'#ef444415',fill:true,tension:.3,borderWidth:2.5,pointRadius:2},
+    {label:'Gross %',data:agg.imp,borderColor:'#f59e0b',borderDash:[5,4],tension:.3,borderWidth:1.8,pointRadius:0}]},
+    {plugins:{legend:{position:'top',labels:{usePointStyle:true,boxWidth:8}}},scales:{y:{ticks:{callback:v=>v+'%'}}}});
 
-  document.getElementById('netBadge').textContent = `Net W12: ${pct(w12)}`;
-  document.getElementById('netBadge').className = 'badge ' + (w12<0?'b-r':'b-g');
-
-  const m = D.meta||{};
-  const cards = [
-    {l:'CH chồng lấn ≤1km', v:fmtN(m.overlap_stores), c:'#ef4444', n:`${fmtN(m.overlap_pairs)} cặp CH–ĐT`},
-    {l:'CH phân tích được', v:fmtN(m.threat_stores), c:'#f59e0b', n:'Đủ baseline 8 tuần + control ≥3'},
-    {l:'Net impact W12', v:pct(w12), c: w12<0?'#ef4444':'#10b981', n:'Đã trừ yếu tố control'},
-    {l:'Gross impact W12', v:pct(w12imp), c:'#f59e0b', n:'So baseline, chưa trừ control'},
-    {l:'Ảnh hưởng <100m', v:pct((I.by_distance||{})['<100m']?.avg_net_w12), c:'#dc2626', n:`${(I.by_distance||{})['<100m']?.stores||0} CH`},
-    {l:'Ảnh hưởng 500m–1km', v:pct((I.by_distance||{})['500m-1km']?.avg_net_w12), c:'#8b5cf6', n:`${(I.by_distance||{})['500m-1km']?.stores||0} CH`},
-  ];
-  document.getElementById('kpisCp').innerHTML = cards.map(c=>
-    `<div class="kpi" style="--c:${c.c}"><div class="lbl">${c.l}</div><div class="val" style="color:${c.c}">${c.v}</div><div class="note">${c.n||''}</div></div>`).join('');
-
-  // impact chart
-  mk('cImpact','line',{labels:weeks,datasets:[
-    {label:'Net % (Threat − Control)',data:agg.net,borderColor:'#ef4444',backgroundColor:'#ef444415',fill:true,tension:.3,borderWidth:2.5,pointRadius:3,pointBackgroundColor:'#ef4444'},
-    {label:'Gross % (so baseline)',data:agg.imp,borderColor:'#f59e0b',borderDash:[5,4],tension:.3,borderWidth:1.8,pointRadius:0}
-  ]},{plugins:{legend:{position:'top',labels:{usePointStyle:true,boxWidth:8}}},
-     scales:{y:{ticks:{callback:v=>v+'%'},grid:{color:'rgba(148,163,184,.15)'}}}});
-
-  // distance
-  const dist = I.by_distance||{};
-  const keys = ['<100m','100-300m','300-500m','500m-1km'].filter(k=>dist[k]);
-  mk('cDist','bar',{labels:keys,datasets:[{label:'Net % W12',data:keys.map(k=>dist[k].avg_net_w12),
-    backgroundColor: keys.map((k,i)=>['#dc2626','#ef4444','#f59e0b','#10b981'][i])}]},
-    {plugins:{legend:{display:false},tooltip:{callbacks:{afterLabel:c=>`${dist[keys[c.dataIndex]].stores} CH`}}},
+  const bd=D.impact?.by_distance||{}, keys=['<100m','100-300m','300-500m','500m-1km'].filter(k=>bd[k]);
+  mk('cDist','bar',{labels:keys,datasets:[{label:'Net % W12',data:keys.map(k=>bd[k].avg_net_w12),
+    backgroundColor:['#dc2626','#ef4444','#f59e0b','#10b981']}]},
+    {plugins:{legend:{display:false},tooltip:{callbacks:{afterLabel:c=>`${bd[keys[c.dataIndex]].stores} CH`}}},
      scales:{y:{ticks:{callback:v=>v+'%'}}}});
-
-  // three lines
-  mk('cThree','line',{labels:weeks,datasets:[
-    {label:'Thực tế',data:agg.act,borderColor:'#3b82f6',tension:.3,borderWidth:2,pointRadius:0},
-    {label:'Baseline',data:agg.base,borderColor:'#94a3b8',borderDash:[4,4],borderWidth:1.5,pointRadius:0},
-    {label:'Control',data:agg.ctrl,borderColor:'#10b981',tension:.3,borderWidth:1.5,pointRadius:0}
-  ]},{plugins:{legend:{position:'top',labels:{usePointStyle:true,boxWidth:8}}},
-     scales:{y:{ticks:{callback:v=>v.toFixed(0)}}}});
-
-  // overlap pie
-  const ov = (D.overlap?.summary||[]).slice().sort((a,b)=>a.nhom_kc.localeCompare(b.nhom_kc));
-  mk('cOverlapPie','doughnut',{labels:ov.map(o=>o.nhom_kc),
-    datasets:[{data:ov.map(o=>o.ch),backgroundColor:['#dc2626','#ef4444','#f59e0b','#10b981'],borderWidth:0}]},
-    {plugins:{legend:{position:'bottom',labels:{boxWidth:10,font:{size:11}}},
-      tooltip:{callbacks:{label:c=>`${c.label}: ${c.raw} CH`}}}});
-
-  // by tinh
-  const bt = (D.overlap?.by_tinh||[]).slice(0,10);
-  mk('cTinh','bar',{labels:bt.map(x=>x.tinh),datasets:[{label:'Số CH chồng lấn',data:bt.map(x=>x.ch),backgroundColor:'#8b5cf6cc'}]},
-    {indexAxis:'y',plugins:{legend:{display:false}}});
-
-  // table
-  const f = document.getElementById('fDist').value;
-  let rows = (I.top_stores||[]);
-  if(f) rows = rows.filter(r=>r.nhom_kc===f);
-  document.getElementById('topCnt').textContent = rows.length + ' CH';
-  document.getElementById('tblTop').querySelector('tbody').innerHTML = rows.map(r=>`
-    <tr onclick="drill('${r.sap}')">
-      <td><b>${r.sap}</b></td><td>${r.name||''}</td><td>${r.gdv||''}</td><td>${r.tinh||''}</td>
-      <td>${r.kc? fmtN(r.kc)+' m':'—'}</td><td><span class="chip">${r.nhom_kc||''}</span></td>
-      <td>${r.w0||''}</td><td>${r.base? r.base.toFixed(1):'—'}</td>
-      <td>${r.act? r.act.toFixed(1):'—'}</td>
-      <td class="${r.net<0?'neg':'pos'}">${pct(r.net)}</td>
-    </tr>`).join('');
 }
 
-function drill(sap){
-  const r = (D.impact?.top_stores||[]).find(x=>x.sap===sap);
-  if(!r) return;
-  alert(`${r.name} (${sap})\nGĐV: ${r.gdv} · QLKV: ${r.qlkv}\nTỉnh: ${r.tinh}\nĐối thủ cách: ${r.kc} m (${r.nhom_kc})\nW0: ${r.w0}\nSPD baseline: ${r.base?.toFixed(1)} tr/ngày\nSPD hiện tại: ${r.act?.toFixed(1)} tr/ngày\nNet impact: ${pct(r.net)}`);
-}
-
-function mk(id,type,data,options){
-  if(CH[id]) CH[id].destroy();
-  const el = document.getElementById(id);
-  if(!el) return;
-  CH[id] = new Chart(el.getContext('2d'), {type, data, options: Object.assign({responsive:true,maintainAspectRatio:false}, options||{})});
-}
-
-function toggleTheme(){
-  const h=document.documentElement;
-  h.setAttribute('data-theme', h.getAttribute('data-theme')==='dark'?'light':'dark');
-}
-
-function exportCsv(){
-  const rows = D.impact?.top_stores||[];
-  const head = ['Mã SAP','Cửa hàng','GĐV','QLKV','Tỉnh','KC (m)','Nhóm KC','W0','SPD base','SPD hiện tại','Net %'];
-  const csv = [head.join(',')].concat(rows.map(r=>[r.sap,'"'+r.name+'"',r.gdv,r.qlkv,r.tinh,r.kc,r.nhom_kc,r.w0,r.base,r.act,r.net].join(','))).join('\n');
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8'}));
-  a.download = 'chong_lan_doi_thu_' + new Date().toISOString().slice(0,10) + '.csv';
-  a.click();
+function renderTable(){
+  const cols=[
+    {k:'sap',t:'Mã SAP'},{k:'name',t:'Cửa hàng'},{k:'gdv',t:'GĐV'},{k:'tinh',t:'Tỉnh'},
+    {k:'kc',t:'KC (m)',num:1,fmt:v=>fmtN(v)},{k:'nhom_kc',t:'Nhóm KC'},
+    {k:'w0',t:'W0'},
+    {k:'base',t:'SPD base',num:1,sign:1,fmt:v=>v==null?'—':Number(v).toFixed(1)},
+    {k:'act',t:'SPD hiện tại',num:1,sign:1,fmt:v=>v==null?'—':Number(v).toFixed(1)},
+    {k:'net',t:'Net %',num:1,sign:1,fmt:v=>fmtPct(v)},
+  ];
+  DataTable({tableId:'tbl',cols,data:(D.impact?.top_stores||[]).slice(0,10),pageSize:10,sortKey:'net',sortDir:1});
 }
 
 load();
 </script>
-</body>
-</html>
+</body></html>
