@@ -32,7 +32,15 @@
     <div class="card"><div class="ch"><h3>🏷️ Cơ cấu chồng lấn theo khoảng cách</h3></div><div class="cw"><canvas id="cPie" height="185"></canvas></div></div>
   </div>
 
+  <div class="grid g11">
+    <div class="card"><div class="ch"><h3>🌏 Net impact W12 theo Miền</h3><span class="badge b-g">toàn quốc</span></div>
+      <div class="scroll" style="max-height:clamp(160px,22vh,240px);min-height:0"><table id="tblMien"><thead></thead><tbody></tbody></table></div></div>
+    <div class="card"><div class="ch"><h3>⏱️ Block thời gian ảnh hưởng — Net %</h3><span class="badge b-o">0–12W · 13–24W · 25–36W · 37–52W</span></div>
+      <div class="scroll" style="max-height:clamp(160px,22vh,240px);min-height:0"><table id="tblBlock"><thead></thead><tbody></tbody></table></div></div>
+  </div>
+
   <div class="filters">
+    <select id="fMien"><option value="">Tất cả Miền</option></select>
     <select id="fKc"><option value="">Mọi khoảng cách</option>
       <option value="<100m">&lt;100m</option><option value="100-300m">100–300m</option>
       <option value="300-500m">300–500m</option><option value="500m-1km">500m–1km</option></select>
@@ -112,15 +120,40 @@ async function load(){
 
   const uniq=(f)=>[...new Set(STORES.map(f).filter(Boolean))].sort((a,b)=>String(a).localeCompare(String(b),'vi'));
   fillSel('fGdv',uniq(r=>r.gdv)); fillSel('fTinh',uniq(r=>r.tinh));
-  ['fKc','fGdv','fTinh','fStatus'].forEach(id=>document.getElementById(id).onchange=applyF);
+  const MIEN_ORDER=['Miền Bắc','Miền Trung','Miền Nam','Miền Tây'];
+  const miens=MIEN_ORDER.filter(m=>STORES.some(r=>r.mien===m)).concat(uniq(r=>r.mien).filter(m=>!MIEN_ORDER.includes(m)));
+  const sm=document.getElementById('fMien'); sm.innerHTML='<option value="">Tất cả Miền</option>'+miens.map(m=>`<option>${m}</option>`).join('');
+  ['fKc','fGdv','fTinh','fStatus','fMien'].forEach(id=>document.getElementById(id).onchange=applyF);
   document.getElementById('fSearch').oninput=applyF;
 
-  renderKpis(); renderCharts();
+  renderKpis(); renderCharts(); renderMienBlock();
   window.tPair = DataTable({tableId:'tblPair',pagerId:'pagerPair',cols:PAIR_COLS,data:PAIRS,pageSize:80,sortKey:'khoang_cach_m',sortDir:1});
   window.tStore = DataTable({tableId:'tblStore',pagerId:'pagerStore',cols:STORE_COLS,data:STORES,pageSize:80,sortKey:'net_w12',sortDir:1});
   document.getElementById('cntPair').textContent = fmtN(PAIRS.length)+' cặp';
   document.getElementById('cntStore').textContent = fmtN(STORES.length)+' CH';
   applyF();
+}
+
+function renderMienBlock(){
+  const mi=D.by_mien||{}, bl=D.by_block||{};
+  const order=['Miền Bắc','Miền Trung','Miền Nam','Miền Tây'];
+  const keys=order.filter(k=>mi[k]).concat(Object.keys(mi).filter(k=>!order.includes(k)));
+  let h='<thead><tr><th>Miền</th><th class="num">CH tính được</th><th class="num">Net W12</th></tr></thead><tbody>';
+  if(!keys.length) h+='<tr><td colspan="3" style="text-align:center;color:var(--text2)">Không có dữ liệu</td></tr>';
+  keys.forEach(k=>{const v=mi[k]||{};
+    h+=`<tr><td>${k}</td><td class="num">${fmtN(v.stores)}</td><td class="num ${v.avg_net_w12<0?'neg':'pos'}">${fmtPct(v.avg_net_w12)}</td></tr>`;});
+  document.getElementById('tblMien').innerHTML=h+'</tbody>';
+
+  const bkeys=['Tất cả','<100m','100-300m','300-500m','500m-1km'].filter(k=>bl[k]);
+  const blocks=['0–12W','13–24W','25–36W','37–52W'];
+  let h2='<thead><tr><th>Khoảng cách</th>'+blocks.map(b=>`<th class="num">${b}</th>`).join('')+'</tr></thead><tbody>';
+  bkeys.forEach(k=>{
+    h2+=`<tr><td>${k==='Tất cả'?'Toàn bộ':k}</td>`+blocks.map(b=>{
+      const v=(bl[k]||{})[b];
+      if(!v||v.avg_net==null) return '<td class="num">—</td>';
+      return `<td class="num ${v.avg_net<0?'neg':'pos'}">${fmtPct(v.avg_net)}<div style="font-size:10px;font-weight:500;color:var(--text2)">${fmtN(v.stores)} CH</div></td>`;
+    }).join('')+'</tr>';});
+  document.getElementById('tblBlock').innerHTML=h2+'</tbody>';
 }
 
 function fillSel(id,arr){
@@ -130,12 +163,13 @@ function fillSel(id,arr){
 
 function applyF(){
   const kc=document.getElementById('fKc').value, g=document.getElementById('fGdv').value;
+  const mn=document.getElementById('fMien').value;
   const t=document.getElementById('fTinh').value, q=document.getElementById('fSearch').value.toLowerCase().trim();
   const st=document.getElementById('fStatus').value;
 
-  const p = PAIRS.filter(r=>(!kc||r.nhom_kc===kc)&&(!g||r.gdv===g)&&(!t||r.tinh===t)&&
+  const p = PAIRS.filter(r=>(!kc||r.nhom_kc===kc)&&(!g||r.gdv===g)&&(!t||r.tinh===t)&&(!mn||r.mien===mn)&&
     (!q||[r.ma_sap,r.ten_ch,r.ten_dt,r.gdv].join(' ').toLowerCase().includes(q)));
-  const s = STORES.filter(r=>(!kc||r.nhom_kc===kc)&&(!g||r.gdv===g)&&(!t||r.tinh===t)&&(!st||r.status===st)&&
+  const s = STORES.filter(r=>(!kc||r.nhom_kc===kc)&&(!g||r.gdv===g)&&(!t||r.tinh===t)&&(!mn||r.mien===mn)&&(!st||r.status===st)&&
     (!q||[r.sap,r.name,r.gdv].join(' ').toLowerCase().includes(q)));
   window.tPair.setData(p); window.tStore.setData(s);
   document.getElementById('cntPair').textContent = fmtN(p.length)+' cặp';
@@ -188,6 +222,7 @@ function renderCharts(){
 
 function doExport(){
   const kc=document.getElementById('fKc').value, g=document.getElementById('fGdv').value;
+  const mn=document.getElementById('fMien').value;
   const t=document.getElementById('fTinh').value, q=document.getElementById('fSearch').value.toLowerCase().trim();
   const out=STORES.filter(r=>(!kc||r.nhom_kc===kc)&&(!g||r.gdv===g)&&(!t||r.tinh===t)&&
     (!q||[r.sap,r.name,r.gdv].join(' ').toLowerCase().includes(q)));
