@@ -17,7 +17,7 @@
 </header>
 
 <div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:12.5px;color:#92400e">
-  ⚙️ <b>Mở rộng phạm vi</b> — <b>toàn bộ 3.907 đối thủ BHX</b> (mọi năm khai trương) × <b>toàn bộ 2.910 cửa hàng</b> · sales tới 30/10/2026 · Control 3 cấp: <b>cùng Huyện ≥5 → cùng Tỉnh ≥5 → 5 CH gần nhất theo bán kính</b>. Bản gốc (logic chuẩn của anh Hảo) tại <a href="competitor.html" style="color:#92400e;font-weight:700">⚔️ Competitor</a>.</div>
+  ⚙️ <b>Mở rộng phạm vi</b> — <b>toàn bộ 3.907 đối thủ BHX</b> (mọi năm khai trương) × <b>toàn bộ 2.910 cửa hàng</b> · sales tới 30/10/2026 · Control 3 cấp: <b>cùng Huyện ≥5 → cùng Tỉnh ≥5 → 5 CH gần nhất theo bán kính</b>. Chỉ tính ảnh hưởng trong <b>52 tuần</b> đầu sau khai trương (quá 52W không tính). Bản gốc (logic chuẩn của anh Hảo) tại <a href="competitor.html" style="color:#92400e;font-weight:700">⚔️ Competitor</a>.</div>
 <main>
   <div class="kpis" id="kpis"></div>
 
@@ -43,6 +43,7 @@
       <option value="no_control">Thiếu control (≥5)</option>
       <option value="no_baseline">Thiếu baseline</option>
       <option value="no_sales">Không có sales</option>
+      <option value="expired">Quá 52 tuần (không tính)</option>
     </select>
     <input id="fSearch" placeholder="🔍 Tìm mã SAP / tên CH / tên đối thủ...">
     <button onclick="doExport()">📥 Xuất CSV</button>
