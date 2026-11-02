@@ -186,49 +186,101 @@ tr.total td{border-top:2px solid var(--line)}
   .seg button{padding:5px 8px;font-size:11.5px}
   th,td{padding:7px 8px;font-size:12px}
 }
+
+/* ===== Header đồng bộ toàn dashboard (giống index/competitor/shrinkloss) ===== */
+.hdr{height:62px;background:linear-gradient(120deg,#0B1B4D 0%,#12245C 100%);color:#fff;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 22px;box-shadow:0 4px 20px rgba(11,27,77,.25);flex:0 0 auto;position:relative;z-index:40}
+.hdr .hl{display:flex;align-items:center;gap:11px;min-width:0}
+.hdr .hl>div{min-width:0}
+.hdr .hl a{display:flex;align-items:center;text-decoration:none}
+.hdr img{height:34px;width:auto;border-radius:6px;display:block}
+.hdr h1{font-size:16px;font-weight:700;letter-spacing:-.3px;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:40vw;line-height:1.2}
+.hdr .sub{font-size:11px;opacity:.78;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:40vw}
+.hdr .sub b{opacity:.95}
+.hdr nav{display:flex;gap:5px;flex-wrap:nowrap;align-items:center}
+.hdr nav a{display:inline-flex;align-items:center;height:32px;padding:0 12px;border-radius:9px;font-size:12px;font-weight:600;text-decoration:none;color:#cbd5e1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);white-space:nowrap}
+.hdr nav a:hover{background:rgba(255,255,255,.16);color:#fff}
+.hdr nav a.on{background:#fff;color:#0B1B4D;border-color:#fff}
+/* ===== Khung 2 cột: sidebar lọc ~1/5 màn hình, fit PC ===== */
+html,body{height:100%}
+body{display:flex;flex-direction:column;overflow:hidden}
+.shell{flex:1 1 auto;display:grid;grid-template-columns:clamp(228px,20vw,330px) minmax(0,1fr);min-height:0}
+.side{background:#fff;border-right:1px solid var(--line);overflow-y:auto;padding:14px 14px 16px;display:flex;flex-direction:column;gap:9px}
+.side .sh{font-size:11.5px;letter-spacing:.5px;text-transform:uppercase;color:#5C6B80;font-weight:800;padding-bottom:2px;border-bottom:1px solid var(--line);margin-bottom:2px}
+.side .f{display:flex;flex-direction:column;gap:3px}
+.side .f label{font-size:10.5px;font-weight:700;color:#7D8BA1;letter-spacing:.4px;text-transform:uppercase}
+.side .f select,.side .f input{height:33px;border:1px solid var(--line);border-radius:8px;background:#FBFCFE;padding:0 9px;font-size:12.5px;width:100%;color:var(--ink)}
+.side .f select:focus,.side .f input:focus{outline:none;border-color:#9DB4D6;box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.side .cnt{font-size:12px;color:#44546A;font-weight:600;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 9px}
+.side .cnt b{color:#0B1B4D;font-size:13.5px}
+.side .act{display:flex;flex-direction:column;gap:7px;padding-top:4px}
+.side .sg{font-size:10px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:#9AA7B8;margin:6px 0 -2px}
+.side .act .btn{justify-content:center;width:100%}
+.side .chips{padding:0;display:flex;gap:5px;flex-wrap:wrap}
+.side .chip{font-size:11px}
+.content{overflow-y:auto;padding:14px 18px 26px;min-width:0;max-width:none;margin:0;width:auto}
+.content > .sec-h:first-child{margin-top:2px}
+.kpis{grid-template-columns:repeat(auto-fit,minmax(152px,1fr))}
+@media(max-width:1100px){
+  html,body{height:auto}
+  body{display:block;overflow:auto}
+  .shell{display:block}
+  .side{border-right:0;border-bottom:1px solid var(--line);display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;overflow:visible}
+  .side .sh,.side .cnt,.side .act,.side .chips{grid-column:1/-1}
+  .side .act{flex-direction:row;margin-top:0}
+  .content{overflow:visible}
+  .hdr{height:auto;flex-wrap:wrap;padding:8px 14px;gap:8px}
+  .hdr h1,.hdr .sub{max-width:none;white-space:normal}
+  .hdr nav{max-width:100%;overflow-x:auto;padding-bottom:2px}
+}
+
 </style>
 </head>
 <body>
 
 <div class="load" id="load"><div class="ring"></div><p>Đang tải dữ liệu báo cáo…</p></div>
 
-<header class="hd">
-  <div class="hd-in">
-    <img class="lg" id="lg" alt="WinMart+">
-    <div class="tt">Báo cáo Dailysale<span>Win Rural · Điều hành theo địa bàn</span></div>
-    <div class="mt">
-      <div class="pill" id="pDate">—</div>
-      <div class="pill hide-sm">Cập nhật: <b id="pUpd">—</b></div>
-      <div class="pill red">Nội bộ</div>
+<header class="hdr">
+  <div class="hl">
+    <a href="index.html" title="Về trang Tổng quan"><img id="lg" alt="WinMart+"></a>
+    <div>
+      <h1>Daily Sale — Win Rural</h1>
+      <div class="sub"><span id="pDate">Đang tải…</span> · Cập nhật <span id="pUpd">—</span> · Tài liệu nội bộ</div>
     </div>
   </div>
-  <div class="conf">Tài liệu lưu hành nội bộ. Vui lòng bảo mật, không sao chép hoặc chia sẻ ra bên ngoài công ty.</div>
+  <nav>
+    <a href="index.html">📊 Tổng quan</a>
+    <a href="dailysale.html" class="on">🛒 DailySale</a>
+    <a href="competitor.html">⚔️ Competitor</a>
+    <a href="shrinkloss.html">💸 Shrinkage &amp; Loss</a>
+  </nav>
 </header>
 
-<div class="bar">
-  <div class="bar-in">
+<div class="shell">
+  <aside class="side">
+    <div class="sh">Bộ lọc địa bàn</div>
+    <div class="sg">Địa lý</div>
     <div class="f"><label>Miền</label><select id="fMi"></select></div>
     <div class="f"><label>Vùng</label><select id="fVu"></select></div>
     <div class="f"><label>Tỉnh / TP</label><select id="fTi"></select></div>
+    <div class="sg">Tổ chức</div>
     <div class="f"><label>GĐV</label><select id="fGd"></select></div>
     <div class="f"><label>QLKV</label><select id="fQl"></select></div>
-    <div class="f"><label>Nhóm CH</label><select id="fGr">
+    <div class="sg">Cửa hàng</div>
+    <div class="f"><label>Nhóm cửa hàng</label><select id="fGr">
       <option value="">Tất cả nhóm</option><option value="LFL">LFL</option>
       <option value="STU">STU</option><option value="NSO">NSO</option>
       <option value="KHAC">Chưa phân loại</option></select></div>
     <div class="f"><label>Trạng thái</label><select id="fTt">
       <option value="HD">Đang hoạt động</option><option value="">Tất cả trạng thái</option></select></div>
-    <div class="f wide"><label>Tìm cửa hàng</label><input id="fQ" placeholder="Mã SAP / tên CH…"></div>
-    <div class="sp">
-      <div class="pill" id="pCnt">—</div>
+    <div class="f"><label>Tìm cửa hàng</label><input id="fQ" placeholder="Mã SAP / tên CH…"></div>
+    <div class="chips" id="chips"></div>
+    <div class="cnt" id="pCnt">—</div>
+    <div class="act">
       <button class="btn" id="btnReset">Xoá lọc</button>
       <button class="btn primary" id="btnCsv">Tải CSV</button>
     </div>
-  </div>
-  <div class="chips" id="chips"></div>
-</div>
-
-<main>
+  </aside>
+  <main class="content">
   <div class="sec-h"><h2>Chỉ số điều hành</h2><span class="sub" id="kpiSub"></span></div>
   <section class="kpis" id="kpis"></section>
 
@@ -256,6 +308,7 @@ tr.total td{border-top:2px solid var(--line)}
   </div>
   <section class="panel"><div class="tw"><table id="tStore"></table></div></section>
 </main>
+</div>
 
 <div class="foot">Nguồn: BigQuery <b>ops.daily_sale_v7</b> · Báo cáo Dailysale Win Rural · Số liệu tính đến ngày báo cáo</div>
 
