@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard Kinh Doanh Siêu Thị</title>
+<title>Dashboard Kinh Doanh Siêu Thị — WinMart+ Rural</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 :root {
@@ -30,18 +30,14 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .filters select:hover,.filters button:hover{background:rgba(255,255,255,.2)}
 .filters select option{color:#1a1f36}
 .btn-accent{background:var(--accent)!important;border-color:var(--accent)!important;font-weight:600}
-.btn-accent2{background:var(--accent2)!important;border-color:var(--accent2)!important;color:#000!important;font-weight:600}
 .theme-toggle{background:rgba(255,255,255,.15);border:none;color:#fff;width:36px;height:36px;border-radius:8px;cursor:pointer;font-size:16px}
 .main{padding:20px 24px;max-width:1600px;margin:0 auto}
-.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:20px}
-.kpi-card{background:var(--card-bg);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow);border:1px solid var(--border)}
-.kpi-card:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,.1);transition:.15s}
-.kpi-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
-.kpi-label{font-size:12px;color:var(--text2);text-transform:uppercase;font-weight:600;letter-spacing:.5px}
-.kpi-icon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px}
-.kpi-value{font-size:24px;font-weight:800}
-.kpi-change{font-size:12px;display:flex;align-items:center;gap:3px;margin-top:4px}
-.kpi-change.up{color:#10b981}.kpi-change.down{color:#ef4444}
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px;margin-bottom:20px}
+.kpi-card{background:var(--card-bg);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow);border:1px solid var(--border);transition:.15s}
+.kpi-card:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,.1)}
+.kpi-label{font-size:11px;color:var(--text2);text-transform:uppercase;font-weight:600;letter-spacing:.5px}
+.kpi-value{font-size:26px;font-weight:800;margin:4px 0}
+.kpi-sub{font-size:12px;color:var(--text2)}
 .grid{display:grid;grid-template-columns:2fr 1fr;gap:20px;margin-bottom:20px}
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px}
 .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:20px}
@@ -49,11 +45,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
 .card-header h3{font-size:15px;font-weight:700}
 .loading{text-align:center;padding:40px;color:var(--text2)}
-table{width:100%;border-collapse:collapse;font-size:12px}
-th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--border)}
-th{color:var(--text2);font-weight:600;font-size:11px;text-transform:uppercase}
-tr:hover{background:rgba(0,0,0,.02)}
-.footer-bar{background:var(--card-bg);border-top:1px solid var(--border);padding:10px 24px;display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-top:10px}
+.footer-bar{background:var(--card-bg);border-top:1px solid var(--border);padding:10px 24px;display:flex;justify-content:space-between;font-size:12px;color:var(--text2)}
 @media(max-width:1200px){.grid,.grid-3{grid-template-columns:1fr}.grid-2{grid-template-columns:1fr}}
 @media(max-width:768px){.header{flex-direction:column}.kpi-row{grid-template-columns:repeat(2,1fr)}}
 </style>
@@ -64,16 +56,10 @@ tr:hover{background:rgba(0,0,0,.02)}
     <div class="logo">W</div>
     <div class="header-title">
       <h1>Dashboard Kinh Doanh Siêu Thị — WinMart+ Rural</h1>
-      <span>Cập nhật: <span id="update-time">đang tải...</span> · Nguồn: BigQuery ops.daily_sales</span>
+      <span id="headerMeta">Daily Sale V7 · đang tải...</span>
     </div>
   </div>
   <div class="filters">
-    <select id="periodFilter" onchange="renderAll()">
-      <option value="30">30 ngày</option><option value="7">7 ngày</option><option value="90">90 ngày</option><option value="365">12 tháng</option>
-    </select>
-    <select id="regionFilter" onchange="renderAll()">
-      <option value="all">Tất cả GĐV</option>
-    </select>
     <button class="btn-accent" onclick="exportReport()">📥 Xuất báo cáo</button>
     <button class="theme-toggle" onclick="toggleTheme()">🌓</button>
   </div>
@@ -81,268 +67,104 @@ tr:hover{background:rgba(0,0,0,.02)}
 
 <main class="main">
   <section class="kpi-row" id="kpiRow"><div class="loading">Đang tải dữ liệu...</div></section>
+
   <section class="grid">
-    <div class="card"><div class="card-header"><h3>📈 Doanh thu theo ngày</h3></div><div class="chart-wrap"><canvas id="chartRevenue"></canvas></div></div>
-    <div class="card"><div class="card-header"><h3>🏪 Top GĐV theo doanh thu</h3></div><div class="chart-wrap"><canvas id="chartGDV"></canvas></div></div>
+    <div class="card"><div class="card-header"><h3>📈 SPD theo GĐV (Doanh thu/ngày)</h3></div><div class="chart-wrap"><canvas id="chartGdvSpd"></canvas></div></div>
+    <div class="card"><div class="card-header"><h3>🎯 % Đạt Target MTD theo GĐV</h3></div><div class="chart-wrap"><canvas id="chartTarget"></canvas></div></div>
   </section>
+
   <section class="grid-2">
-    <div class="card"><div class="card-header"><h3>📍 Top tỉnh theo doanh thu (30 ngày)</h3></div><div class="chart-wrap"><canvas id="chartProvince"></canvas></div></div>
-    <div class="card"><div class="card-header"><h3>📊 Doanh thu theo tháng</h3></div><div class="chart-wrap"><canvas id="chartMonthly"></canvas></div></div>
+    <div class="card"><div class="card-header"><h3>💸 Shrinkage & Loss theo GĐV</h3></div><div class="chart-wrap"><canvas id="chartSL"></canvas></div></div>
+    <div class="card"><div class="card-header"><h3>⚔️ Phân tích đối thủ</h3></div><div class="chart-wrap" style="max-height:260px"><canvas id="chartCompetitor"></canvas></div></div>
   </section>
-  <section class="grid-2">
-    <div class="card">
-      <div class="card-header"><h3>🔥 Top 20 cửa hàng (30 ngày)</h3></div>
-      <div style="max-height:420px;overflow-y:auto"><table id="topStoresTable"><thead><tr><th>Mã SAP</th><th>Tên CH</th><th>GĐV</th><th>Doanh thu</th></tr></thead><tbody></tbody></table></div>
-    </div>
-    <div class="card">
-      <div class="card-header"><h3>📋 Trạng thái cửa hàng</h3></div>
-      <div class="chart-wrap"><canvas id="chartStatus"></canvas></div>
-      <div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:8px" id="statusSummary"></div>
-    </div>
-  </section>
+
   <section class="grid-3">
-    <div class="card"><div class="card-header"><h3>🔍 Mở rộng — TKMB</h3></div><div style="text-align:center;padding:20px"><div style="font-size:36px;font-weight:800;color:var(--navy)" id="nsoCount">--</div><div style="font-size:13px;color:var(--text2)">Mặt bằng đang tìm</div></div></div>
-    <div class="card"><div class="card-header"><h3>📍 Điểm quy hoạch</h3></div><div style="text-align:center;padding:20px"><div style="font-size:36px;font-weight:800;color:#f59e0b" id="qhCount">--</div><div style="font-size:13px;color:var(--text2)">Điểm QH</div></div></div>
-    <div class="card"><div class="card-header"><h3>🔄 MCH5 Shrinkage</h3></div><div style="text-align:center;padding:20px"><div style="font-size:14px;color:var(--text2)">Dữ liệu hao hụt cấp 5</div><div style="font-size:11px;color:var(--text2);margin-top:4px">7M+ rows đã load</div></div></div>
+    <div class="card" style="text-align:center"><div class="card-header"><h3>🏪 Tổng CH</h3></div><div style="font-size:42px;font-weight:800;color:var(--navy)" id="kpiStores">--</div></div>
+    <div class="card" style="text-align:center"><div class="card-header"><h3>💰 Tổng SPD</h3></div><div style="font-size:42px;font-weight:800;color:#10b981" id="kpiSpd">--</div></div>
+    <div class="card" style="text-align:center"><div class="card-header"><h3>📦 Tổng tồn kho</h3></div><div style="font-size:42px;font-weight:800;color:#f59e0b" id="kpiStock">--</div></div>
   </section>
 </main>
 
 <footer class="footer-bar">
   <span>© 2026 WinMart+ Rural · Dashboard Kinh Doanh</span>
-  <span>Data: BigQuery rural-data-analystic · Tự động cập nhật</span>
+  <span id="footerMeta">Data: ops.daily_sale_v7 · BigQuery rural-data-analystic</span>
 </footer>
 
 <script>
-let DATA = {};
+let D = {};
 const charts = {};
 
 async function loadData() {
   try {
     const res = await fetch('data.json?' + Date.now());
-    DATA = await res.json();
-    document.getElementById('update-time').textContent = new Date().toLocaleString('vi-VN');
-    populateFilters();
+    D = await res.json();
+    document.getElementById('headerMeta').textContent = `Daily Sale V7 · ${D.meta?.reportDate?.slice(0,10) || '--'} · ${D.kpi?.stores || 0} CH`;
+    document.getElementById('footerMeta').textContent = `Data: ops.daily_sale_v7 · BigQuery rural-data-analystic · ${D.generated?.slice(0,10) || ''}`;
     renderAll();
   } catch(e) {
-    document.getElementById('kpiRow').innerHTML = '<div class="loading" style="color:#ef4444">❌ Lỗi tải dữ liệu: ' + e.message + '</div>';
+    document.getElementById('kpiRow').innerHTML = '<div class="loading" style="color:#ef4444">❌ ' + e.message + '</div>';
   }
 }
 
-function populateFilters() {
-  const gdvs = [...new Set(DATA.gdv?.map(r => r.gdv) || [])];
-  document.getElementById('regionFilter').innerHTML = '<option value="all">Tất cả GĐV</option>' +
-    gdvs.map(g => `<option value="${g}">${g}</option>`).join('');
-}
+function fmt(v) { return v ? (v/1000).toFixed(1) + ' tỷ' : '--'; }
+function fmtM(v) { return v ? (v/1e6).toFixed(1) + 'M' : '--'; }
 
 function renderAll() {
-  renderKPIs(); renderRevenueChart(); renderGDVChart();
-  renderProvinceChart(); renderMonthlyChart(); renderTopStores();
-  renderStoreStatus(); renderExpansion();
-}
+  const k = D.kpi || {};
+  // 6 KPI cards
+  document.getElementById('kpiRow').innerHTML = [
+    { label:'Tổng SPD/ngày', value: fmt(k.total_spd), color:'#3b82f6' },
+    { label:'SPD TB/CH', value: (k.avg_spd||0).toFixed(0)+' tr', color:'#10b981' },
+    { label:'Tổng MTD Rev', value: fmt(k.total_mtd_rev), color:'#8b5cf6' },
+    { label:'% Đạt Target', value: (k.total_mtd_target>0 ? (k.total_mtd_rev/k.total_mtd_target*100).toFixed(1)+'%' : '--'), color: (k.total_mtd_rev>k.total_mtd_target?'#10b981':'#ef4444') },
+    { label:'Tổng S&L', value: fmt(k.total_sl), color: k.total_sl<0?'#ef4444':'#10b981' },
+    { label:'CH có đối thủ', value: (k.pct_competitor||0)+'%', color:'#f59e0b' },
+  ].map(kpi => `<div class="kpi-card"><div class="kpi-label">${kpi.label}</div><div class="kpi-value" style="color:${kpi.color}">${kpi.value}</div></div>`).join('');
 
-// KPI Cards
-function renderKPIs() {
-  const kpiSummary = DATA.kpi_summary?.[0] || {};
-  const totalRev = kpiSummary.total_rev || 0;
-  const stores = kpiSummary.stores || 0;
-  
-  // Calculate daily average
-  const period = parseInt(document.getElementById('periodFilter').value) || 30;
-  const dailyRev = totalRev / period;
-  
-  // Get month-over-month change (from monthly data)
-  const monthly = DATA.monthly || [];
-  let momChange = 0;
-  if (monthly.length >= 2) {
-    const last = monthly[monthly.length-1].revenue;
-    const prev = monthly[monthly.length-2].revenue;
-    momChange = ((last - prev) / prev * 100).toFixed(1);
-  }
-  
-  const kpis = [
-    { label: 'Doanh thu 30 ngày', value: (totalRev/1000).toFixed(0) + ' tỷ', change: (momChange>0?'+':'') + momChange + '%', up: momChange>0, icon: '💰', color: '#3b82f6', unit: '' },
-    { label: 'Doanh thu TB/ngày', value: (dailyRev/1000).toFixed(1) + ' tỷ', change: '', up: true, icon: '📊', color: '#10b981', unit: '' },
-    { label: 'Số CH hoạt động', value: (stores||0).toLocaleString(), change: '', up: true, icon: '🏪', color: '#8b5cf6', unit: '' },
-    { label: 'GĐV có doanh số', value: (DATA.gdv?.length || 0) + '', change: '', up: true, icon: '👥', color: '#f59e0b', unit: '' },
-    { label: 'Tỉnh có mặt', value: (DATA.province?.length || 0) + '', change: '', up: true, icon: '📍', color: '#ec4899', unit: '' },
-    { label: 'Tổng dòng dữ liệu', value: (DATA.monthly?.length ? (DATA.monthly.reduce((s,r)=>s+(r.tx||0),0)/1e6).toFixed(1)+'M' : '--'), change: '', up: true, icon: '📈', color: '#06b6d4', unit: '' },
-  ];
-  
-  document.getElementById('kpiRow').innerHTML = kpis.map(k => `
-    <div class="kpi-card">
-      <div class="kpi-header">
-        <span class="kpi-label">${k.label}</span>
-        <div class="kpi-icon" style="background:${k.color}22;color:${k.color}">${k.icon}</div>
-      </div>
-      <div class="kpi-value">${k.value}</div>
-      ${k.change ? `<div class="kpi-change ${k.up?'up':'down'}">${k.up?'▲':'▼'} ${k.change} vs tháng trước</div>` : '<div class="kpi-change" style="color:var(--text2)">—</div>'}
-    </div>
-  `).join('');
-}
+  // Big numbers
+  document.getElementById('kpiStores').textContent = (k.stores||0).toLocaleString();
+  document.getElementById('kpiSpd').textContent = fmt(k.total_spd);
+  document.getElementById('kpiStock').textContent = fmt(k.total_stock);
 
-// Revenue trend chart
-function renderRevenueChart() {
-  if (charts.rev) charts.rev.destroy();
-  const period = parseInt(document.getElementById('periodFilter').value) || 30;
-  const daily = (DATA.daily || []).slice(-period);
-  const ctx = document.getElementById('chartRevenue').getContext('2d');
-  
-  const labels = daily.map(d => {
-    const dt = new Date(d.d);
-    return dt.getDate() + '/' + (dt.getMonth()+1);
+  // Chart: SPD by GDV
+  if (charts.g1) charts.g1.destroy();
+  const gdvs = D.gdv_spd || [];
+  charts.g1 = new Chart(document.getElementById('chartGdvSpd'), {
+    type: 'bar', data: { labels: gdvs.map(r=>r.gdv), datasets: [{ label:'SPD (trđ/ngày)', data: gdvs.map(r=>r.spd/1000), backgroundColor: '#3b82f6cc' }] },
+    options: { indexAxis:'y', responsive:true, plugins:{legend:{display:false}}, scales:{x:{ticks:{callback:v=>v.toFixed(0)+' tỷ'}}}}
   });
-  
-  charts.rev = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels,
-      datasets: [{
-        label: 'Doanh thu (trđ)',
-        data: daily.map(d => d.rev),
-        borderColor: '#3b82f6',
-        backgroundColor: '#3b82f622',
-        fill: true,
-        tension: 0.3,
-        pointRadius: 1,
-        borderWidth: 2
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: { legend: { display: false } },
-      scales: { y: { ticks: { callback: v => (v/1000).toFixed(1) + ' tỷ' } } }
-    }
+
+  // Chart: Target achievement %
+  if (charts.g2) charts.g2.destroy();
+  charts.g2 = new Chart(document.getElementById('chartTarget'), {
+    type: 'bar', data: { labels: gdvs.map(r=>r.gdv), datasets: [{ label:'% Đạt MTD', data: gdvs.map(r=>r.pct_target), backgroundColor: gdvs.map(r=>r.pct_target>=100?'#10b981cc':r.pct_target>=90?'#f59e0bcc':'#ef4444cc') }] },
+    options: { indexAxis:'y', responsive:true, plugins:{legend:{display:false}}, scales:{x:{max:150, ticks:{callback:v=>v+'%'}}}}
   });
-}
 
-// GDV horizontal bar
-function renderGDVChart() {
-  if (charts.gdv) charts.gdv.destroy();
-  const gdvs = DATA.gdv || [];
-  const sel = document.getElementById('regionFilter').value;
-  const filtered = sel === 'all' ? gdvs : gdvs.filter(r => r.gdv === sel);
-  
-  charts.gdv = new Chart(document.getElementById('chartGDV'), {
-    type: 'bar',
-    data: {
-      labels: filtered.map(r => r.gdv),
-      datasets: [{
-        label: 'Doanh thu 30 ngày (trđ)',
-        data: filtered.map(r => r.rev),
-        backgroundColor: filtered.map((_,i) => i < 3 ? '#10b981cc' : '#3b82f6cc')
-      }]
-    },
-    options: {
-      indexAxis: 'y',
-      responsive: true,
-      plugins: { legend: { display: false } },
-      scales: { x: { ticks: { callback: v => (v/1000).toFixed(0) + ' tỷ' } } }
-    }
+  // Chart: S&L breakdown
+  if (charts.g3) charts.g3.destroy();
+  const sl = D.sl_gdv || [];
+  charts.g3 = new Chart(document.getElementById('chartSL'), {
+    type: 'bar', data: { labels: sl.map(r=>r.gdv), datasets: [
+      { label:'Shrinkage', data: sl.map(r=>Math.abs(r.shrink)/1000), backgroundColor: '#ef4444aa' },
+      { label:'Loss', data: sl.map(r=>Math.abs(r.loss)/1000), backgroundColor: '#f59e0baa' }
+    ]}, options: { responsive:true, plugins:{legend:{position:'top',labels:{usePointStyle:true}}}, scales:{x:{stacked:true},y:{stacked:true,ticks:{callback:v=>v.toFixed(0)+' tr'}}}}
   });
-}
 
-// Province horizontal bar
-function renderProvinceChart() {
-  if (charts.prov) charts.prov.destroy();
-  const provs = (DATA.province || []).slice(0, 12);
-  
-  charts.prov = new Chart(document.getElementById('chartProvince'), {
-    type: 'bar',
-    data: {
-      labels: provs.map(r => r.prov),
-      datasets: [{
-        label: 'Doanh thu (trđ)',
-        data: provs.map(r => r.rev),
-        backgroundColor: '#8b5cf6cc'
-      }]
-    },
-    options: {
-      indexAxis: 'y',
-      responsive: true,
-      plugins: { legend: { display: false } },
-      scales: { x: { ticks: { callback: v => (v/1000).toFixed(1) + ' tỷ' } } }
-    }
+  // Chart: Competitor
+  if (charts.g4) charts.g4.destroy();
+  const comp = D.competitor || [];
+  charts.g4 = new Chart(document.getElementById('chartCompetitor'), {
+    type: 'doughnut', data: { labels: comp.map(r=>r.competitor), datasets: [{ data: comp.map(r=>r.stores), backgroundColor: ['#ef4444','#10b981'], borderWidth:0 }] },
+    options: { responsive:true, plugins:{ legend:{position:'bottom', labels:{font:{size:13}}} }}
   });
-}
-
-// Monthly trend
-function renderMonthlyChart() {
-  if (charts.mo) charts.mo.destroy();
-  const monthly = DATA.monthly || [];
-  
-  charts.mo = new Chart(document.getElementById('chartMonthly'), {
-    type: 'bar',
-    data: {
-      labels: monthly.map(r => 'T' + r.mo + '/' + r.yr),
-      datasets: [{
-        label: 'Doanh thu (tỷ)',
-        data: monthly.map(r => r.revenue/1000),
-        backgroundColor: monthly.map(r => r.yr === 2026 ? '#3b82f6cc' : '#94a3b8aa')
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: { legend: { display: false } },
-      scales: { y: { ticks: { callback: v => v.toFixed(0) + ' tỷ' } } }
-    }
-  });
-}
-
-// Top stores table
-function renderTopStores() {
-  const stores = DATA.top_stores || [];
-  document.getElementById('topStoresTable').querySelector('tbody').innerHTML = stores.map((s, i) => `
-    <tr>
-      <td><b>${s.Store}</b></td>
-      <td>${s.name || '—'}</td>
-      <td>${s.gdv || '—'}</td>
-      <td><b>${(s.rev/1000).toFixed(1)} tỷ</b></td>
-    </tr>
-  `).join('');
-}
-
-// Store status
-function renderStoreStatus() {
-  if (charts.status) charts.status.destroy();
-  const stats = DATA.store_status || [];
-  const colors = { 'Đang hoạt động': '#10b981', 'Sắp khai trương': '#f59e0b', 'Đã đóng': '#ef4444', 'Tạm ngừng': '#94a3b8' };
-  
-  charts.status = new Chart(document.getElementById('chartStatus'), {
-    type: 'doughnut',
-    data: {
-      labels: stats.map(r => r.st),
-      datasets: [{
-        data: stats.map(r => r.n),
-        backgroundColor: stats.map(r => colors[r.st] || '#94a3b8'),
-        borderWidth: 0
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } }
-    }
-  });
-  
-  document.getElementById('statusSummary').innerHTML = stats.map(r => `
-    <div style="font-size:13px"><b>${r.n}</b> <span style="color:var(--text2)">${r.st}</span></div>
-  `).join('');
-}
-
-// Expansion cards
-function renderExpansion() {
-  document.getElementById('nsoCount').textContent = DATA.nso?.[0]?.nso || '—';
-  document.getElementById('qhCount').textContent = DATA.qh?.[0]?.qh || '—';
 }
 
 function toggleTheme() {
   const html = document.documentElement;
-  html.setAttribute('data-theme', html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+  html.setAttribute('data-theme', html.getAttribute('data-theme')==='dark'?'light':'dark');
 }
-
-function exportReport() {
-  alert('📥 Xuất báo cáo — đang phát triển. Dữ liệu hiện có tại data.json');
-}
-
+function exportReport() { alert('📥 Xuất báo cáo PDF — đang phát triển'); }
 loadData();
 </script>
 </body>
