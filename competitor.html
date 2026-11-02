@@ -99,8 +99,8 @@ async function load(){
   document.getElementById('fSearch').oninput=applyF;
 
   renderKpis(); renderCharts();
-  window.tPair = DataTable({tableId:'tblPair',cols:PAIR_COLS,data:PAIRS,pageSize:80,sortKey:'khoang_cach_m',sortDir:1});
-  window.tStore = DataTable({tableId:'tblStore',cols:STORE_COLS,data:STORES,pageSize:80,sortKey:'net_w12',sortDir:1});
+  window.tPair = DataTable({tableId:'tblPair',pagerId:'pagerPair',cols:PAIR_COLS,data:PAIRS,pageSize:80,sortKey:'khoang_cach_m',sortDir:1});
+  window.tStore = DataTable({tableId:'tblStore',pagerId:'pagerStore',cols:STORE_COLS,data:STORES,pageSize:80,sortKey:'net_w12',sortDir:1});
   document.getElementById('cntPair').textContent = fmtN(PAIRS.length)+' cặp';
   document.getElementById('cntStore').textContent = fmtN(STORES.length)+' CH';
   applyF();
