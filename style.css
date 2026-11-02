@@ -63,3 +63,54 @@ footer{border-top:1px solid var(--border);padding:11px 26px;display:flex;justify
 .pager button:disabled{opacity:.4;cursor:default}
 @media(max-width:1100px){.g21,.g11{grid-template-columns:1fr}}
 @media(max-width:760px){main{padding:12px}header{padding:10px 14px}.kpis{grid-template-columns:repeat(2,1fr)}h1{font-size:14px}}
+
+/* ══════════════════════════════════════════════════════════════
+   LAYOUT CHUẨN (02/11/2026) — header 4 phần đồng nhất + khung view fit PC
+   Header: [logo + (title | sub)]  [nav 4 mục]  [🌓]  — cao cố định 62px
+   Khung view: rộng full màn hình, KHÔNG cuộn ngang, mỗi khối có chiều cao
+   ổn định theo viewport (chart co giãn theo vh, bảng cuộn nội bộ).
+   ══════════════════════════════════════════════════════════════ */
+:root{--hh:62px}
+html,body{height:100%}
+body{display:flex;flex-direction:column;height:100vh;overflow:hidden}
+header{height:var(--hh);min-height:var(--hh);max-height:var(--hh);padding:0 22px;flex-wrap:nowrap;align-items:center;overflow:hidden}
+header .hl{min-width:0;flex:0 1 auto;gap:11px}
+header .hl>div{min-width:0}
+header h1{font-size:16px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:44vw}
+header .sub{font-size:11px;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:44vw;margin-top:1px}
+.logo{width:38px;height:38px;flex:0 0 38px;font-size:18px;border-radius:11px}
+header>div:last-child{flex:0 0 auto;gap:8px}
+nav{flex-wrap:nowrap;gap:5px}
+nav a{display:inline-flex;align-items:center;justify-content:center;height:32px;padding:0 12px;font-size:12px;line-height:1;white-space:nowrap;box-sizing:border-box}
+.icon-btn{width:34px;height:34px;flex:0 0 34px;font-size:14px}
+
+/* vùng nội dung: rộng full, không tràn ngang */
+main{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;max-width:none;width:100%;padding:14px 22px 18px;scrollbar-gutter:stable}
+main .kpis{grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:11px;margin-bottom:14px}
+main .kpi{padding:12px 14px}
+main .kpi .val{font-size:21px}
+main .grid{gap:14px;margin-bottom:14px}
+main .card{padding:12px 14px}
+main .ch{margin-bottom:9px}
+main .ch h3{font-size:13px}
+
+/* chiều cao chart ổn định theo viewport — không bị bóp khi màn hình thấp */
+main .cw{position:relative;width:100%;height:clamp(180px,27vh,300px)}
+main .cw canvas{width:100%!important;height:100%!important}
+main .g21 .cw{height:clamp(190px,29vh,320px)}
+
+/* vùng bảng: cuộn nội bộ, luôn đủ cao để đọc */
+main .scroll{max-height:calc(100vh - 300px);min-height:300px;overflow:auto}
+main .filters{margin-bottom:14px;padding:9px 12px}
+footer{padding:8px 22px}
+
+@media(max-width:1100px){
+  html,body{height:auto}
+  body{display:block;height:auto;overflow:auto}
+  main{overflow:visible;height:auto}
+  header{height:auto;max-height:none;min-height:var(--hh);flex-wrap:wrap;padding:8px 14px}
+  header h1,header .sub{max-width:none;white-space:normal}
+  main{padding:12px}
+  main .cw{height:220px}
+  main .scroll{max-height:none}
+}
