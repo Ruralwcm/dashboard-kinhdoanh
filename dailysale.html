@@ -203,8 +203,14 @@ tr.total td{border-top:2px solid var(--line)}
 /* ===== Khung 2 cột: sidebar lọc ~1/5 màn hình, fit PC ===== */
 html,body{height:100%}
 body{display:flex;flex-direction:column;overflow:hidden}
-.shell{flex:1 1 auto;display:grid;grid-template-columns:clamp(228px,20vw,330px) minmax(0,1fr);min-height:0}
-.side{background:#fff;border-right:1px solid var(--line);overflow-y:auto;padding:14px 14px 16px;display:flex;flex-direction:column;gap:9px}
+.shell{flex:1 1 auto;display:block;min-height:0;position:relative}
+/* Bộ lọc dạng Cash Drawer: ẩn khỏi layout, trượt ra khi bấm */
+.side{position:fixed;top:62px;bottom:0;left:0;width:min(340px,88vw);background:#fff;border-right:1px solid var(--line);box-shadow:0 18px 50px rgba(11,27,77,.28);z-index:70;overflow-y:auto;padding:16px 14px 18px;display:flex;flex-direction:column;gap:9px;transform:translateX(-104%);transition:transform .22s cubic-bezier(.4,0,.2,1);will-change:transform}
+.side.open{transform:translateX(0)}
+.side .sidex{position:absolute;top:10px;right:10px;width:28px;height:28px;border:1px solid var(--line);background:#fff;border-radius:8px;font-size:15px;line-height:1;color:#5C6B80;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.side .sidex:hover{background:#F1F4F9;color:#0B1B4D}
+.drawer-bd{position:fixed;top:62px;left:0;right:0;bottom:0;background:rgba(11,27,77,.24);z-index:65;opacity:0;pointer-events:none;transition:opacity .2s}
+.drawer-bd.on{opacity:1;pointer-events:auto}
 .side .sh{font-size:11.5px;letter-spacing:.5px;text-transform:uppercase;color:#5C6B80;font-weight:800;padding-bottom:2px;border-bottom:1px solid var(--line);margin-bottom:2px}
 .side .f{display:flex;flex-direction:column;gap:3px}
 .side .f label{font-size:10.5px;font-weight:700;color:#7D8BA1;letter-spacing:.4px;text-transform:uppercase}
@@ -217,7 +223,7 @@ body{display:flex;flex-direction:column;overflow:hidden}
 .side .act .btn{justify-content:center;width:100%}
 .side .chips{padding:0;display:flex;gap:5px;flex-wrap:wrap}
 .side .chip{font-size:11px}
-.content{overflow-y:auto;padding:14px 18px 26px;min-width:0;max-width:none;margin:0;width:auto}
+.content{overflow-y:auto;padding:14px 18px 78px;min-width:0;max-width:none;margin:0;width:100%}
 .content > .sec-h:first-child{margin-top:2px}
 .kpis{grid-template-columns:repeat(auto-fit,minmax(152px,1fr))}
 .kpis.kpgrid2{grid-template-columns:repeat(5,minmax(0,1fr))}
@@ -232,15 +238,35 @@ body{display:flex;flex-direction:column;overflow:hidden}
   html,body{height:auto}
   body{display:block;overflow:auto}
   .shell{display:block}
-  .side{border-right:0;border-bottom:1px solid var(--line);display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;overflow:visible}
-  .side .sh,.side .cnt,.side .act,.side .chips{grid-column:1/-1}
-  .side .act{flex-direction:row;margin-top:0}
+  .side{top:0;bottom:0;width:min(320px,90vw);display:flex;flex-direction:column;gap:9px;overflow-y:auto;padding:44px 14px 18px}
+  .side .act{flex-direction:column}
+  .drawer-bd{top:0}
   .content{overflow:visible}
   .hdr{height:auto;flex-wrap:wrap;padding:8px 14px;gap:8px}
   .hdr h1,.hdr .sub{max-width:none;white-space:normal}
   .hdr nav{max-width:100%;overflow-x:auto;padding-bottom:2px}
 }
 
+
+/* ===== Trình chiếu: toolbar + lớp vẽ ===== */
+#ink,#laser{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:90}
+#ink.on,#laser.on{pointer-events:auto;cursor:crosshair}
+#laser{z-index:91}
+.ptools{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);display:flex;gap:4px;align-items:center;
+ background:rgba(11,27,77,.94);backdrop-filter:blur(6px);border-radius:14px;padding:6px 8px;z-index:95;
+ box-shadow:0 14px 34px rgba(0,0,0,.35);opacity:.28;transition:opacity .18s}
+.ptools:hover,.ptools.act{opacity:1}
+.ptools button{width:36px;height:34px;border:0;border-radius:9px;background:rgba(255,255,255,.08);color:#fff;font-size:15px;
+ cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative}
+.ptools button:hover{background:rgba(255,255,255,.2)}
+.ptools button.on{background:#fff;color:#0B1B4D}
+.ptools .sep{width:1px;height:22px;background:rgba(255,255,255,.22);margin:0 3px}
+.ptools .tip{position:absolute;bottom:42px;left:50%;transform:translateX(-50%);background:#0B1B4D;color:#fff;
+ font-size:11px;padding:4px 7px;border-radius:6px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s}
+.ptools button:hover .tip{opacity:1}
+body.fullscreen .hdr{display:none}
+body.fullscreen .ptools{opacity:.9}
+@media print{#ink,#laser,.ptools{display:none}}
 </style>
 </head>
 <body>
@@ -260,11 +286,14 @@ body{display:flex;flex-direction:column;overflow:hidden}
     <a href="dailysale.html" class="on">🛒 DailySale</a>
     <a href="competitor.html">⚔️ Competitor</a>
     <a href="shrinkloss.html">💸 Shrinkage &amp; Loss</a>
+    <button class="btn" id="btnFilter" title="Mở bộ lọc địa bàn (F)">🎛 Bộ lọc</button>
   </nav>
 </header>
 
+<div class="drawer-bd" id="drawerBd"></div>
 <div class="shell">
-  <aside class="side">
+  <aside class="side" id="side">
+    <button class="sidex" id="sideX" title="Đóng bộ lọc">✕</button>
     <div class="sh">Bộ lọc địa bàn</div>
     <div class="sg">Địa lý</div>
     <div class="f"><label>Miền</label><select id="fMi"></select></div>
@@ -316,6 +345,20 @@ body{display:flex;flex-direction:column;overflow:hidden}
   </div>
   <section class="panel"><div class="tw"><table id="tStore"></table></div></section>
 </main>
+</div>
+
+<canvas id="ink"></canvas>
+<canvas id="laser"></canvas>
+<div class="ptools" id="ptools">
+  <button id="tFull" title="Toàn màn hình"><span>⛶</span><span class="tip">Toàn màn hình (F)</span></button>
+  <span class="sep"></span>
+  <button id="tPen" title="Bút vẽ"><span>✏️</span><span class="tip">Bút (P)</span></button>
+  <button id="tHi" title="Highlight"><span>🖍</span><span class="tip">Highlight (H)</span></button>
+  <button id="tLaser" title="Bút chỉ"><span>🔴</span><span class="tip">Bút chỉ (L)</span></button>
+  <button id="tErase" title="Tẩy"><span>🧽</span><span class="tip">Tẩy (E)</span></button>
+  <span class="sep"></span>
+  <button id="tClear" title="Xoá nét vẽ"><span>🗑</span><span class="tip">Xoá hết (C)</span></button>
+  <button id="tHide" title="Ẩn thanh công cụ"><span>✕</span><span class="tip">Ẩn thanh công cụ</span></button>
 </div>
 
 <div class="foot">Nguồn: BigQuery <b>ops.daily_sale_v7</b> · Báo cáo Dailysale Win Rural · Số liệu tính đến ngày báo cáo</div>
@@ -480,25 +523,16 @@ function renderChips(){
 }
 
 function renderKPI(a, rows){
-  const zero = zeroN(rows);
   const sgnTag = v => `<span class="tag ${v>=0?'t-good':'t-bad'}">${F.sgn(v)} vs LY</span>`;
   const htTag  = v => `<span class="tag ${HT0.tag(sane(v))}">${F.pct(sane(v))} HT target</span>`;
 
-  // ===== Hàng 1: Key Performance (SPD · Bill · Total Sale · S&L · DIO) =====
+  // ===== Key Performance: SPD · Bill · Total Sale · S&L · DIO =====
   const kp = [
     {lb:'SPD (tr/CH/ngày)', v:F.spd(a.spd), u:' tr', sub:sgnTag(a.tt)},
     {lb:'Bill (bill/CH/ngày)', v:F.n(a.bill/a.n), u:' bill', sub:sgnTag(a.billLV)},
     {lb:'Total Sale ngày', v:F.money(a.revD), u:'', sub:`${htTag(a.ht)} ${sgnTag(a.tt)}`},
     {lb:'S&L', v:F.pct(a.rev>0? (Math.abs(a.loss)+Math.abs(a.shrink))/a.rev*100 : NaN), u:' DT', sub:`<span class="tag ${(Math.abs(a.loss)+Math.abs(a.shrink))/a.rev*100>2?'t-bad':'t-warn'}">S&L ${F.money(Math.abs(a.loss)+Math.abs(a.shrink))}</span>`},
     {lb:'DIO', v:F.n1(a.dio), u:' ngày', sub:`<span class="tag ${a.dio>60?'t-bad':a.dio>45?'t-warn':'t-good'}">Tồn kho ${F.money(a.stock)}</span>`}
-  ];
-  // ===== Hàng 2: chi tiết kỳ =====
-  const kp2 = [
-    {lb:'Doanh thu MTD', v:F.money(a.rev), u:'', sub:`${htTag(a.htM)}<span class="tag ${a.gapM<0?'t-bad':'t-good'}">Gap ${F.money(a.gapM)}</span>`},
-    {lb:'Lũy kế năm (YTD)', v:F.money(a.revY), u:'', sub:`${htTag(a.htY)} ${sgnTag(a.ttY)}`},
-    {lb:'LFL', v:F.pct(rows.filter(r=>r.gr==='LFL').length? agg(rows.filter(r=>r.gr==='LFL')).ht : NaN), u:'', sub:lflSub(rows)},
-    {lb:'STU', v:F.pct(rows.filter(r=>r.gr==='STU').length? agg(rows.filter(r=>r.gr==='STU')).ht : NaN), u:'', sub:grpSub(rows,'STU','SPD')},
-    {lb:'NSO', v:F.n(rows.filter(r=>r.gr==='NSO').length), u:' CH', sub:nsoSub(rows)}
   ];
   const draw = (arr,cls)=>arr.map(c=>`
     <div class="kpi ${cls}">
@@ -507,10 +541,7 @@ function renderKPI(a, rows){
       <div class="sb">${c.sub||''}</div>
     </div>`).join('');
   const el = document.getElementById('kpis');
-  el.innerHTML = draw(kp,'kp1') + draw(kp2,'kp2');
-  if(zero>0){
-    el.insertAdjacentHTML('beforeend', `<div class="kpi k-red kp2"><div class="lb">CH chưa phát sinh</div><div class="vv">${F.n(zero)}<small> CH</small></div><div class="sb"><span class="tag t-bad">SPD = 0</span></div></div>`);
-  }
+  el.innerHTML = draw(kp,'kp1');
   el.classList.add('kpgrid2');
 }
 function lflSub(rows){
@@ -741,6 +772,106 @@ document.getElementById('fTt').onchange = e=>{ FILT.tt=e.target.value; render();
 });
 let qT;
 document.getElementById('fQ').oninput = e=>{ clearTimeout(qT); qT=setTimeout(()=>{ FILT.q=e.target.value; render(); },220); };
+
+/* ================= Cash Drawer (bộ lọc) ================= */
+(function(){
+  const side=document.getElementById('side'), bd=document.getElementById('drawerBd');
+  const open=()=>{ side.classList.add('open'); bd.classList.add('on'); };
+  const close=()=>{ side.classList.remove('open'); bd.classList.remove('on'); };
+  window.__openFilter=open;
+  document.getElementById('btnFilter').onclick=()=>{ side.classList.contains('open')?close():open(); };
+  document.getElementById('sideX').onclick=close;
+  bd.onclick=close;
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape') close();
+    if((e.key==='f'||e.key==='F') && !/input|select|textarea/i.test(e.target.tagName)){ e.preventDefault(); document.getElementById('btnFilter').click(); }
+  });
+})();
+
+/* ================= Fullscreen + bút vẽ / highlight / bút chỉ ================= */
+(function(){
+  const ink=document.getElementById('ink'), lz=document.getElementById('laser');
+  const ictx=ink.getContext('2d'), lctx=lz.getContext('2d');
+  let tool=null, drawing=false, last=null, laserPts=[];
+  const TOOLS={pen:{color:'#E11D48',w:3,a:1}, hi:{color:'#FDE047',w:16,a:.38}, erase:{color:'#FFFFFF',w:22,a:1,composite:'destination-out'}};
+
+  function size(){
+    [ink,lz].forEach(c=>{ const r=c.getBoundingClientRect();
+      const dpr=window.devicePixelRatio||1;
+      const w=Math.round(r.width*dpr), h=Math.round(r.height*dpr);
+      if(c.width!==w||c.height!==h){ const img=c.width?null:null; c.width=w; c.height=h; }
+      c.getContext('2d').setTransform(dpr,0,0,dpr,0,0);
+    });
+  }
+  size(); window.addEventListener('resize',size);
+
+  const btns={pen:document.getElementById('tPen'),hi:document.getElementById('tHi'),laser:document.getElementById('tLaser'),erase:document.getElementById('tErase')};
+  function setTool(t){
+    tool = (tool===t)?null:t;
+    Object.entries(btns).forEach(([k,b])=>b.classList.toggle('on',k===tool));
+    ink.classList.toggle('on', !!tool && tool!=='laser');
+    lz.classList.toggle('on', tool==='laser');
+    document.getElementById('ptools').classList.toggle('act', !!tool);
+    if(tool!=='laser'){ laserPts=[]; lctx.clearRect(0,0,lz.width,lz.height); }
+  }
+  Object.entries(btns).forEach(([k,b])=>b.onclick=()=>setTool(k));
+
+  function pos(e){ const r=ink.getBoundingClientRect(); return {x:e.clientX-r.left, y:e.clientY-r.top}; }
+
+  ink.addEventListener('pointerdown',e=>{
+    if(!tool) return; drawing=true; last=pos(e);
+    const cfg=TOOLS[tool];
+    ictx.globalCompositeOperation = cfg.composite||'source-over';
+    ictx.globalAlpha=cfg.a; ictx.lineWidth=cfg.w; ictx.lineCap='round'; ictx.lineJoin='round'; ictx.strokeStyle=cfg.color;
+    ictx.beginPath(); ictx.moveTo(last.x,last.y); ictx.lineTo(last.x+.1,last.y+.1); ictx.stroke();
+    ink.setPointerCapture(e.pointerId); e.preventDefault();
+  });
+  ink.addEventListener('pointermove',e=>{
+    if(!drawing||!tool) return;
+    const p=pos(e); ictx.beginPath(); ictx.moveTo(last.x,last.y); ictx.lineTo(p.x,p.y); ictx.stroke(); last=p; e.preventDefault();
+  });
+  const stop=()=>{ drawing=false; ictx.globalAlpha=1; ictx.globalCompositeOperation='source-over'; };
+  ink.addEventListener('pointerup',stop); ink.addEventListener('pointercancel',stop);
+
+  // Bút chỉ: chấm đỏ mờ dần
+  lz.addEventListener('pointerdown',e=>{ if(tool!=='laser') return; lz.setPointerCapture(e.pointerId); addPt(e); });
+  lz.addEventListener('pointermove',e=>{ if(tool!=='laser') return; addPt(e); });
+  function addPt(e){ const r=lz.getBoundingClientRect(); laserPts.push({x:e.clientX-r.left,y:e.clientY-r.top,t:performance.now()}); }
+  (function loop(){
+    if(tool==='laser' && laserPts.length){
+      const now=performance.now();
+      laserPts=laserPts.filter(p=>now-p.t<650);
+      lctx.clearRect(0,0,lz.width,lz.height);
+      laserPts.forEach((p,i)=>{ const age=(now-p.t)/650;
+        lctx.beginPath(); lctx.fillStyle=`rgba(255,45,60,${(1-age)*0.9})`;
+        lctx.arc(p.x,p.y,(1-age)*7+2,0,Math.PI*2); lctx.fill(); });
+    } else if(laserPts.length===0){ /* idle */ }
+    requestAnimationFrame(loop);
+  })();
+
+  document.getElementById('tClear').onclick=()=>{ ictx.clearRect(0,0,ink.width,ink.height); lctx.clearRect(0,0,lz.width,lz.height); laserPts=[]; };
+  document.getElementById('tHide').onclick=()=>{ document.getElementById('ptools').style.display='none'; };
+  document.getElementById('tFull').onclick=()=>{
+    if(!document.fullscreenElement){ (document.documentElement.requestFullscreen||function(){}).call(document.documentElement); }
+    else document.exitFullscreen();
+  };
+  document.addEventListener('fullscreenchange',()=>{
+    document.body.classList.toggle('fullscreen',!!document.fullscreenElement);
+    document.getElementById('tFull').classList.toggle('on',!!document.fullscreenElement);
+    setTimeout(size,80);
+  });
+  document.addEventListener('keydown',e=>{
+    if(/input|select|textarea/i.test(e.target.tagName)) return;
+    const k=e.key.toLowerCase();
+    if(k==='p'){e.preventDefault();setTool('pen');}
+    else if(k==='h'){e.preventDefault();setTool('hi');}
+    else if(k==='l'){e.preventDefault();setTool('laser');}
+    else if(k==='e'){e.preventDefault();setTool('erase');}
+    else if(k==='c'){e.preventDefault();document.getElementById('tClear').click();}
+    else if(k==='f'&&!document.fullscreenElement){/* handled by drawer F? */}
+  });
+})();
+
 document.getElementById('btnReset').onclick = ()=>{ FILT={mi:'',vu:'',ti:'',gd:'',ql:'',gr:'',q:'',tt:'HD'}; document.getElementById('fQ').value=''; refreshFilters(); render(); };
 document.querySelectorAll('#dimSeg button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('#dimSeg button').forEach(x=>x.classList.remove('on'));
