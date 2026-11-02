@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="light">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Shrinkage &amp; Loss chi tiết — WinMart+ Rural</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<header>
+  <div class="hl"><a class="logo" href="index.html">W</a>
+    <div><h1>Báo cáo Shrinkage &amp; Loss</h1><div class="sub" id="sub">Đang tải...</div></div>
+  </div>
+  <div style="display:flex;gap:8px;align-items:center">
+    <nav id="nav"></nav><button class="icon-btn" onclick="toggleTheme()">🌓</button>
+  </div>
+</header>
+
+<main>
+  <div class="kpis" id="kpis"></div>
+
+  <div class="grid g21">
+    <div class="card"><div class="ch"><h3>📉 Xu hướng Shrinkage &amp; Loss theo tháng</h3><span class="badge b-r">Giá trị tuyệt đối</span></div>
+      <div class="cw"><canvas id="cTrend" height="115"></canvas></div></div>
+    <div class="card"><div class="ch"><h3>🏷️ Theo Department (MCH2)</h3></div>
+      <div class="cw"><canvas id="cDept" height="225"></canvas></div></div>
+  </div>
+
+  <div class="grid g11">
+    <div class="card"><div class="ch"><h3>🔥 Top 15 CH hao hụt cao nhất (6 tháng)</h3></div><div class="cw"><canvas id="cTop" height="200"></canvas></div></div>
+    <div class="card"><div class="ch"><h3>📊 Shrinkage vs Loss theo tháng</h3></div><div class="cw"><canvas id="cSplit" height="200"></canvas></div></div>
+  </div>
+
+  <div class="filters">
+    <select id="fMonth"><option value="">Tất cả tháng</option></select>
+    <select id="fMien"><option value="">Tất cả Miền</option></select>
+    <select id="fGdv"><option value="">Tất cả GĐV</option></select>
+    <input id="fSearch" placeholder="🔍 Tìm mã SAP / tên CH...">
+    <button onclick="doExport()">📥 Xuất CSV</button>
+    <span class="cnt" id="cnt"></span>
+  </div>
+
+  <div class="card">
+    <div class="ch"><h3>📋 Chi tiết Shrinkage &amp; Loss theo CH × tháng</h3>
+      <span class="badge b-o">6 tháng gần nhất</span></div>
+    <div class="scroll"><table id="tbl"><thead></thead><tbody></tbody></table></div>
+    <div class="pager" id="pager"></div>
+  </div>
+</main>
+<footer><span>© 2026 WinMart+ Rural</span><span>Nguồn: ops.shrinkage · ops.loss · ops.mch5_shrinkage · ops.mch5_loss</span></footer>
+
+<script src="common.js"></script>
+<script>
+let D={}, ROWS=[];
+buildNav('shrinkloss.html');
+
+const COLS=[
+  {k:'ym',t:'Tháng'},
+  {k:'sap',t:'Mã SAP'},
+  {k:'name',t:'Cửa hàng'},
+  {k:'mien',t:'Miền'},
+  {k:'tinh',t:'Tỉnh'},
+  {k:'gdv',t:'GĐV'},
+  {k:'qlkv',t:'QLKV'},
+  {k:'shrink',t:'Shrinkage',num:1,sign:1,fmt:v=>fmtB(v)},
+  {k:'loss',t:'Loss',num:1,sign:1,fmt:v=>fmtB(v)},
+  {k:'total',t:'Tổng',num:1,sign:1,fmt:v=>fmtB(v)},
+];
+
+async function load(){
+  D = await fetch('sl_detail.json?'+Date.now()).then(r=>r.json());
+  ROWS = D.rows.map(r=>{const o={};D.cols.forEach((c,i)=>o[c]=r[i]);return o;});
+
+  const months=[...new Set(ROWS.map(r=>r.ym))].filter(Boolean).sort().reverse();
+  const sub=document.getElementById('sub');
+  sub.textContent = `${fmtN(ROWS.length)} dòng · ${months.length} tháng · tháng mới nhất ${months[0]||'—'}`;
+
+  fillSel('fMonth',months);
+  fillSel('fMien',[...new Set(ROWS.map(r=>r.mien).filter(Boolean))].sort());
+  fillSel('fGdv',[...new Set(ROWS.map(r=>r.gdv).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'vi')));
+  ['fMonth','fMien','fGdv'].forEach(id=>document.getElementById(id).onchange=applyF);
+  document.getElementById('fSearch').oninput=applyF;
+
+  renderCharts();
+  window.tbl = DataTable({tableId:'tbl',cols:COLS,data:ROWS,pageSize:100,sortKey:'total',sortDir:1});
+  applyF();
+}
+
+function fillSel(id,arr){
+  const s=document.getElementById(id), first=s.options[0].textContent;
+  s.innerHTML=`<option value="">${first}</option>`+arr.map(v=>`<option>${v}</option>`).join('');
+}
+
+function applyF(){
+  const mo=document.getElementById('fMonth').value, mi=document.getElementById('fMien').value;
+  const g=document.getElementById('fGdv').value, q=document.getElementById('fSearch').value.toLowerCase().trim();
+  const out=ROWS.filter(r=>(!mo||r.ym===mo)&&(!mi||r.mien===mi)&&(!g||r.gdv===g)&&
+    (!q||[r.sap,r.name,r.gdv].join(' ').toLowerCase().includes(q)));
+  window.tbl.setData(out);
+  document.getElementById('cnt').textContent=fmtN(out.length)+' dòng';
+  renderKpis(out);
+}
+
+function renderKpis(rows){
+  const s=rows.reduce((a,r)=>a+(r.shrink||0),0), l=rows.reduce((a,r)=>a+(r.loss||0),0);
+  const t=s+l, ch=new Set(rows.map(r=>r.sap)).size;
+  const cards=[
+    {l:'Shrinkage',v:fmtB(s),c:'#ef4444',n:'hao hụt'},
+    {l:'Loss',v:fmtB(l),c:'#f59e0b',n:'thất thoát kiểm kê'},
+    {l:'Tổng S&L',v:fmtB(t),c:'#dc2626',n:'Shrinkage + Loss'},
+    {l:'Số CH',v:fmtN(ch),c:'#3b82f6',n:'trong bộ lọc'},
+    {l:'TB/CH',v:ch?fmtB(t/ch):'—',c:'#8b5cf6',n:'tổng / số CH'},
+  ];
+  document.getElementById('kpis').innerHTML=cards.map(c=>
+    `<div class="kpi" style="--c:${c.c}"><div class="lbl">${c.l}</div><div class="val" style="color:${c.c}">${c.v}</div><div class="note">${c.n}</div></div>`).join('');
+}
+
+function renderCharts(){
+  const tr=D.trend||[];
+  mk('cTrend','line',{labels:tr.map(x=>x.ym),datasets:[
+    {label:'Shrinkage',data:tr.map(x=>x.shrink),borderColor:'#ef4444',backgroundColor:'#ef444418',fill:true,tension:.3,borderWidth:2,pointRadius:2},
+    {label:'Loss',data:tr.map(x=>x.loss),borderColor:'#f59e0b',backgroundColor:'#f59e0b18',fill:true,tension:.3,borderWidth:2,pointRadius:2}
+  ]},{plugins:{legend:{position:'top',labels:{usePointStyle:true,boxWidth:8}}},
+     scales:{y:{ticks:{callback:v=>(v/1000).toFixed(0)+' tỷ'}}}});
+
+  const dp=(D.by_dept||[]).slice(0,10);
+  mk('cDept','bar',{labels:dp.map(x=>'Dept '+x.dept),
+    datasets:[
+      {label:'Shrinkage',data:dp.map(x=>x.shrink),backgroundColor:'#ef4444cc'},
+      {label:'Loss',data:dp.map(x=>x.loss),backgroundColor:'#f59e0bcc'}
+    ]},{indexAxis:'y',plugins:{legend:{position:'top',labels:{usePointStyle:true,boxWidth:8}}},
+       scales:{x:{stacked:true,ticks:{callback:v=>(v/1000).toFixed(0)+' tỷ'}},y:{stacked:true}}});
+
+  // top stores by total (aggregate across months)
+  const agg={};
+  ROWS.forEach(r=>{ if(!r.sap) return;
+    agg[r.sap]=agg[r.sap]||{name:r.name,total:0,shrink:0,loss:0};
+    agg[r.sap].total+=r.total||0; agg[r.sap].shrink+=r.shrink||0; agg[r.sap].loss+=r.loss||0;});
+  const top=Object.entries(agg).sort((a,b)=>a[1].total-b[1].total).slice(0,15);
+  mk('cTop','bar',{labels:top.map(([k,v])=>v.name? v.name.slice(0,26):k),
+    datasets:[{label:'Tổng S&L',data:top.map(([k,v])=>v.total),backgroundColor:'#ef4444cc'}]},
+    {indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{ticks:{callback:v=>fmtB(v)}}}});
+
+  mk('cSplit','bar',{labels:tr.map(x=>x.ym),datasets:[
+    {label:'Shrinkage',data:tr.map(x=>x.shrink),backgroundColor:'#ef4444cc'},
+    {label:'Loss',data:tr.map(x=>x.loss),backgroundColor:'#f59e0bcc'}
+  ]},{plugins:{legend:{position:'top',labels:{usePointStyle:true,boxWidth:8}}},
+     scales:{x:{stacked:true},y:{stacked:true,ticks:{callback:v=>(v/1000).toFixed(0)+' tỷ'}}}});
+}
+
+function doExport(){
+  const mo=document.getElementById('fMonth').value, mi=document.getElementById('fMien').value;
+  const g=document.getElementById('fGdv').value, q=document.getElementById('fSearch').value.toLowerCase().trim();
+  const out=ROWS.filter(r=>(!mo||r.ym===mo)&&(!mi||r.mien===mi)&&(!g||r.gdv===g)&&
+    (!q||[r.sap,r.name,r.gdv].join(' ').toLowerCase().includes(q)));
+  exportCsv('shrinkage_loss_'+new Date().toISOString().slice(0,10)+'.csv', COLS, out);
+}
+
+load();
+</script>
+</body></html>
