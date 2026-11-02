@@ -35,7 +35,7 @@
   <div class="grid g11">
     <div class="card"><div class="ch"><h3>🌏 Net impact W12 theo Miền</h3><span class="badge b-g">toàn quốc</span></div>
       <div class="scroll" style="max-height:clamp(160px,22vh,240px);min-height:0"><table id="tblMien"><thead></thead><tbody></tbody></table></div></div>
-    <div class="card"><div class="ch"><h3>⏱️ Block thời gian ảnh hưởng — Net %</h3><span class="badge b-o">0–12W · 13–24W · 25–36W · 37–52W</span></div>
+    <div class="card"><div class="ch"><h3>⏱️ Block thời gian ảnh hưởng — Net %</h3><span class="badge b-o">0-12W · 12-24W · 24-36W · 36-52W</span></div>
       <div class="scroll" style="max-height:clamp(160px,22vh,240px);min-height:0"><table id="tblBlock"><thead></thead><tbody></tbody></table></div></div>
   </div>
 
@@ -145,7 +145,7 @@ function renderMienBlock(){
   document.getElementById('tblMien').innerHTML=h+'</tbody>';
 
   const bkeys=['Tất cả','<100m','100-300m','300-500m','500m-1km'].filter(k=>bl[k]);
-  const blocks=['0–12W','13–24W','25–36W','37–52W'];
+  const blocks=['0-12W','12-24W','24-36W','36-52W'];
   let h2='<thead><tr><th>Khoảng cách</th>'+blocks.map(b=>`<th class="num">${b}</th>`).join('')+'</tr></thead><tbody>';
   bkeys.forEach(k=>{
     h2+=`<tr><td>${k==='Tất cả'?'Toàn bộ':k}</td>`+blocks.map(b=>{
