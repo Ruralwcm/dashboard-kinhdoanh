@@ -333,6 +333,13 @@ body.fullscreen .ptools{opacity:.9}
     <div class="f"><label>Trạng thái</label><select id="fTt">
       <option value="HD">Đang hoạt động</option><option value="">Tất cả trạng thái</option></select></div>
     <div class="f"><label>Tìm cửa hàng</label><input id="fQ" placeholder="Mã SAP / tên CH…"></div>
+    <div class="sg">Doanh thu</div>
+    <div class="f"><label>Revenue Type</label>
+      <div class="seg" id="rvSeg">
+        <button data-rv="so" class="on" title="SO = Revenue (tổng doanh thu)">SO</button>
+        <button data-rv="retail" title="Retail = Sale POS revenue">Retail</button>
+      </div>
+    </div>
     <div class="chips" id="chips"></div>
     <div class="cnt" id="pCnt">—</div>
     <div class="act">
@@ -557,8 +564,13 @@ function initUI(){
 }
 
 /* ================= render ================= */
+const RVF=['d','dl','w','wl','m','md','mdl','y','yl','yd','ydl','bs','dbs','wbs','wbsl','mbs','mbsl','ybs','ybsl'];
+function applyBasis(rows){
+  if(FILT.rv!=='retail') return rows;
+  return rows.map(r=>{ const o=Object.assign({},r); for(const k of RVF){ const v=r[k+'r']; if(v!==undefined) o[k]=v; } return o; });
+}
 function render(){
-  const rows = currentRows();
+  const rows = applyBasis(currentRows());
   const a = agg(rows);
   document.getElementById('pCnt').innerHTML = '<b>'+F.n(rows.length)+'</b> cửa hàng';
   document.getElementById('kpiSub').textContent = rows.length!==ALL.length ? ('đang lọc · '+F.n(rows.length)+'/'+F.n(ALL.length)+' CH') : ('toàn hệ thống · '+F.n(rows.length)+' CH');
@@ -570,8 +582,9 @@ function renderChips(){
   const map = {mi:'Miền',vu:'Vùng',ti:'Tỉnh',gd:'GĐV',ql:'QLKV',gr:'Nhóm',q:'Tìm'};
   const parts = [];
   for(const k in map){ if(FILT[k]) parts.push(`<span class="chip">${map[k]}: <b>${FILT[k]}</b><span class="x" data-k="${k}">×</span></span>`); }
-  box.style.display = parts.length ? 'flex' : 'none';
-  box.innerHTML = parts.length ? parts.join('') + '<span class="chip gray">Bấm × để bỏ lọc</span>' : '';
+  box.style.display = 'flex';
+  const rvLbl = FILT.rv==='retail' ? 'Retail (POS)' : 'SO (Revenue)';
+  box.innerHTML = (parts.join('') + `<span class="chip">DT: <b>${rvLbl}</b></span>`) + '<span class="chip gray">Bấm × để bỏ lọc</span>';
   box.querySelectorAll('.x').forEach(x=>x.onclick=()=>{ FILT[x.dataset.k]=''; refreshFilters(); render(); });
 }
 
@@ -813,6 +826,11 @@ function renderStore(rows){
 
 /* ================= events ================= */
 document.getElementById('fTt').onchange = e=>{ FILT.tt=e.target.value; render(); };
+document.querySelectorAll('#rvSeg button').forEach(b=>b.onclick=()=>{
+  FILT.rv = b.dataset.rv;
+  document.querySelectorAll('#rvSeg button').forEach(x=>x.classList.toggle('on',x===b));
+  render();
+});
 ['fMi','fVu','fTi','fGd','fQl','fGr'].forEach(id=>{
   document.getElementById(id).onchange = e=>{
     const key = {fMi:'mi',fVu:'vu',fTi:'ti',fGd:'gd',fQl:'ql',fGr:'gr'}[id];
@@ -939,7 +957,7 @@ document.getElementById('fQ').oninput = e=>{ clearTimeout(qT); qT=setTimeout(()=
   });
 })();
 
-document.getElementById('btnReset').onclick = ()=>{ FILT={mi:'',vu:'',ti:'',gd:'',ql:'',gr:'',q:'',tt:'HD'}; document.getElementById('fQ').value=''; refreshFilters(); render(); };
+document.getElementById('btnReset').onclick = ()=>{ FILT={mi:'',vu:'',ti:'',gd:'',ql:'',gr:'',q:'',tt:'HD',rv:'so'}; document.getElementById('fQ').value=''; refreshFilters(); render(); };
 document.querySelectorAll('#dimSeg button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('#dimSeg button').forEach(x=>x.classList.remove('on'));
   b.classList.add('on'); DIM=b.dataset.d; renderDim(currentRows());
