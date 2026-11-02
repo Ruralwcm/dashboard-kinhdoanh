@@ -99,7 +99,7 @@ async function load(){
   document.getElementById('fSearch').oninput=applyFilter;
 
   renderKpis(RAW); renderCharts();
-  window.__tbl = DataTable({tableId:'tbl', cols:COLS, data:RAW, pageSize:100, sortKey:'d_spd', sortDir:-1});
+  window.__tbl = DataTable({tableId:'tbl', pagerId:'pager', cols:COLS, data:RAW, pageSize:100, sortKey:'d_spd', sortDir:-1});
 }
 
 function fill(id,arr){
