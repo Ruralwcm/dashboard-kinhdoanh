@@ -127,6 +127,8 @@ main > .sec-h:first-child{margin-top:4px}
 .kt tr.clickable{cursor:pointer}
 .badge{display:inline-block;min-width:47px;text-align:center;border-radius:4px;padding:1.5px 6px;color:#fff;font-size:11.5px;font-weight:800;letter-spacing:.2px}
 .b-green{background:#0E9F6E} .b-orange{background:#E0872B} .b-red{background:#D32F2F} .b-none{background:#DFE6EF;color:#7D8BA1}
+.kt td .ly{display:block;font-size:10px;font-weight:700;line-height:1.05;margin-top:2px}
+.kt thead tr.sub th .hh{font-weight:600;font-size:9.5px;opacity:.85;display:block;line-height:1.1}
 .pos{color:#0B7A54;font-weight:700} .neg{color:#B3261E;font-weight:700} .mut{color:#9AA7B8}
 .seg{display:inline-flex;background:#F1F4F9;border-radius:9px;padding:2px;gap:2px}
 .seg button{border:0;background:transparent;border-radius:7px;padding:6px 12px;font-size:12.5px;font-weight:700;color:var(--ink2);cursor:pointer;white-space:nowrap}
@@ -340,6 +342,13 @@ body.fullscreen .ptools{opacity:.9}
         <button data-rv="retail" title="Retail = Sale POS revenue">Retail</button>
       </div>
     </div>
+    <div class="f"><label>Mức hiển thị</label>
+      <div class="seg" id="lvSeg">
+        <button data-lv="full" class="on" title="Toàn bộ chỉ số">Full</button>
+        <button data-lv="compact" title="Bỏ GAP">Compact</button>
+        <button data-lv="lite" title="Bỏ GAP và Bill Size">Lite</button>
+      </div>
+    </div>
     <div class="chips" id="chips"></div>
     <div class="cnt" id="pCnt">—</div>
     <div class="act">
@@ -453,6 +462,10 @@ function agg(rows){
   const rev = s('m'), tarM = s('mt'), revY = s('y'), tarY = s('yt');
   const loss = s('lo'), shrink = s('sh'), stock = s('st'), cogs = rows.reduce((a,r)=>a+(r.dio>0?r.st/r.dio:0),0);
   const pctD=(a,b)=>b>0?(a/b-1)*100:NaN;
+  const WN=(D&&D.meta&&D.meta.wtdDays)||5, YN=(D&&D.meta&&D.meta.ytdDays)||303;
+  const per=(spd,spdL,bill,billL,bs,bsL,rev,revL,tar)=>({spd,spdL,bill,billL,bs,bsL,rev,revL,tar,
+    spdLV:pctD(spd,spdL), billLV:pctD(bill,billL), bsLV:pctD(bs,bsL), revLV:pctD(rev,revL),
+    ht: tar>0? rev/tar*100 : NaN, gap: tar>0? rev-tar : NaN});
   const MTDD = (D && D.meta && D.meta.mtdDays) || 30;
   const mlyRev = s('mdl') * MTDD;
   return {
@@ -471,7 +484,13 @@ function agg(rows){
     md, mdl, ttM: mdl>0?(md/mdl-1)*100:NaN,
     yd, ydl, ttY: ydl>0?(yd/ydl-1)*100:NaN,
     loss, shrink, sl: rev>0?(loss+shrink)/rev*100:NaN, lossPct: rev>0?loss/rev*100:NaN,
-    stock, dio: cogs>0?stock/cogs:NaN, bill: s('bl'), bs: s('bl')>0?s('bs')/n:NaN
+    stock, dio: cogs>0?stock/cogs:NaN, bill: s('bl'), bs: s('bl')>0?s('bs')/n:NaN,
+    pd: {
+      d: per(spd, spdL, s('bl')/n, s('dbl')/n, s('bs')/n, s('dbs')/n, s('d'), s('dl'), s('dt')),
+      w: per(s('w')/n, s('wl')/n, s('wbl')/n, s('wbll')/n, s('wbs')/n, s('wbsl')/n, s('w')*WN, s('wl')*WN, s('dt')*WN),
+      m: per(md, mdl, s('mb')/n, s('mbl')/n, s('mbs')/n, s('mbsl')/n, rev, mlyRev, tarM),
+      y: per(yd, ydl, s('ybl')/n, s('ybll')/n, s('ybs')/n, s('ybsl')/n, revY, s('yl'), tarY)
+    }
   };
 }
 function zeroN(rows){ return rows.filter(r=>!(r.d>0.0001)).length; }
@@ -685,54 +704,50 @@ const gp = v => !isFinite(v) ? '<span class="mut">—</span>' :
 const sortAgg = list => list.sort((x,y)=>{ const a=sane(x.a.htM), b=sane(y.a.htM);
   if(!isFinite(a)) return 1; if(!isFinite(b)) return -1; return a-b; });
 
+const LVS = {full:['spd','bill','bs','sale','tar','ht','gap'],
+             compact:['spd','bill','bs','sale','tar','ht'],
+             lite:['spd','bill','sale','tar','ht']};
+const LVLB = {spd:'SPD<span class="hh">tr/CH/ngày</span>', bill:'Bill<span class="hh">bill/CH/ngày</span>',
+  bs:'Bill Size<span class="hh">nghìn đ/bill</span>', sale:'Total Sale<span class="hh">tr</span>',
+  tar:'Target<span class="hh">tr</span>', ht:'%HT Target', gap:'GAP<span class="hh">tr</span>'};
+const LVDESC = {full:'Toàn bộ', compact:'Bỏ GAP', lite:'Bỏ GAP + Bill Size'};
+function lvCols(){ return LVS[FILT.lv]||LVS.full; }
+function lyTag(v){ if(!isFinite(v)) return '';
+  const c = v>=0?'#0B7A54':'#B3261E';
+  return `<span class="ly" style="color:${c}">${v>=0?'+':''}${v.toFixed(1).replace('.',',')}% LY</span>`; }
+const CELL = {
+  spd: p => `<td class="num">${F.n1(p.spd)}${lyTag(p.spdLV)}</td>`,
+  bill: p => `<td class="num">${F.n1(p.bill)}${lyTag(p.billLV)}</td>`,
+  bs: p => `<td class="num">${F.n(p.bs)}${lyTag(p.bsLV)}</td>`,
+  sale: p => `<td class="num">${F.n(p.rev)}${lyTag(p.revLV)}</td>`,
+  tar: p => `<td class="num">${p.tar>0?F.n(p.tar):'—'}</td>`,
+  ht: p => `<td class="num">${(p.tar>0&&isFinite(p.ht))?`<span class="tag ${HT0.tag(sane(p.ht))}">${p.ht.toFixed(1).replace('.',',')}%</span>`:'—'}</td>`,
+  gap: p => `<td class="num ${isFinite(p.gap)&&p.gap<0?'neg':'pos'}">${isFinite(p.gap)?(p.gap>=0?'+':'-')+F.n(Math.abs(p.gap)):'—'}</td>`
+};
+function pCells(a, key){
+  const p = a.pd[key], cols = lvCols();
+  return cols.map((c,i)=>{
+    let h = CELL[c](p);
+    if(i===0 && key!=='d') h = h.replace('<td class="num','<td class="num gb');
+    return h;
+  }).join('');
+}
+function periodCols(){ return 2 + 4*lvCols().length; }
 function kpiHead(label, tg){
+  const n = lvCols().length;
+  const G = [['d','DAY','gday'],['w',`WTD — LŨY KẾ TUẦN (${(D&&D.meta?D.meta.wtdDays:5)} ngày)`,'gwtd'],
+             ['m',`MTD — LŨY KẾ THÁNG (${(D&&D.meta?D.meta.mtdDays:30)} ngày)`,'gmtd'],
+             ['y','YTD — LŨY KẾ NĂM','gytd']];
   return `<thead>
       <tr class="grp${tg?' tg':''}">
         <th rowspan="2" class="name">${label}</th>
         <th rowspan="2" class="cntc">#<br>CH</th>
-        <th colspan="4" class="gday">DAY</th>
-        <th colspan="4" class="gwtd">WTD — LŨY KẾ TUẦN (${WTD_DAYS()} ngày)</th>
-        <th colspan="7" class="gmtd">MTD — LŨY KẾ THÁNG (${(D&&D.meta?D.meta.mtdDays:30)} ngày)</th>
-        <th colspan="7" class="gytd">YTD — LŨY KẾ NĂM</th>
+        ${G.map(([k,t,c])=>`<th colspan="${n}" class="${c}">${t}</th>`).join('')}
       </tr>
       <tr class="sub">
-        <th>Sales (tr)</th><th>Sales vs LY</th><th>Bill vs LY</th><th>Bill size vs LY</th>
-        <th class="gb">Sales (tr)</th><th>Sales vs LY</th><th>Bill vs LY</th><th>Bill size vs LY</th>
-        <th class="gb">Sales (tr)</th><th>% MTD vs Target</th><th>Sales vs LY</th><th>Target</th><th>GAP</th><th>Bill vs LY</th><th>Bill size vs LY</th>
-        <th class="gb">Sales (tr)</th><th>% YTD vs Target</th><th>Sales vs LY</th><th>Target</th><th>GAP</th><th>Bill vs LY</th><th>Bill size vs LY</th>
+        ${G.map(([k])=>lvCols().map((c,i)=>`<th${i===0&&k!=='d'?' class="gb"':''}>${LVLB[c]}</th>`).join('')).join('')}
       </tr>
     </thead>`;
-}
-
-function dayCells(a){
-  return `<td class="num">${F.n(a.revD)}</td>
-    <td class="num">${pv(a.tt)}</td>
-    <td class="num">${pv(a.billLV)}</td>
-    <td class="num">${pv(a.bsLV)}</td>`;
-}
-function wtdCells(a){
-  return `<td class="num gb">${F.n(a.revW)}</td>
-    <td class="num">${pv(a.wsalesLV)}</td>
-    <td class="num">${pv(a.wbillLV)}</td>
-    <td class="num">${pv(a.wbsLV)}</td>`;
-}
-function mtdCells(a){
-  return `<td class="num gb">${F.n(a.rev)}</td>
-    <td class="num">${bdg(a.htM)}</td>
-    <td class="num">${pv(a.salesLVM)}</td>
-    <td class="num">${F.n(a.tarM)}</td>
-    <td class="num">${gp(a.gapM2)}</td>
-    <td class="num">${pv(a.mbLV)}</td>
-    <td class="num">${pv(a.mbsLV)}</td>`;
-}
-function ytdCells(a){
-  return `<td class="num gb">${F.n(a.revY2)}</td>
-    <td class="num">${bdg(a.htY)}</td>
-    <td class="num">${pv(a.ysalesLV)}</td>
-    <td class="num">${F.n(a.tarY)}</td>
-    <td class="num">${gp(a.tarY>0? a.revY2-a.tarY : NaN)}</td>
-    <td class="num">${pv(a.ybillLV)}</td>
-    <td class="num">${pv(a.ybsLV)}</td>`;
 }
 
 function renderDim(rows){
@@ -745,20 +760,20 @@ function renderDim(rows){
   for(const g of tops){
     body += `<tr class="lvl1 clickable" data-k="${l1}" data-v="${esc(g.k)}">
       <td class="name">${g.k}</td><td class="num cntc">${F.n(g.n)}</td>
-      ${dayCells(g.a)}${wtdCells(g.a)}${mtdCells(g.a)}${ytdCells(g.a)}</tr>`;
+      ${pCells(g.a,'d')}${pCells(g.a,'w')}${pCells(g.a,'m')}${pCells(g.a,'y')}</tr>`;
     if(l2){
       const sub = sortAgg([...byDim(rows.filter(r=>r[l1]===g.k), l2)].map(([key,v])=>({k:key,n:v.length,a:agg(v)})));
       for(const c of sub){
         body += `<tr class="lvl2 clickable" data-k="${l2}" data-v="${esc(c.k)}">
           <td class="name">${c.k}</td><td class="num cntc">${F.n(c.n)}</td>
-          ${dayCells(c.a)}${wtdCells(c.a)}${mtdCells(c.a)}${ytdCells(c.a)}</tr>`;
+          ${pCells(c.a,'d')}${pCells(c.a,'w')}${pCells(c.a,'m')}${pCells(c.a,'y')}</tr>`;
       }
     }
   }
   document.getElementById('tDim').innerHTML = kpiHead(DIMLBL[DIM]||'Địa bàn') + `
-    <tbody>${body||'<tr><td colspan="24" class="empty-row">Không có dữ liệu</td></tr>'}
+    <tbody>${body||'<tr><td colspan="${periodCols()}" class="empty-row">Không có dữ liệu</td></tr>'}
       <tr class="total"><td class="name">TỔNG CỘNG</td><td class="num cntc">${F.n(rows.length)}</td>
-        ${dayCells(t)}${wtdCells(t)}${mtdCells(t)}${ytdCells(t)}</tr>
+        ${pCells(t,'d')}${pCells(t,'w')}${pCells(t,'m')}${pCells(t,'y')}</tr>
     </tbody>`;
   document.querySelectorAll('#tDim tbody tr.clickable').forEach(tr=>tr.onclick=()=>{
     const k=tr.dataset.k, v=tr.dataset.v;
@@ -780,13 +795,13 @@ function renderGrp(rows){
     body += `<tr class="clickable" data-g="${g}">
       <td class="name"><div class="nm">${label}</div><div class="sm">${(r.length/Math.max(1,rows.length)*100).toFixed(0)}% tổng CH</div></td>
       <td class="num cntc">${F.n(r.length)}</td>
-      ${dayCells(a)}${wtdCells(a)}${mtdCells(a)}${ytdCells(a)}</tr>`;
+      ${pCells(a,'d')}${pCells(a,'w')}${pCells(a,'m')}${pCells(a,'y')}</tr>`;
   }
   const t = agg(rows);
   document.getElementById('tGrp').innerHTML = kpiHead('Nhóm cửa hàng', true) + `
-    <tbody>${body||'<tr><td colspan="24" class="empty-row">Không có dữ liệu</td></tr>'}
+    <tbody>${body||'<tr><td colspan="${periodCols()}" class="empty-row">Không có dữ liệu</td></tr>'}
       <tr class="total"><td class="name">TỔNG CỘNG</td><td class="num cntc">${F.n(rows.length)}</td>
-      ${dayCells(t)}${wtdCells(t)}${mtdCells(t)}${ytdCells(t)}</tr></tbody>`;
+      ${pCells(t,'d')}${pCells(t,'w')}${pCells(t,'m')}${pCells(t,'y')}</tr></tbody>`;
   document.querySelectorAll('#tGrp tbody tr.clickable').forEach(tr=>tr.onclick=()=>{
     FILT.gr = (FILT.gr===tr.dataset.g) ? '' : tr.dataset.g;
     refreshFilters(); render();
@@ -826,6 +841,11 @@ function renderStore(rows){
 
 /* ================= events ================= */
 document.getElementById('fTt').onchange = e=>{ FILT.tt=e.target.value; render(); };
+document.querySelectorAll('#lvSeg button').forEach(b=>b.onclick=()=>{
+  FILT.lv = b.dataset.lv;
+  document.querySelectorAll('#lvSeg button').forEach(x=>x.classList.toggle('on',x===b));
+  render();
+});
 document.querySelectorAll('#rvSeg button').forEach(b=>b.onclick=()=>{
   FILT.rv = b.dataset.rv;
   document.querySelectorAll('#rvSeg button').forEach(x=>x.classList.toggle('on',x===b));
@@ -957,7 +977,7 @@ document.getElementById('fQ').oninput = e=>{ clearTimeout(qT); qT=setTimeout(()=
   });
 })();
 
-document.getElementById('btnReset').onclick = ()=>{ FILT={mi:'',vu:'',ti:'',gd:'',ql:'',gr:'',q:'',tt:'HD',rv:'so'}; document.getElementById('fQ').value=''; refreshFilters(); render(); };
+document.getElementById('btnReset').onclick = ()=>{ FILT={mi:'',vu:'',ti:'',gd:'',ql:'',gr:'',q:'',tt:'HD',rv:'so',lv:'full'}; document.getElementById('fQ').value=''; refreshFilters(); render(); };
 document.querySelectorAll('#dimSeg button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('#dimSeg button').forEach(x=>x.classList.remove('on'));
   b.classList.add('on'); DIM=b.dataset.d; renderDim(currentRows());
