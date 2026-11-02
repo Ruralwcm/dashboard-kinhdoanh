@@ -220,6 +220,14 @@ body{display:flex;flex-direction:column;overflow:hidden}
 .content{overflow-y:auto;padding:14px 18px 26px;min-width:0;max-width:none;margin:0;width:auto}
 .content > .sec-h:first-child{margin-top:2px}
 .kpis{grid-template-columns:repeat(auto-fit,minmax(152px,1fr))}
+.kpis.kpgrid2{grid-template-columns:repeat(5,minmax(0,1fr))}
+.kpi.kp1{border-left:3px solid var(--navy2,#12245C)}
+.kpi.kp1 .vv{font-size:24px}
+.kpi.kp2{background:#FAFBFD;box-shadow:none;border:1px solid var(--line)}
+.kpi.kp2 .vv{font-size:17px}
+.kpi.kp2 .lb{font-size:10px}
+@media(max-width:1300px){.kpis.kpgrid2{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:1100px){.kpis.kpgrid2{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:1100px){
   html,body{height:auto}
   body{display:block;overflow:auto}
@@ -281,7 +289,7 @@ body{display:flex;flex-direction:column;overflow:hidden}
     </div>
   </aside>
   <main class="content">
-  <div class="sec-h"><h2>Chỉ số điều hành</h2><span class="sub" id="kpiSub"></span></div>
+  <div class="sec-h"><h2>Key Performance</h2><span class="sub" id="kpiSub"></span></div>
   <section class="kpis" id="kpis"></section>
 
   <div class="sec-h"><h2>Cần hành động ngay</h2><span class="sub">Tự động phát hiện theo vùng đang lọc</span></div>
@@ -473,30 +481,37 @@ function renderChips(){
 
 function renderKPI(a, rows){
   const zero = zeroN(rows);
-  const cards = [
-    {lb:'Sale ngày (SPD/CH)', v:F.spd(a.spd), u:'tr', sub:`<span class="tag ${a.tt>=0?'t-good':'t-bad'}">${F.sgn(a.tt)} vs LY</span> <span>Bill ${F.n(a.bill)} · BS ${F.n2(a.bs)}</span>`, cls:a.tt>=0?'k-green':'k-red'},
-    {lb:'%HT ngày (Target CD)', v:F.pct(a.ht), u:'', sub:`<span class="tag ${HT0.tag(sane(a.ht))}">${VERDICT(sane(a.ht))}</span> <span>Target ${F.spd(a.spd/(a.ht/100))} tr/ngày</span>`, cls:'k-red'},
-    {lb:'Doanh thu MTD', v:F.money(a.rev), u:'', sub:`<span class="tag ${HT0.tag(sane(a.htM))}">${F.pct(sane(a.htM))} HT</span> <span>Gap ${F.money(a.gapM)}</span>`, cls:'k-blue'},
-    {lb:'Lũy kế năm (YTD)', v:F.money(a.revY), u:'', sub:`<span class="tag ${HT0.tag(sane(a.htY))}">${F.pct(sane(a.htY))} HT</span> <span>${F.sgn(a.ttY)} vs LY</span>`, cls:'k-blue'},
-    {lb:'Hủy (Loss)', v:F.money(Math.abs(a.loss)), u:'', sub:`<span class="tag ${Math.abs(a.lossPct)>1?'t-bad':'t-warn'}">${F.pct(Math.abs(a.lossPct))} DT</span> <span>S&L ${F.pct(Math.abs(a.sl))}</span>`, cls:'k-red'},
-    {lb:'Tồn kho', v:F.money(a.stock), u:'', sub:`<span class="tag ${a.dio>60?'t-bad':a.dio>45?'t-warn':'t-good'}">DIO ${F.n1(a.dio)} ngày</span>`, cls:'k-warn'},
-    {lb:'LFL', v:F.pct(rows.filter(r=>r.gr==='LFL').length? agg(rows.filter(r=>r.gr==='LFL')).ht : NaN), u:'', sub:lflSub(rows), cls:'k-green'},
-    {lb:'STU', v:F.pct(rows.filter(r=>r.gr==='STU').length? agg(rows.filter(r=>r.gr==='STU')).ht : NaN), u:'', sub:grpSub(rows,'STU','SPD'), cls:'k-warn'},
-    {lb:'NSO', v:F.n(rows.filter(r=>r.gr==='NSO').length), u:' CH', sub:nsoSub(rows), cls:'k-blue'}
+  const sgnTag = v => `<span class="tag ${v>=0?'t-good':'t-bad'}">${F.sgn(v)} vs LY</span>`;
+  const htTag  = v => `<span class="tag ${HT0.tag(sane(v))}">${F.pct(sane(v))} HT target</span>`;
+
+  // ===== Hàng 1: Key Performance (SPD · Bill · Total Sale · S&L · DIO) =====
+  const kp = [
+    {lb:'SPD (tr/CH/ngày)', v:F.spd(a.spd), u:' tr', sub:sgnTag(a.tt)},
+    {lb:'Bill (bill/CH/ngày)', v:F.n(a.bill/a.n), u:' bill', sub:sgnTag(a.billLV)},
+    {lb:'Total Sale ngày', v:F.money(a.revD), u:'', sub:`${htTag(a.ht)} ${sgnTag(a.tt)}`},
+    {lb:'S&L', v:F.pct(a.rev>0? (Math.abs(a.loss)+Math.abs(a.shrink))/a.rev*100 : NaN), u:' DT', sub:`<span class="tag ${(Math.abs(a.loss)+Math.abs(a.shrink))/a.rev*100>2?'t-bad':'t-warn'}">S&L ${F.money(Math.abs(a.loss)+Math.abs(a.shrink))}</span>`},
+    {lb:'DIO', v:F.n1(a.dio), u:' ngày', sub:`<span class="tag ${a.dio>60?'t-bad':a.dio>45?'t-warn':'t-good'}">Tồn kho ${F.money(a.stock)}</span>`}
   ];
-  cards.forEach(c=>{ c.cls=''; });
-  document.getElementById('kpis').innerHTML = cards.map(c=>`
-    <div class="kpi ${c.cls}">
+  // ===== Hàng 2: chi tiết kỳ =====
+  const kp2 = [
+    {lb:'Doanh thu MTD', v:F.money(a.rev), u:'', sub:`${htTag(a.htM)}<span class="tag ${a.gapM<0?'t-bad':'t-good'}">Gap ${F.money(a.gapM)}</span>`},
+    {lb:'Lũy kế năm (YTD)', v:F.money(a.revY), u:'', sub:`${htTag(a.htY)} ${sgnTag(a.ttY)}`},
+    {lb:'LFL', v:F.pct(rows.filter(r=>r.gr==='LFL').length? agg(rows.filter(r=>r.gr==='LFL')).ht : NaN), u:'', sub:lflSub(rows)},
+    {lb:'STU', v:F.pct(rows.filter(r=>r.gr==='STU').length? agg(rows.filter(r=>r.gr==='STU')).ht : NaN), u:'', sub:grpSub(rows,'STU','SPD')},
+    {lb:'NSO', v:F.n(rows.filter(r=>r.gr==='NSO').length), u:' CH', sub:nsoSub(rows)}
+  ];
+  const draw = (arr,cls)=>arr.map(c=>`
+    <div class="kpi ${cls}">
       <div class="lb">${c.lb}</div>
       <div class="vv">${c.v}<small>${c.u||''}</small></div>
       <div class="sb">${c.sub||''}</div>
-    </div>`).join('')
-;
-  // cảnh báo CH chưa phát sinh nếu có
+    </div>`).join('');
+  const el = document.getElementById('kpis');
+  el.innerHTML = draw(kp,'kp1') + draw(kp2,'kp2');
   if(zero>0){
-    const el = document.getElementById('kpis');
-    el.insertAdjacentHTML('beforeend', `<div class="kpi k-red"><div class="lb">CH chưa phát sinh</div><div class="vv">${F.n(zero)}<small> CH</small></div><div class="sb"><span class="tag t-bad">SPD = 0</span> <span>cần kiểm tra ngay</span></div></div>`);
+    el.insertAdjacentHTML('beforeend', `<div class="kpi k-red kp2"><div class="lb">CH chưa phát sinh</div><div class="vv">${F.n(zero)}<small> CH</small></div><div class="sb"><span class="tag t-bad">SPD = 0</span></div></div>`);
   }
+  el.classList.add('kpgrid2');
 }
 function lflSub(rows){
   const r = rows.filter(x=>x.gr==='LFL'); if(!r.length) return '<span class="tag t-gray">Không có CH LFL</span>';
