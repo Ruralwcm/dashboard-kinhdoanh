@@ -96,7 +96,7 @@ main > .sec-h:first-child{margin-top:4px}
 #tDim thead th{background:#0F2A4A;color:#fff;border-bottom:1px solid #23456B;border-right:1px solid #23456B;
   font-size:11px;font-weight:700;letter-spacing:0;text-transform:none;padding:6px 5px;white-space:nowrap;position:static;cursor:default}
 #tDim thead tr.grp th{background:#173A63;font-size:11.5px;letter-spacing:.5px;text-transform:uppercase;text-align:center}
-#tDim thead tr.sub th{font-size:10px;color:#CFDCEC;font-weight:600;line-height:1.2;max-width:72px;white-space:normal;text-align:right;padding:5px 4px}
+#tDim thead tr.sub th{font-size:10px;color:#CFDCEC;font-weight:600;line-height:1.2;width:74px;max-width:74px;white-space:normal;text-align:center;vertical-align:bottom;padding:6px 5px}
 #tDim thead th.name{text-align:left;min-width:150px}
 #tDim thead th.name,#tDim td.name{position:sticky;left:0;z-index:3}
 #tDim thead th.name{z-index:5}
@@ -107,6 +107,12 @@ main > .sec-h:first-child{margin-top:4px}
 #tDim tr.total td.cntc,#tDim tr.total td.name{background:#0F2A4A}
 #tDim thead .gday{background:#1F4E79} #tDim thead .gwtd{background:#25607F}
 #tDim thead .gmtd{background:#173A63} #tDim thead .gytd{background:#12304F}
+/* khe ngăn cách giữa DAY | WTD | MTD | YTD */
+#tDim thead tr.grp th.gwtd,#tDim thead tr.grp th.gmtd,#tDim thead tr.grp th.gytd{border-left:4px solid #06101F}
+#tDim thead tr.sub th.gb{border-left:4px solid #06101F}
+#tDim tbody td.gb{border-left:4px solid #C9D6E6}
+#tDim tbody tr.lvl1 td.gb{border-left-color:#AFC4DC}
+#tDim tbody tr.total td.gb{border-left:4px solid #06101F}
 #tDim td{border-bottom:1px solid #EDF1F7;border-right:1px solid #F4F7FB;padding:6px 5px}
 #tDim td.name{text-align:left;font-weight:700;min-width:190px}
 #tDim td .cnt{display:block;font-size:10.5px;font-weight:600;color:#7D8BA1;letter-spacing:.2px}
@@ -324,6 +330,9 @@ body.fullscreen .ptools{opacity:.9}
   <div class="sec-h"><h2>Cần hành động ngay</h2><span class="sub">Tự động phát hiện theo vùng đang lọc</span></div>
   <section class="acts" id="acts"></section>
 
+  <div class="sec-h"><h2>Hiệu quả theo nhóm cửa hàng</h2><span class="sub">LFL · STU · NSO</span></div>
+  <section class="panel"><div class="tw"><table id="tGrp"></table></div></section>
+
   <div class="sec-h">
     <h2>Hiệu quả theo địa bàn</h2><span class="sub">Bấm vào dòng để lọc nhanh địa bàn đó</span>
     <div class="rt"><div class="seg" id="dimSeg">
@@ -332,9 +341,6 @@ body.fullscreen .ptools{opacity:.9}
     </div></div>
   </div>
   <section class="panel"><div class="tw"><table id="tDim"></table></div></section>
-
-  <div class="sec-h"><h2>Hiệu quả theo nhóm cửa hàng</h2><span class="sub">LFL · STU · NSO</span></div>
-  <section class="panel"><div class="tw"><table id="tGrp"></table></div></section>
 
   <div class="sec-h">
     <h2>Danh sách cửa hàng</h2><span class="sub" id="stSub"></span>
@@ -626,13 +632,13 @@ function dayCells(a){
     <td class="num">${pv(a.bsLV)}</td>`;
 }
 function wtdCells(a){
-  return `<td class="num">${F.n(a.revW)}</td>
+  return `<td class="num gb">${F.n(a.revW)}</td>
     <td class="num">${pv(a.wsalesLV)}</td>
     <td class="num">${pv(a.wbillLV)}</td>
     <td class="num">${pv(a.wbsLV)}</td>`;
 }
 function mtdCells(a){
-  return `<td class="num">${F.n(a.rev)}</td>
+  return `<td class="num gb">${F.n(a.rev)}</td>
     <td class="num">${bdg(a.htM)}</td>
     <td class="num">${pv(a.salesLVM)}</td>
     <td class="num">${F.n(a.tarM)}</td>
@@ -641,7 +647,7 @@ function mtdCells(a){
     <td class="num">${pv(a.mbsLV)}</td>`;
 }
 function ytdCells(a){
-  return `<td class="num">${F.n(a.revY2)}</td>
+  return `<td class="num gb">${F.n(a.revY2)}</td>
     <td class="num">${bdg(a.htY)}</td>
     <td class="num">${pv(a.ysalesLV)}</td>
     <td class="num">${F.n(a.tarY)}</td>
@@ -682,9 +688,9 @@ function renderDim(rows){
       </tr>
       <tr class="sub">
         <th>Sales (tr)</th><th>Sales vs LY</th><th>Bill vs LY</th><th>Bill size vs LY</th>
-        <th>Sales (tr)</th><th>Sales vs LY</th><th>Bill vs LY</th><th>Bill size vs LY</th>
-        <th>Sales (tr)</th><th>% MTD vs Target</th><th>Sales vs LY</th><th>Target</th><th>GAP</th><th>Bill vs LY</th><th>Bill size vs LY</th>
-        <th>Sales (tr)</th><th>% YTD vs Target</th><th>Sales vs LY</th><th>Target</th><th>GAP</th><th>Bill vs LY</th><th>Bill size vs LY</th>
+        <th class="gb">Sales (tr)</th><th>Sales vs LY</th><th>Bill vs LY</th><th>Bill size vs LY</th>
+        <th class="gb">Sales (tr)</th><th>% MTD vs Target</th><th>Sales vs LY</th><th>Target</th><th>GAP</th><th>Bill vs LY</th><th>Bill size vs LY</th>
+        <th class="gb">Sales (tr)</th><th>% YTD vs Target</th><th>Sales vs LY</th><th>Target</th><th>GAP</th><th>Bill vs LY</th><th>Bill size vs LY</th>
       </tr>
     </thead>
     <tbody>${body||'<tr><td colspan="24" class="empty-row">Không có dữ liệu</td></tr>'}
