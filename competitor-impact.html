@@ -35,8 +35,8 @@
   <div class="grid g11">
     <div class="card"><div class="ch"><h3>🌏 Net impact W12 theo Miền</h3><span class="badge b-g">toàn quốc</span></div>
       <div class="scroll" style="max-height:clamp(160px,22vh,240px);min-height:0"><table id="tblMien"><thead></thead><tbody></tbody></table></div></div>
-    <div class="card"><div class="ch"><h3>⏱️ Block thời gian ảnh hưởng — Net %</h3><span class="badge b-o">0-12W · 12-24W · 24-36W · 36-52W</span></div>
-      <div class="scroll" style="max-height:clamp(160px,22vh,240px);min-height:0"><table id="tblBlock"><thead></thead><tbody></tbody></table></div></div>
+    <div class="card"><div class="ch"><h3>⏱️ Diễn biến từng tuần (W0→W52) — Số CH · Net % · Gross %</h3><span class="badge b-o">0-12W · 12-24W · 24-36W · 36-52W</span></div>
+      <div class="scroll" style="max-height:clamp(200px,30vh,320px);min-height:0"><table id="tblWeek"><thead></thead><tbody></tbody></table></div></div>
   </div>
 
   <div class="filters">
@@ -135,7 +135,7 @@ async function load(){
 }
 
 function renderMienBlock(){
-  const mi=D.by_mien||{}, bl=D.by_block||{};
+  const mi=D.by_mien||{};
   const order=['Miền Bắc','Miền Trung','Miền Nam','Miền Tây'];
   const keys=order.filter(k=>mi[k]).concat(Object.keys(mi).filter(k=>!order.includes(k)));
   let h='<thead><tr><th>Miền</th><th class="num">CH tính được</th><th class="num">Net W12</th></tr></thead><tbody>';
@@ -143,17 +143,29 @@ function renderMienBlock(){
   keys.forEach(k=>{const v=mi[k]||{};
     h+=`<tr><td>${k}</td><td class="num">${fmtN(v.stores)}</td><td class="num ${v.avg_net_w12<0?'neg':'pos'}">${fmtPct(v.avg_net_w12)}</td></tr>`;});
   document.getElementById('tblMien').innerHTML=h+'</tbody>';
+  renderWeekly();
+}
 
-  const bkeys=['Tất cả','<100m','100-300m','300-500m','500m-1km'].filter(k=>bl[k]);
-  const blocks=['0-12W','12-24W','24-36W','36-52W'];
-  let h2='<thead><tr><th>Khoảng cách</th>'+blocks.map(b=>`<th class="num">${b}</th>`).join('')+'</tr></thead><tbody>';
-  bkeys.forEach(k=>{
-    h2+=`<tr><td>${k==='Tất cả'?'Toàn bộ':k}</td>`+blocks.map(b=>{
-      const v=(bl[k]||{})[b];
-      if(!v||v.avg_net==null) return '<td class="num">—</td>';
-      return `<td class="num ${v.avg_net<0?'neg':'pos'}">${fmtPct(v.avg_net)}<div style="font-size:10px;font-weight:500;color:var(--text2)">${fmtN(v.stores)} CH</div></td>`;
-    }).join('')+'</tr>';});
-  document.getElementById('tblBlock').innerHTML=h2+'</tbody>';
+function renderWeekly(){
+  const a=D.aggregate||{}; const wk=a.weeks||[], net=a.net||[], imp=a.imp||[], cnt=a.count||[];
+  if(!wk.length){document.getElementById('tblWeek').innerHTML='';return;}
+  const BLOCKS=[['0-12W',0,12],['12-24W',13,24],['24-36W',25,36],['36-52W',37,52]];
+  let h='<thead><tr><th>Tuần</th><th class="num">Số CH</th><th class="num">Net %</th><th class="num">Gross %</th></tr></thead><tbody>';
+  const cls=v=>v==null?'':(v<0?'neg':'pos');
+  BLOCKS.forEach(([label,lo,hi])=>{
+    const idx=[]; for(let i=lo;i<=hi&&i<wk.length;i++) idx.push(i);
+    const nets=idx.map(i=>net[i]).filter(v=>v!=null);
+    const cs=idx.map(i=>cnt[i]).filter(v=>v!=null);
+    const avgN=nets.length?nets.reduce((x,y)=>x+y,0)/nets.length:null;
+    const avgC=cs.length?Math.round(cs.reduce((x,y)=>x+y,0)/cs.length):0;
+    h+=`<tr><td colspan="4" style="background:var(--bg2,#e8eef6);font-weight:700;color:var(--text);font-size:11.5px;padding:7px 10px;border-left:3px solid var(--navy,#1e3a8a)">▸ Block <b>${label}</b> &nbsp;·&nbsp; TB ${fmtN(avgC)} CH &nbsp;·&nbsp; Net TB <span class="${cls(avgN)}">${fmtPct(avgN)}</span></td></tr>`;
+    idx.forEach(i=>{
+      h+=`<tr><td style="font-weight:600">${wk[i]}</td><td class="num">${fmtN(cnt[i])}</td>`
+       + `<td class="num ${cls(net[i])}">${fmtPct(net[i])}</td>`
+       + `<td class="num ${cls(imp[i])}">${fmtPct(imp[i])}</td></tr>`;
+    });
+  });
+  document.getElementById('tblWeek').innerHTML=h+'</tbody>';
 }
 
 function fillSel(id,arr){
