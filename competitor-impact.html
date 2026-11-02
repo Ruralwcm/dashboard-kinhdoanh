@@ -17,7 +17,7 @@
 </header>
 
 <div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:12.5px;color:#92400e">
-  ⚙️ <b>Mở rộng phạm vi</b> — <b>toàn bộ 3.907 đối thủ BHX</b> (mọi năm khai trương) × <b>toàn bộ 2.910 cửa hàng</b> · sales tới 30/10/2026 · Control: <b>cùng Huyện nếu ≥5 CH, ngược lại cùng Tỉnh</b>. Bản gốc (logic chuẩn của anh Hảo) tại <a href="competitor.html" style="color:#92400e;font-weight:700">⚔️ Competitor</a>.</div>
+  ⚙️ <b>Mở rộng phạm vi</b> — <b>toàn bộ 3.907 đối thủ BHX</b> (mọi năm khai trương) × <b>toàn bộ 2.910 cửa hàng</b> · sales tới 30/10/2026 · Control 3 cấp: <b>cùng Huyện ≥5 → cùng Tỉnh ≥5 → 5 CH gần nhất theo bán kính</b>. Bản gốc (logic chuẩn của anh Hảo) tại <a href="competitor.html" style="color:#92400e;font-weight:700">⚔️ Competitor</a>.</div>
 <main>
   <div class="kpis" id="kpis"></div>
 
@@ -84,6 +84,9 @@ const STORE_COLS=[
   {k:'w12v',t:'SPD W12',num:1,sign:1,fmt:v=>v==null?'—':Number(v).toFixed(1)},
   {k:'net_w4',t:'Net W4',num:1,sign:1,fmt:v=>fmtPct(v)},
   {k:'net_w12',t:'Net W12',num:1,sign:1,fmt:v=>fmtPct(v)},
+  {k:'level',t:'Cấp control',fmt:v=>{
+    const m={huyen:['Huyện','g'],tinh:['Tỉnh','o'],ban_kinh:['Bán kính','r']};
+    if(!v) return '—'; const [t,c]=m[v]||[v,'']; return `<span class="chip ${c}">${t}</span>`;}},
   {k:'status',t:'Trạng thái',fmt:v=>{
     const map={computed:['Đã tính','g'],no_control:['Thiếu control','o'],
       no_baseline:['Thiếu baseline','r'],no_sales:['Không có sales','r'],too_recent:['Quá mới','o'],bad_date:['Ngày lỗi','r']};
