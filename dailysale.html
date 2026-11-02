@@ -108,11 +108,11 @@ main > .sec-h:first-child{margin-top:4px}
 #tDim thead .gday{background:#1F4E79} #tDim thead .gwtd{background:#25607F}
 #tDim thead .gmtd{background:#173A63} #tDim thead .gytd{background:#12304F}
 /* khe ngăn cách giữa DAY | WTD | MTD | YTD */
-#tDim thead tr.grp th.gwtd,#tDim thead tr.grp th.gmtd,#tDim thead tr.grp th.gytd{border-left:4px solid #06101F}
-#tDim thead tr.sub th.gb{border-left:4px solid #06101F}
-#tDim tbody td.gb{border-left:4px solid #C9D6E6}
-#tDim tbody tr.lvl1 td.gb{border-left-color:#AFC4DC}
-#tDim tbody tr.total td.gb{border-left:4px solid #06101F}
+#tDim thead tr.grp th.gwtd,#tDim thead tr.grp th.gmtd,#tDim thead tr.grp th.gytd{border-left:5px solid var(--bg)}
+#tDim thead tr.sub th.gb{border-left:5px solid var(--bg)}
+#tDim tbody td.gb{border-left:5px solid var(--bg)}
+#tDim tbody tr.lvl1 td.gb{border-left-color:#DCE6F2}
+#tDim tbody tr.total td.gb{border-left:5px solid var(--bg)}
 #tDim td{border-bottom:1px solid #EDF1F7;border-right:1px solid #F4F7FB;padding:6px 5px}
 #tDim td.name{text-align:left;font-weight:700;min-width:190px}
 #tDim td .cnt{display:block;font-size:10.5px;font-weight:600;color:#7D8BA1;letter-spacing:.2px}
@@ -209,7 +209,7 @@ tr.total td{border-top:2px solid var(--line)}
 /* ===== Khung 2 cột: sidebar lọc ~1/5 màn hình, fit PC ===== */
 html,body{height:100%}
 body{display:flex;flex-direction:column;overflow:hidden}
-.shell{flex:1 1 auto;display:block;min-height:0;position:relative}
+.shell{flex:1 1 auto;display:block;min-height:0;position:relative;overflow:hidden}
 /* Bộ lọc dạng Cash Drawer: ẩn khỏi layout, trượt ra khi bấm */
 .side{position:fixed;top:62px;bottom:0;left:0;width:min(340px,88vw);background:#fff;border-right:1px solid var(--line);box-shadow:0 18px 50px rgba(11,27,77,.28);z-index:70;overflow-y:auto;padding:16px 14px 18px;display:flex;flex-direction:column;gap:9px;transform:translateX(-104%);transition:transform .22s cubic-bezier(.4,0,.2,1);will-change:transform}
 .side.open{transform:translateX(0)}
@@ -229,7 +229,7 @@ body{display:flex;flex-direction:column;overflow:hidden}
 .side .act .btn{justify-content:center;width:100%}
 .side .chips{padding:0;display:flex;gap:5px;flex-wrap:wrap}
 .side .chip{font-size:11px}
-.content{overflow-y:auto;padding:14px 18px 78px;min-width:0;max-width:none;margin:0;width:100%}
+.content{height:100%;overflow-y:auto;overscroll-behavior:contain;padding:14px 18px 78px;min-width:0;max-width:none;margin:0;width:100%}
 .content > .sec-h:first-child{margin-top:2px}
 .kpis{grid-template-columns:repeat(auto-fit,minmax(152px,1fr))}
 .kpis.kpgrid2{grid-template-columns:repeat(5,minmax(0,1fr))}
@@ -258,10 +258,16 @@ body{display:flex;flex-direction:column;overflow:hidden}
 #ink,#laser{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:90}
 #ink.on,#laser.on{pointer-events:auto;cursor:crosshair}
 #laser{z-index:91}
-.ptools{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);display:flex;gap:4px;align-items:center;
+.ptools{position:fixed;bottom:14px;left:50%;transform:translate(-50%,150%);display:flex;gap:4px;align-items:center;
  background:rgba(11,27,77,.94);backdrop-filter:blur(6px);border-radius:14px;padding:6px 8px;z-index:95;
- box-shadow:0 14px 34px rgba(0,0,0,.35);opacity:.28;transition:opacity .18s}
-.ptools:hover,.ptools.act{opacity:1}
+ box-shadow:0 14px 34px rgba(0,0,0,.35);opacity:0;pointer-events:none;
+ transition:transform .2s cubic-bezier(.4,0,.2,1),opacity .2s}
+.ptools.show{transform:translate(-50%,0);opacity:1;pointer-events:auto}
+/* vùng nhạy hover ở đáy màn hình */
+.pzone{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:min(520px,70vw);height:16px;z-index:94}
+.pzone:after{content:"";position:absolute;left:50%;bottom:3px;transform:translateX(-50%);width:64px;height:4px;border-radius:3px;
+ background:rgba(11,27,77,.18);opacity:0;transition:opacity .18s}
+.pzone:hover:after{opacity:1}
 .ptools button{width:36px;height:34px;border:0;border-radius:9px;background:rgba(255,255,255,.08);color:#fff;font-size:15px;
  cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative}
 .ptools button:hover{background:rgba(255,255,255,.2)}
@@ -355,6 +361,7 @@ body.fullscreen .ptools{opacity:.9}
 
 <canvas id="ink"></canvas>
 <canvas id="laser"></canvas>
+<div class="pzone" id="pzone"></div>
 <div class="ptools" id="ptools">
   <button id="tFull" title="Toàn màn hình"><span>⛶</span><span class="tip">Toàn màn hình (F)</span></button>
   <span class="sep"></span>
@@ -821,6 +828,7 @@ document.getElementById('fQ').oninput = e=>{ clearTimeout(qT); qT=setTimeout(()=
     if(tool!=='laser'){ laserPts=[]; lctx.clearRect(0,0,lz.width,lz.height); }
   }
   Object.entries(btns).forEach(([k,b])=>b.onclick=()=>setTool(k));
+  const _st=setTool; setTool=function(t){ _st(t); if(window.__showBar) window.__showBar(); };
 
   function pos(e){ const r=ink.getBoundingClientRect(); return {x:e.clientX-r.left, y:e.clientY-r.top}; }
 
@@ -856,13 +864,27 @@ document.getElementById('fQ').oninput = e=>{ clearTimeout(qT); qT=setTimeout(()=
   })();
 
   document.getElementById('tClear').onclick=()=>{ ictx.clearRect(0,0,ink.width,ink.height); lctx.clearRect(0,0,lz.width,lz.height); laserPts=[]; };
-  document.getElementById('tHide').onclick=()=>{ document.getElementById('ptools').style.display='none'; };
+  const _tb=document.getElementById('ptools'), _pz=document.getElementById('pzone');
+  let _hideT=null;
+  const showBar=()=>{ clearTimeout(_hideT); _tb.classList.add('show'); };
+  const hideBar=()=>{ _hideT=setTimeout(()=>{ if(!tool) _tb.classList.remove('show'); },600); };
+  _pz.addEventListener('mouseenter',showBar);
+  _tb.addEventListener('mouseenter',showBar);
+  _tb.addEventListener('mouseleave',hideBar);
+  document.addEventListener('mousemove',e=>{
+    if(!_tb.classList.contains('show')) return;
+    const nearBottom = (window.innerHeight - e.clientY) < 70;
+    if(!nearBottom && !_tb.matches(':hover')) hideBar();
+  });
+  window.__showBar=showBar;
+  document.getElementById('tHide').onclick=()=>{ _tb.classList.remove('show'); };
   document.getElementById('tFull').onclick=()=>{
     if(!document.fullscreenElement){ (document.documentElement.requestFullscreen||function(){}).call(document.documentElement); }
     else document.exitFullscreen();
   };
   document.addEventListener('fullscreenchange',()=>{
     document.body.classList.toggle('fullscreen',!!document.fullscreenElement);
+    if(window.__showBar) window.__showBar();
     document.getElementById('tFull').classList.toggle('on',!!document.fullscreenElement);
     setTimeout(size,80);
   });
