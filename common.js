@@ -61,14 +61,18 @@ function DataTable(opts){
     if(onRowClick) tbody.querySelectorAll('tr').forEach((tr,i)=>tr.onclick=()=>onRowClick(slice[i]));
     const cnt=document.getElementById('cnt');
     if(cnt) cnt.textContent = `${fmtN(total)} dòng`;
-    const pg=document.getElementById('pager');
-    if(pg){ pg.innerHTML = pages>1 ?
-      `<button ${page===0?'disabled':''} onclick="__pg(-1)">‹ Trước</button>
-       <span>Trang ${page+1}/${pages}</span>
-       <button ${page>=pages-1?'disabled':''} onclick="__pg(1)">Sau ›</button>` : ''; }
+    const pg=document.getElementById(opts.pagerId||'pager');
+    if(pg){
+      if(pages>1){
+        pg.innerHTML = `<button ${page===0?'disabled':''} data-d="-1">‹ Trước</button>
+          <span>Trang ${page+1}/${pages}</span>
+          <button ${page>=pages-1?'disabled':''} data-d="1">Sau ›</button>`;
+        pg.querySelectorAll('button[data-d]').forEach(b=>{
+          b.onclick=()=>{ page+=parseInt(b.dataset.d,10); render(); };
+        });
+      } else pg.innerHTML='';
+    }
   }
-  window.__pg=(d)=>{ page+=d; render(); };
-  window.__setData=(nd)=>{ view=nd; applySort(); page=0; render(); };
   applySort(); render();
   return { setData:(nd)=>{ view=nd; applySort(); page=0; render(); }, render };
 }
