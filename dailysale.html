@@ -92,46 +92,57 @@ main > .sec-h:first-child{margin-top:4px}
 /* panel + table */
 .panel{background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:var(--sh);overflow:hidden}
 /* --- bảng kiểu RSM KPIs --- */
-#tDim{border-collapse:separate;border-spacing:0;font-size:11.5px}
-#tDim thead th{background:#0F2A4A;color:#fff;border-bottom:1px solid #23456B;border-right:1px solid #23456B;
+.kt{border-collapse:separate;border-spacing:0;font-size:11.5px}
+.kt thead th{background:#0F2A4A;color:#fff;border-bottom:1px solid #23456B;border-right:1px solid #23456B;
   font-size:11px;font-weight:700;letter-spacing:0;text-transform:none;padding:6px 5px;white-space:nowrap;position:static;cursor:default}
-#tDim thead tr.grp th{background:#173A63;font-size:11.5px;letter-spacing:.5px;text-transform:uppercase;text-align:center}
-#tDim thead tr.sub th{font-size:10px;color:#CFDCEC;font-weight:600;line-height:1.2;width:74px;max-width:74px;white-space:normal;text-align:center;vertical-align:bottom;padding:6px 5px}
-#tDim thead th.name{text-align:left;min-width:150px}
-#tDim thead th.name,#tDim td.name{position:sticky;left:0;z-index:3}
-#tDim thead th.name{z-index:5}
-#tDim thead th.cntc,#tDim td.cntc{position:sticky;left:150px;z-index:3;text-align:center;width:56px;border-right:1px solid #C9D6E6}
-#tDim thead th.cntc{z-index:5}
-#tDim tr.lvl1 td.cntc,#tDim tr.lvl1 td.name{background:#EAF1FA}
-#tDim tr.lvl2 td.cntc,#tDim tr.lvl2 td.name{background:#fff}
-#tDim tr.total td.cntc,#tDim tr.total td.name{background:#0F2A4A}
-#tDim thead .gday{background:#1F4E79} #tDim thead .gwtd{background:#25607F}
-#tDim thead .gmtd{background:#173A63} #tDim thead .gytd{background:#12304F}
+.kt thead tr.grp th{background:#173A63;font-size:11.5px;letter-spacing:.5px;text-transform:uppercase;text-align:center}
+.kt thead tr.sub th{font-size:10px;color:#CFDCEC;font-weight:600;line-height:1.2;width:74px;max-width:74px;white-space:normal;text-align:center;vertical-align:bottom;padding:6px 5px}
+.kt thead th.name{text-align:left;min-width:150px}
+.kt thead th.name,.kt td.name{position:sticky;left:0;z-index:3}
+.kt thead th.name{z-index:5}
+.kt thead th.cntc,.kt td.cntc{position:sticky;left:150px;z-index:3;text-align:center;width:56px;border-right:1px solid #C9D6E6}
+.kt thead th.cntc{z-index:5}
+.kt tr.lvl1 td.cntc,.kt tr.lvl1 td.name{background:#EAF1FA}
+.kt tr.lvl2 td.cntc,.kt tr.lvl2 td.name{background:#fff}
+.kt tr.total td.cntc,.kt tr.total td.name{background:#0F2A4A}
+.kt thead .gday{background:#1F4E79} .kt thead .gwtd{background:#25607F}
+.kt thead .gmtd{background:#173A63} .kt thead .gytd{background:#12304F}
 /* khe ngăn cách giữa DAY | WTD | MTD | YTD */
-#tDim thead tr.grp th.gwtd,#tDim thead tr.grp th.gmtd,#tDim thead tr.grp th.gytd{border-left:5px solid var(--bg)}
-#tDim thead tr.sub th.gb{border-left:5px solid var(--bg)}
-#tDim tbody td.gb{border-left:5px solid var(--bg)}
-#tDim tbody tr.lvl1 td.gb{border-left-color:#DCE6F2}
-#tDim tbody tr.total td.gb{border-left:5px solid var(--bg)}
-#tDim td{border-bottom:1px solid #EDF1F7;border-right:1px solid #F4F7FB;padding:6px 5px}
-#tDim td.name{text-align:left;font-weight:700;min-width:190px}
-#tDim td .cnt{display:block;font-size:10.5px;font-weight:600;color:#7D8BA1;letter-spacing:.2px}
-#tDim tr.lvl1 td{background:#EAF1FA;font-weight:800}
-#tDim tr.lvl1:hover td{background:#E1EBF8}
-#tDim tr.lvl2 td{background:#fff}
-#tDim tr.lvl2 td.name{padding-left:24px;font-weight:600;position:relative}
-#tDim tr.lvl2 td.name:before{content:"";position:absolute;left:12px;top:50%;width:6px;height:1px;background:#C4D0E0}
-#tDim tr.lvl2:hover td{background:#F8FAFD}
-#tDim tr.total td{background:#0F2A4A;color:#fff;font-weight:800;border-bottom:0}
-#tDim tr.total td .cnt{color:#B9C9DC}
-#tDim tr.clickable{cursor:pointer}
+.kt thead tr.grp th.gwtd,.kt thead tr.grp th.gmtd,.kt thead tr.grp th.gytd{border-left:5px solid var(--bg)}
+.kt thead tr.sub th.gb{border-left:5px solid var(--bg)}
+.kt tbody td.gb{border-left:5px solid var(--bg)}
+.kt tbody tr.lvl1 td.gb{border-left-color:#DCE6F2}
+.kt tbody tr.total td.gb{border-left:5px solid var(--bg)}
+.kt td{border-bottom:1px solid #EDF1F7;border-right:1px solid #F4F7FB;padding:6px 5px}
+.kt td.name{text-align:left;font-weight:700;min-width:190px}
+.kt td .cnt{display:block;font-size:10.5px;font-weight:600;color:#7D8BA1;letter-spacing:.2px}
+.kt tr.lvl1 td{background:#EAF1FA;font-weight:800}
+.kt tr.lvl1:hover td{background:#E1EBF8}
+.kt tr.lvl2 td{background:#fff}
+.kt tr.lvl2 td.name{padding-left:24px;font-weight:600;position:relative}
+.kt tr.lvl2 td.name:before{content:"";position:absolute;left:12px;top:50%;width:6px;height:1px;background:#C4D0E0}
+.kt tr.lvl2:hover td{background:#F8FAFD}
+.kt tr.total td{background:#0F2A4A;color:#fff;font-weight:800;border-bottom:0}
+.kt tr.total td .cnt{color:#B9C9DC}
+.kt tr.clickable{cursor:pointer}
 .badge{display:inline-block;min-width:47px;text-align:center;border-radius:4px;padding:1.5px 6px;color:#fff;font-size:11.5px;font-weight:800;letter-spacing:.2px}
 .b-green{background:#0E9F6E} .b-orange{background:#E0872B} .b-red{background:#D32F2F} .b-none{background:#DFE6EF;color:#7D8BA1}
 .pos{color:#0B7A54;font-weight:700} .neg{color:#B3261E;font-weight:700} .mut{color:#9AA7B8}
 .seg{display:inline-flex;background:#F1F4F9;border-radius:9px;padding:2px;gap:2px}
 .seg button{border:0;background:transparent;border-radius:7px;padding:6px 12px;font-size:12.5px;font-weight:700;color:var(--ink2);cursor:pointer;white-space:nowrap}
 .seg button.on{background:#fff;color:var(--navy);box-shadow:0 1px 3px rgba(16,32,64,.12)}
+.kt thead tr.grp.tg th{background:#1A4E4C}
+#tGrp thead th{background:#123C3E;border-bottom-color:#2A5C58;border-right-color:#2A5C58}
+#tGrp thead .gday{background:#1F6B5C} #tGrp thead .gwtd{background:#23806C}
+#tGrp thead .gmtd{background:#1A4E4C} #tGrp thead .gytd{background:#14423F}
+#tGrp td.name .nm{font-weight:800}
 .tw{overflow-x:auto}
+/* section thu gọn */
+.sec-h{cursor:pointer;user-select:none}
+.sec-h h2:before{content:"▾";display:inline-block;width:14px;color:var(--navy);font-size:11px;transition:transform .18s;margin-right:2px}
+.blk.closed .sec-h h2:before{transform:rotate(-90deg)}
+.blk.closed > .panel,.blk.closed > .acts,.blk.closed > .kpis{display:none}
+.sec-h .rt{cursor:default}
 table{width:100%;border-collapse:collapse;font-size:13px}
 th,td{padding:9px 10px;text-align:right;white-space:nowrap;border-bottom:1px solid #F0F3F8}
 th{background:#FAFBFD;font-size:11px;font-weight:800;color:#6B7A90;text-transform:uppercase;letter-spacing:.4px;position:sticky;top:0;cursor:pointer;user-select:none}
@@ -330,15 +341,22 @@ body.fullscreen .ptools{opacity:.9}
     </div>
   </aside>
   <main class="content">
+  <div class="blk" data-blk="kpi">
   <div class="sec-h"><h2>Key Performance</h2><span class="sub" id="kpiSub"></span></div>
   <section class="kpis" id="kpis"></section>
+  </div>
 
+  <div class="blk" data-blk="act">
   <div class="sec-h"><h2>Cần hành động ngay</h2><span class="sub">Tự động phát hiện theo vùng đang lọc</span></div>
   <section class="acts" id="acts"></section>
+  </div>
 
+  <div class="blk" data-blk="grp">
   <div class="sec-h"><h2>Hiệu quả theo nhóm cửa hàng</h2><span class="sub">LFL · STU · NSO</span></div>
-  <section class="panel"><div class="tw"><table id="tGrp"></table></div></section>
+  <section class="panel"><div class="tw"><table id="tGrp" class="kt"></table></div></section>
+  </div>
 
+  <div class="blk" data-blk="dim">
   <div class="sec-h">
     <h2>Hiệu quả theo địa bàn</h2><span class="sub">Bấm vào dòng để lọc nhanh địa bàn đó</span>
     <div class="rt"><div class="seg" id="dimSeg">
@@ -346,8 +364,10 @@ body.fullscreen .ptools{opacity:.9}
       <button data-d="ti">Tỉnh/TP</button><button data-d="gd">GĐV</button><button data-d="ql">QLKV</button>
     </div></div>
   </div>
-  <section class="panel"><div class="tw"><table id="tDim"></table></div></section>
+  <section class="panel"><div class="tw"><table id="tDim" class="kt"></table></div></section>
+  </div>
 
+  <div class="blk" data-blk="store">
   <div class="sec-h">
     <h2>Danh sách cửa hàng</h2><span class="sub" id="stSub"></span>
     <div class="rt"><div class="seg" id="viewSeg">
@@ -356,6 +376,7 @@ body.fullscreen .ptools{opacity:.9}
     </div></div>
   </div>
   <section class="panel"><div class="tw"><table id="tStore"></table></div></section>
+  </div>
 </main>
 </div>
 
@@ -506,7 +527,26 @@ function currentRows(){
   });
 }
 
+
+/* ---- thu gọn / mở section ---- */
+function initBlk(){
+  let st={}; try{ st=JSON.parse(localStorage.getItem('ds_blk')||'{}'); }catch(e){}
+  document.querySelectorAll('.blk').forEach(b=>{
+    const k=b.dataset.blk;
+    if(st[k]) b.classList.add('closed');
+    const h=b.querySelector('.sec-h');
+    if(!h) return;
+    h.addEventListener('click',e=>{
+      if(e.target.closest('.seg')||e.target.closest('button')) return;
+      b.classList.toggle('closed');
+      st[k]=b.classList.contains('closed');
+      try{ localStorage.setItem('ds_blk',JSON.stringify(st)); }catch(_){}
+    });
+  });
+}
+
 function initUI(){
+  initBlk();
   const m = D.meta||{};
   document.getElementById('pDate').innerHTML = 'Báo cáo ngày <b>'+F.dmy(m.reportDate)+'</b> · MTD <b>'+(m.mtdDays||0)+'/'+(m.daysInMonth||31)+' ngày</b>';
   document.getElementById('pUpd').textContent = new Date().toLocaleString('vi-VN',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit',year:'numeric'});
@@ -632,6 +672,25 @@ const gp = v => !isFinite(v) ? '<span class="mut">—</span>' :
 const sortAgg = list => list.sort((x,y)=>{ const a=sane(x.a.htM), b=sane(y.a.htM);
   if(!isFinite(a)) return 1; if(!isFinite(b)) return -1; return a-b; });
 
+function kpiHead(label, tg){
+  return `<thead>
+      <tr class="grp${tg?' tg':''}">
+        <th rowspan="2" class="name">${label}</th>
+        <th rowspan="2" class="cntc">#<br>CH</th>
+        <th colspan="4" class="gday">DAY</th>
+        <th colspan="4" class="gwtd">WTD — LŨY KẾ TUẦN (${WTD_DAYS()} ngày)</th>
+        <th colspan="7" class="gmtd">MTD — LŨY KẾ THÁNG (${(D&&D.meta?D.meta.mtdDays:30)} ngày)</th>
+        <th colspan="7" class="gytd">YTD — LŨY KẾ NĂM</th>
+      </tr>
+      <tr class="sub">
+        <th>Sales (tr)</th><th>Sales vs LY</th><th>Bill vs LY</th><th>Bill size vs LY</th>
+        <th class="gb">Sales (tr)</th><th>Sales vs LY</th><th>Bill vs LY</th><th>Bill size vs LY</th>
+        <th class="gb">Sales (tr)</th><th>% MTD vs Target</th><th>Sales vs LY</th><th>Target</th><th>GAP</th><th>Bill vs LY</th><th>Bill size vs LY</th>
+        <th class="gb">Sales (tr)</th><th>% YTD vs Target</th><th>Sales vs LY</th><th>Target</th><th>GAP</th><th>Bill vs LY</th><th>Bill size vs LY</th>
+      </tr>
+    </thead>`;
+}
+
 function dayCells(a){
   return `<td class="num">${F.n(a.revD)}</td>
     <td class="num">${pv(a.tt)}</td>
@@ -683,23 +742,7 @@ function renderDim(rows){
       }
     }
   }
-  document.getElementById('tDim').innerHTML = `
-    <thead>
-      <tr class="grp">
-        <th rowspan="2" class="name">${DIMLBL[DIM]||'Địa bàn'}</th>
-        <th rowspan="2" class="cntc">#<br>CH</th>
-        <th colspan="4" class="gday">DAY</th>
-        <th colspan="4" class="gwtd">WTD — LŨY KẾ TUẦN (${WTD_DAYS()} ngày)</th>
-        <th colspan="7" class="gmtd">MTD — LŨY KẾ THÁNG (${(D&&D.meta?D.meta.mtdDays:30)} ngày)</th>
-        <th colspan="7" class="gytd">YTD — LŨY KẾ NĂM</th>
-      </tr>
-      <tr class="sub">
-        <th>Sales (tr)</th><th>Sales vs LY</th><th>Bill vs LY</th><th>Bill size vs LY</th>
-        <th class="gb">Sales (tr)</th><th>Sales vs LY</th><th>Bill vs LY</th><th>Bill size vs LY</th>
-        <th class="gb">Sales (tr)</th><th>% MTD vs Target</th><th>Sales vs LY</th><th>Target</th><th>GAP</th><th>Bill vs LY</th><th>Bill size vs LY</th>
-        <th class="gb">Sales (tr)</th><th>% YTD vs Target</th><th>Sales vs LY</th><th>Target</th><th>GAP</th><th>Bill vs LY</th><th>Bill size vs LY</th>
-      </tr>
-    </thead>
+  document.getElementById('tDim').innerHTML = kpiHead(DIMLBL[DIM]||'Địa bàn') + `
     <tbody>${body||'<tr><td colspan="24" class="empty-row">Không có dữ liệu</td></tr>'}
       <tr class="total"><td class="name">TỔNG CỘNG</td><td class="num cntc">${F.n(rows.length)}</td>
         ${dayCells(t)}${wtdCells(t)}${mtdCells(t)}${ytdCells(t)}</tr>
@@ -713,33 +756,29 @@ function renderDim(rows){
   });
 }
 
-/* ---- group table ---- */
+/* ---- group table (cùng bộ cột KPI với địa bàn) ---- */
 function renderGrp(rows){
   const defs = [['LFL','LFL (cùng kỳ)'],['STU','STU (mở < 12 tháng)'],['NSO','NSO (khai trương mới)'],['KHAC','Chưa phân loại']];
-  const body = defs.map(([g,label])=>{
+  let body = '';
+  for(const [g,label] of defs){
     const r = rows.filter(x=>x.gr===g);
+    if(!r.length) continue;
     const a = agg(r);
-    if(!r.length) return '';
-    return `<tr><td><div class="nm">${label}</div><div class="sm">${F.n(r.length)} CH · ${(r.length/Math.max(1,rows.length)*100).toFixed(0)}% tổng CH</div></td>
-      <td class="num">${F.spd(a.spd)}</td>
-      <td class="num"><span class="tag ${a.tt>=0?'t-good':'t-bad'}">${F.sgn(a.tt)}</span></td>
-      <td class="num"><span class="tag ${HT0.tag(sane(a.ht))}">${F.pct(sane(a.ht))}</span></td>
-      <td class="num">${F.money(a.rev)}</td>
-      <td class="num"><span class="tag ${HT0.tag(sane(a.htM))}">${F.pct(sane(a.htM))}</span></td>
-      <td class="num">${F.n1(a.dio)}</td>
-      <td class="num">${F.pct(Math.abs(a.lossPct))}</td>
-      <td style="text-align:center"><span class="tag ${HT0.tag(sane(a.htM))}">${VERDICT(sane(a.htM))}</span></td></tr>`;
-  }).join('');
+    body += `<tr class="clickable" data-g="${g}">
+      <td class="name"><div class="nm">${label}</div><div class="sm">${(r.length/Math.max(1,rows.length)*100).toFixed(0)}% tổng CH</div></td>
+      <td class="num cntc">${F.n(r.length)}</td>
+      ${dayCells(a)}${wtdCells(a)}${mtdCells(a)}${ytdCells(a)}</tr>`;
+  }
   const t = agg(rows);
-  document.getElementById('tGrp').innerHTML = `
-    <thead><tr><th>Nhóm cửa hàng</th><th>SPD ngày</th><th>%TT vs LY</th><th>%HT ngày</th>
-      <th>DT MTD</th><th>%HT MTD</th><th>DIO</th><th>Hủy / DT</th><th style="text-align:center">Đánh giá</th></tr></thead>
-    <tbody>${body||'<tr><td colspan="9" class="empty-row">Không có dữ liệu</td></tr>'}
-    <tr class="total"><td>TỔNG</td><td class="num">${F.spd(t.spd)}</td><td class="num">${F.sgn(t.tt)}</td>
-      <td class="num">${F.pct(t.ht)}</td><td class="num">${F.money(t.rev)}</td><td class="num">${F.pct(t.htM)}</td>
-      <td class="num">${F.n1(t.dio)}</td><td class="num">${F.pct(Math.abs(t.lossPct))}</td><td></td></tr></tbody>`;
+  document.getElementById('tGrp').innerHTML = kpiHead('Nhóm cửa hàng', true) + `
+    <tbody>${body||'<tr><td colspan="24" class="empty-row">Không có dữ liệu</td></tr>'}
+      <tr class="total"><td class="name">TỔNG CỘNG</td><td class="num cntc">${F.n(rows.length)}</td>
+      ${dayCells(t)}${wtdCells(t)}${mtdCells(t)}${ytdCells(t)}</tr></tbody>`;
+  document.querySelectorAll('#tGrp tbody tr.clickable').forEach(tr=>tr.onclick=()=>{
+    FILT.gr = (FILT.gr===tr.dataset.g) ? '' : tr.dataset.g;
+    refreshFilters(); render();
+  });
 }
-
 /* ---- store table ---- */
 function renderStore(rows){
   let list = rows.slice();
