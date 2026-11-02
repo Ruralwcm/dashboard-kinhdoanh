@@ -1,706 +1,217 @@
 {
-  "monthly": [
+  "kpi": {
+    "stores": 2660,
+    "total_spd": 40291.0,
+    "avg_spd": 15.1,
+    "total_mtd_rev": 812102.0,
+    "total_mtd_target": 872931.0,
+    "total_shrink": -28210.0,
+    "total_loss": -1766.0,
+    "total_sl": -38148.0,
+    "total_stock": 1749350.0,
+    "avg_cogs": 13.9,
+    "pct_competitor": 23.8
+  },
+  "gdv_spd": [
     {
-      "yr": 2025,
-      "mo": 1,
-      "revenue": 834592.4,
-      "tx": 5245385
-    },
-    {
-      "yr": 2025,
-      "mo": 2,
-      "revenue": 503001.03,
-      "tx": 4537155
-    },
-    {
-      "yr": 2025,
-      "mo": 3,
-      "revenue": 614475.93,
-      "tx": 5434750
-    },
-    {
-      "yr": 2025,
-      "mo": 4,
-      "revenue": 646918.6,
-      "tx": 5603012
-    },
-    {
-      "yr": 2025,
-      "mo": 5,
-      "revenue": 694296.0,
-      "tx": 6110537
-    },
-    {
-      "yr": 2025,
-      "mo": 6,
-      "revenue": 744636.46,
-      "tx": 6378844
-    },
-    {
-      "yr": 2025,
-      "mo": 7,
-      "revenue": 849361.08,
-      "tx": 7032770
-    },
-    {
-      "yr": 2025,
-      "mo": 8,
-      "revenue": 872494.96,
-      "tx": 7281368
-    },
-    {
-      "yr": 2025,
-      "mo": 9,
-      "revenue": 863502.55,
-      "tx": 7049519
-    },
-    {
-      "yr": 2025,
-      "mo": 10,
-      "revenue": 872014.89,
-      "tx": 7122673
-    },
-    {
-      "yr": 2025,
-      "mo": 11,
-      "revenue": 880778.86,
-      "tx": 7030313
-    },
-    {
-      "yr": 2025,
-      "mo": 12,
-      "revenue": 903820.78,
-      "tx": 7471203
-    },
-    {
-      "yr": 2026,
-      "mo": 1,
-      "revenue": 982751.41,
-      "tx": 7577551
-    },
-    {
-      "yr": 2026,
-      "mo": 2,
-      "revenue": 1206169.54,
-      "tx": 7616795
-    },
-    {
-      "yr": 2026,
-      "mo": 3,
-      "revenue": 897928.47,
-      "tx": 7744269
-    },
-    {
-      "yr": 2026,
-      "mo": 4,
-      "revenue": 1024081.19,
-      "tx": 8706720
-    },
-    {
-      "yr": 2026,
-      "mo": 5,
-      "revenue": 1117719.43,
-      "tx": 9635121
-    },
-    {
-      "yr": 2026,
-      "mo": 6,
-      "revenue": 1205102.27,
-      "tx": 10211275
-    },
-    {
-      "yr": 2026,
-      "mo": 7,
-      "revenue": 1263805.75,
-      "tx": 10664791
-    },
-    {
-      "yr": 2026,
-      "mo": 8,
-      "revenue": 1344859.9,
-      "tx": 11000065
-    },
-    {
-      "yr": 2026,
-      "mo": 9,
-      "revenue": 1263586.02,
-      "tx": 10299183
-    },
-    {
-      "yr": 2026,
-      "mo": 10,
-      "revenue": 1226450.93,
-      "tx": 10273331
-    }
-  ],
-  "gdv": [
-    {
-      "gdv": "Nguyễn Đức Chung",
-      "rev": 121956.0
+      "gdv": "Nguyễn Đức Chung",
+      "spd": 4703.0,
+      "stores": 320,
+      "pct_target": 90.0
     },
     {
       "gdv": "Hồ Nam",
-      "rev": 113714.0
+      "spd": 4099.0,
+      "stores": 270,
+      "pct_target": 96.9
     },
     {
       "gdv": "Tạ Công Nhận",
-      "rev": 113117.0
+      "spd": 3845.0,
+      "stores": 218,
+      "pct_target": 103.7
     },
     {
       "gdv": "Lê Thị Hồng Thu",
-      "rev": 105553.0
+      "spd": 3637.0,
+      "stores": 236,
+      "pct_target": 93.9
     },
     {
       "gdv": "Phạm Minh Thu",
-      "rev": 96983.0
+      "spd": 3322.0,
+      "stores": 193,
+      "pct_target": 95.4
     },
     {
       "gdv": "Tạ Quốc Huy",
-      "rev": 68738.0
-    },
-    {
-      "gdv": "Bùi Anh Tuấn",
-      "rev": 63988.0
-    },
-    {
-      "gdv": "Nguyễn Duy Đoàn",
-      "rev": 59347.0
-    },
-    {
-      "gdv": "Nguyễn Thị Thu",
-      "rev": 59320.0
+      "spd": 2413.0,
+      "stores": 169,
+      "pct_target": 88.0
     },
     {
       "gdv": "Đặng Văn Dũng",
-      "rev": 53769.0
+      "spd": 2349.0,
+      "stores": 146,
+      "pct_target": 84.4
+    },
+    {
+      "gdv": "Nguyễn Thị Thu",
+      "spd": 2290.0,
+      "stores": 153,
+      "pct_target": 91.3
+    },
+    {
+      "gdv": "Bùi Anh Tuấn",
+      "spd": 2209.0,
+      "stores": 187,
+      "pct_target": 88.7
+    },
+    {
+      "gdv": "Nguyễn Duy Đoàn",
+      "spd": 1977.0,
+      "stores": 156,
+      "pct_target": 90.2
     },
     {
       "gdv": "Bùi Thị Thu Nhài",
-      "rev": 52819.0
+      "spd": 1684.0,
+      "stores": 96,
+      "pct_target": 98.3
     },
     {
       "gdv": "Dương Tùng",
-      "rev": 48394.0
-    },
-    {
-      "gdv": "Đặng Trần Hảo",
-      "rev": 42238.0
+      "spd": 1682.0,
+      "stores": 97,
+      "pct_target": 101.1
     },
     {
       "gdv": "Nguyễn Mạnh Sơn",
-      "rev": 39537.0
+      "spd": 1431.0,
+      "stores": 92,
+      "pct_target": 97.2
+    },
+    {
+      "gdv": "Đặng Trần Hảo",
+      "spd": 1423.0,
+      "stores": 78,
+      "pct_target": 96.4
     },
     {
       "gdv": "Nguyễn Năng Toản",
-      "rev": 37555.0
-    },
-    {
-      "gdv": "Nguyễn Thị Yến",
-      "rev": 36026.0
+      "spd": 1151.0,
+      "stores": 86,
+      "pct_target": 92.4
     },
     {
       "gdv": "Lạc Nhật Minh",
-      "rev": 35415.0
+      "spd": 1148.0,
+      "stores": 97,
+      "pct_target": 95.5
     },
     {
-      "gdv": "Unknown",
-      "rev": 1241.0
+      "gdv": "Nguyễn Thị Yến",
+      "spd": 928.0,
+      "stores": 66,
+      "pct_target": 93.7
     }
   ],
-  "daily": [
+  "mch3": {
+    "total_mch3": 91430.56392300008,
+    "avg_rr": 11.2
+  },
+  "sl_gdv": [
     {
-      "d": "2026-09-03",
-      "rev": 38071.0
+      "gdv": "Hồ Nam",
+      "shrink": -3160.0,
+      "loss": -393.0,
+      "total_sl": -4336.0,
+      "stores": 270
     },
     {
-      "d": "2026-09-04",
-      "rev": 37663.0
+      "gdv": "Nguyễn Đức Chung",
+      "shrink": -2926.0,
+      "loss": -251.0,
+      "total_sl": -4120.0,
+      "stores": 320
     },
     {
-      "d": "2026-09-05",
-      "rev": 41172.0
+      "gdv": "Lê Thị Hồng Thu",
+      "shrink": -3177.0,
+      "loss": -113.0,
+      "total_sl": -3949.0,
+      "stores": 236
     },
     {
-      "d": "2026-09-06",
-      "rev": 45173.0
+      "gdv": "Tạ Công Nhận",
+      "shrink": -2118.0,
+      "loss": -29.0,
+      "total_sl": -2903.0,
+      "stores": 218
     },
     {
-      "d": "2026-09-07",
-      "rev": 35862.0
+      "gdv": "Phạm Minh Thu",
+      "shrink": -1890.0,
+      "loss": -228.0,
+      "total_sl": -2886.0,
+      "stores": 193
     },
     {
-      "d": "2026-09-08",
-      "rev": 36408.0
+      "gdv": "Tạ Quốc Huy",
+      "shrink": -2081.0,
+      "loss": -115.0,
+      "total_sl": -2758.0,
+      "stores": 169
     },
     {
-      "d": "2026-09-09",
-      "rev": 36010.0
+      "gdv": "Bùi Anh Tuấn",
+      "shrink": -1726.0,
+      "loss": -57.0,
+      "total_sl": -2340.0,
+      "stores": 187
     },
     {
-      "d": "2026-09-10",
-      "rev": 42139.0
-    },
-    {
-      "d": "2026-09-11",
-      "rev": 38755.0
-    },
-    {
-      "d": "2026-09-12",
-      "rev": 42819.0
-    },
-    {
-      "d": "2026-09-13",
-      "rev": 46781.0
-    },
-    {
-      "d": "2026-09-14",
-      "rev": 29105.0
-    },
-    {
-      "d": "2026-09-15",
-      "rev": 33997.0
-    },
-    {
-      "d": "2026-09-16",
-      "rev": 40335.0
-    },
-    {
-      "d": "2026-09-17",
-      "rev": 41308.0
-    },
-    {
-      "d": "2026-09-18",
-      "rev": 38841.0
-    },
-    {
-      "d": "2026-09-19",
-      "rev": 50154.0
-    },
-    {
-      "d": "2026-09-20",
-      "rev": 52545.0
-    },
-    {
-      "d": "2026-09-21",
-      "rev": 40111.0
-    },
-    {
-      "d": "2026-09-22",
-      "rev": 42281.0
-    },
-    {
-      "d": "2026-09-23",
-      "rev": 41153.0
-    },
-    {
-      "d": "2026-09-24",
-      "rev": 47495.0
-    },
-    {
-      "d": "2026-09-25",
-      "rev": 40953.0
-    },
-    {
-      "d": "2026-09-26",
-      "rev": 42653.0
-    },
-    {
-      "d": "2026-09-27",
-      "rev": 47190.0
-    },
-    {
-      "d": "2026-09-28",
-      "rev": 37372.0
-    },
-    {
-      "d": "2026-09-29",
-      "rev": 38137.0
-    },
-    {
-      "d": "2026-09-30",
-      "rev": 48733.0
-    },
-    {
-      "d": "2026-10-01",
-      "rev": 37919.0
-    },
-    {
-      "d": "2026-10-02",
-      "rev": 38821.0
-    },
-    {
-      "d": "2026-10-03",
-      "rev": 46157.0
-    },
-    {
-      "d": "2026-10-04",
-      "rev": 46433.0
-    },
-    {
-      "d": "2026-10-05",
-      "rev": 35732.0
-    },
-    {
-      "d": "2026-10-06",
-      "rev": 35403.0
-    },
-    {
-      "d": "2026-10-07",
-      "rev": 35099.0
-    },
-    {
-      "d": "2026-10-08",
-      "rev": 37038.0
-    },
-    {
-      "d": "2026-10-09",
-      "rev": 44940.0
-    },
-    {
-      "d": "2026-10-10",
-      "rev": 49450.0
-    },
-    {
-      "d": "2026-10-11",
-      "rev": 49650.0
-    },
-    {
-      "d": "2026-10-12",
-      "rev": 35440.0
-    },
-    {
-      "d": "2026-10-13",
-      "rev": 36222.0
-    },
-    {
-      "d": "2026-10-14",
-      "rev": 39898.0
-    },
-    {
-      "d": "2026-10-15",
-      "rev": 39415.0
-    },
-    {
-      "d": "2026-10-16",
-      "rev": 41847.0
-    },
-    {
-      "d": "2026-10-17",
-      "rev": 47610.0
-    },
-    {
-      "d": "2026-10-18",
-      "rev": 49598.0
-    },
-    {
-      "d": "2026-10-19",
-      "rev": 38104.0
-    },
-    {
-      "d": "2026-10-20",
-      "rev": 41675.0
-    },
-    {
-      "d": "2026-10-21",
-      "rev": 36821.0
-    },
-    {
-      "d": "2026-10-22",
-      "rev": 37156.0
-    },
-    {
-      "d": "2026-10-23",
-      "rev": 42282.0
-    },
-    {
-      "d": "2026-10-24",
-      "rev": 49029.0
-    },
-    {
-      "d": "2026-10-25",
-      "rev": 47933.0
-    },
-    {
-      "d": "2026-10-26",
-      "rev": 33985.0
-    },
-    {
-      "d": "2026-10-27",
-      "rev": 35095.0
-    },
-    {
-      "d": "2026-10-28",
-      "rev": 36516.0
-    },
-    {
-      "d": "2026-10-29",
-      "rev": 35896.0
-    },
-    {
-      "d": "2026-10-30",
-      "rev": 45289.0
-    }
-  ],
-  "province": [
-    {
-      "prov": "TP. Hà Nội",
-      "rev": 262919.0,
-      "stores": 510
-    },
-    {
-      "prov": "T. Phú Thọ",
-      "rev": 70759.0,
-      "stores": 177
-    },
-    {
-      "prov": "TP. Hải Phòng",
-      "rev": 70374.0,
-      "stores": 166
-    },
-    {
-      "prov": "T. Thanh Hóa",
-      "rev": 67381.0,
-      "stores": 180
-    },
-    {
-      "prov": "T. Bắc Ninh",
-      "rev": 55301.0,
-      "stores": 147
-    },
-    {
-      "prov": "T. Nghệ An",
-      "rev": 54575.0,
+      "gdv": "Đặng Văn Dũng",
+      "shrink": -1541.0,
+      "loss": -129.0,
+      "total_sl": -2098.0,
       "stores": 146
     },
     {
-      "prov": "T. Hưng Yên",
-      "rev": 44197.0,
-      "stores": 121
+      "gdv": "Nguyễn Thị Thu",
+      "shrink": -1576.0,
+      "loss": -79.0,
+      "total_sl": -2083.0,
+      "stores": 153
     },
     {
-      "prov": "TP. Hồ Chí Minh",
-      "rev": 43532.0,
-      "stores": 83
-    },
-    {
-      "prov": "T. Ninh Bình",
-      "rev": 34920.0,
-      "stores": 113
-    },
-    {
-      "prov": "T. Hà Tĩnh",
-      "rev": 32770.0,
-      "stores": 93
-    },
-    {
-      "prov": "T. Tuyên Quang",
-      "rev": 32165.0,
-      "stores": 66
-    },
-    {
-      "prov": "T. Lào Cai",
-      "rev": 21880.0,
-      "stores": 59
-    },
-    {
-      "prov": "T. Quảng Nam",
-      "rev": 21217.0,
-      "stores": 63
-    },
-    {
-      "prov": "T. Hải Dương",
-      "rev": 19470.0,
-      "stores": 42
-    },
-    {
-      "prov": "T. Sơn La",
-      "rev": 18809.0,
-      "stores": 41
+      "gdv": "Nguyễn Duy Đoàn",
+      "shrink": -1370.0,
+      "loss": -98.0,
+      "total_sl": -1935.0,
+      "stores": 156
     }
   ],
-  "store_status": [
+  "competitor": [
     {
-      "st": "Đang hoạt động",
-      "n": 2737
+      "competitor": "Không ĐT",
+      "stores": 2028,
+      "avg_spd": 14.5
     },
     {
-      "st": "Sắp khai trương",
-      "n": 163
-    },
-    {
-      "st": "TẠM NGỪNG KD (Từ 21/9/2026 - chưa)",
-      "n": 1
-    },
-    {
-      "st": "Sắp đóng cửa (Ngày ngừng KD 01/11/2026)",
-      "n": 2
-    },
-    {
-      "st": "Sắp đóng cửa (Ngày ngừng KD 16/11/2026)",
-      "n": 1
-    },
-    {
-      "st": "TẠM NGỪNG KD (Từ 22/8/2026 -> 12/11/2026)",
-      "n": 1
-    },
-    {
-      "st": "TẠM NGỪNG KD (Từ 3/9/2026 -> chưa)",
-      "n": 1
-    },
-    {
-      "st": "TẠM NGỪNG KD (Từ 9/7/2026 -> chưa)",
-      "n": 1
-    },
-    {
-      "st": "TẠM DỪNG KHAI TRƯƠNG",
-      "n": 1
-    },
-    {
-      "st": "TẠM NGỪNG KD (Từ 15/9/2026 -> chưa)",
-      "n": 1
-    },
-    {
-      "st": "Sắp đóng cửa (Ngày ngừng KD 11/11/2026)",
-      "n": 1
+      "competitor": "Có đối thủ",
+      "stores": 632,
+      "avg_spd": 17.4
     }
   ],
-  "top_stores": [
-    {
-      "Store": "3843",
-      "name": "WM+ HCM 911 A-B Nguyễn Ảnh Thủ",
-      "gdv": "Nguyễn Thị Yến",
-      "rev": 2772.0
-    },
-    {
-      "Store": "4962",
-      "name": "WM+ CMU 128 hẻm Bê Tông, Nguyễn Trãi",
-      "gdv": "Nguyễn Năng Toản",
-      "rev": 1886.0
-    },
-    {
-      "Store": "5777",
-      "name": "WM+ HNI Duyên Thái, Thường Tín",
-      "gdv": "Tạ Công Nhận",
-      "rev": 1764.0
-    },
-    {
-      "Store": "5654",
-      "name": "WM+ HNI 132 Trần Phú, Thường Tín",
-      "gdv": "Tạ Công Nhận",
-      "rev": 1757.0
-    },
-    {
-      "Store": "6141",
-      "name": "WM+ VPC TDP Tân Chiền, Lập Thạch",
-      "gdv": "Hồ Nam",
-      "rev": 1532.0
-    },
-    {
-      "Store": "2AQ0",
-      "name": "WM+ HNI Ngõ 12, Đội 1 Tả Thanh Oai",
-      "gdv": "Tạ Công Nhận",
-      "rev": 1429.0
-    },
-    {
-      "Store": "6615",
-      "name": "WM+ HCM B13/29B Cây Cám, xã Vĩnh Lộc B",
-      "gdv": "Nguyễn Thị Yến",
-      "rev": 1409.0
-    },
-    {
-      "Store": "4013",
-      "name": "WM+ HCM Nền L12, Thới An",
-      "gdv": "Nguyễn Thị Yến",
-      "rev": 1374.0
-    },
-    {
-      "Store": "3722",
-      "name": "WM+ HNI Khu TĐC Lai Xá, Kim Chung",
-      "gdv": "Bùi Thị Thu Nhài",
-      "rev": 1365.0
-    },
-    {
-      "Store": "6267",
-      "name": "WM+ HCM C10/21 Đinh Đức Thiện",
-      "gdv": "Nguyễn Thị Yến",
-      "rev": 1346.0
-    },
-    {
-      "Store": "6539",
-      "name": "WM+ QNH 44 – 46 Nguyễn Du",
-      "gdv": "Lê Thị Hồng Thu",
-      "rev": 1333.0
-    },
-    {
-      "Store": "5906",
-      "name": "WM+ HNI 15 Tổ 4 Đông Anh",
-      "gdv": "Phạm Minh Thu",
-      "rev": 1302.0
-    },
-    {
-      "Store": "5386",
-      "name": "WM+ HCM 309 Nguyễn Thị Rành",
-      "gdv": "Nguyễn Thị Yến",
-      "rev": 1267.0
-    },
-    {
-      "Store": "3261",
-      "name": "WM+ HNI Đào Xuyên",
-      "gdv": "Phạm Minh Thu",
-      "rev": 1248.0
-    },
-    {
-      "Store": "6179",
-      "name": "WM+ TQG 76 TDP Vĩnh Lim",
-      "gdv": "Đặng Trần Hảo",
-      "rev": 1230.0
-    },
-    {
-      "Store": "6244",
-      "name": "WM+ HBH Khu Thống Nhất, TT Bo",
-      "gdv": "Dương Tùng",
-      "rev": 1229.0
-    },
-    {
-      "Store": "6281",
-      "name": "WM+ PTO 425-427 Lạc Long Quân",
-      "gdv": "Hồ Nam",
-      "rev": 1210.0
-    },
-    {
-      "Store": "3729",
-      "name": "WM+ HNI Ngã tư Sơn Đồng",
-      "gdv": "Bùi Thị Thu Nhài",
-      "rev": 1194.0
-    },
-    {
-      "Store": "6137",
-      "name": "WM+ THA Nam Sơn, Đông Sơn",
-      "gdv": "Nguyễn Đức Chung",
-      "rev": 1165.0
-    },
-    {
-      "Store": "2AAI",
-      "name": "WM+ HNI 144, TDP Tân Xuân, Xuân Mai",
-      "gdv": "Tạ Công Nhận",
-      "rev": 1161.0
-    }
-  ],
-  "nso": [
-    {
-      "nso": 141
-    }
-  ],
-  "qh": [
-    {
-      "qh": 3351
-    }
-  ],
-  "kpi_summary": [
-    {
-      "total_rev": 1149711.0,
-      "stores": 2725,
-      "days": 74372
-    }
-  ]
+  "meta": {
+    "monthStart": "2026-10-01T00:00:00.000Z",
+    "reportDate": "2026-10-20T00:00:00.000Z",
+    "mtdDays": 20,
+    "missingCols": [],
+    "daysInMonth": 31,
+    "autoOn": 1,
+    "noGdvSale": 0
+  },
+  "generated": "2026-11-02T09:49:55.446502"
 }
