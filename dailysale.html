@@ -140,6 +140,9 @@ main > .sec-h:first-child{margin-top:4px}
 .kt tr.lvl2 td.name{padding-left:24px;font-weight:600;position:relative}
 .kt tr.lvl2 td.name:before{content:"";position:absolute;left:12px;top:50%;width:6px;height:1px;background:#C4D0E0}
 .kt tr.lvl2:hover td{background:#F8FAFD}
+/* level 2+ : lùi vào theo độ sâu (--indent do renderDim set) */
+.kt tr.indented td.name{padding-left:calc(12px + var(--indent,20px));font-weight:600;position:relative}
+.kt tr.indented td.name:before{left:calc(var(--indent,20px) + 2px)}
 .kt tr.total td{background:#0F2A4A;color:#fff;font-weight:800;border-bottom:0}
 .kt tr.total td .cnt{color:#B9C9DC}
 .kt tr.clickable{cursor:pointer}
@@ -612,7 +615,12 @@ function initUI(){
   document.getElementById('lg').src = LOGO;
 // ---- Text Size ----
 let TS=1; try{ const v=localStorage.getItem('ds_ts'); if(v) TS=parseFloat(v)||1; }catch(e){} TS=Math.max(.7,Math.min(1.5,TS));
-function applyTS(){ document.body.style.setProperty('--ts',TS); document.getElementById('tsLbl').textContent=Math.round(TS*100)+'%'; }
+function applyTS(){
+  const c = document.querySelector('.content');
+  if(c){ c.style.zoom = TS; c.style.width = (100/TS).toFixed(3)+'%'; }
+  document.getElementById('tsLbl').textContent=Math.round(TS*100)+'%';
+  try{ if(D) fitTables(); }catch(e){}
+}
 document.getElementById('tsMinus').onclick=()=>{ TS=Math.max(.7,TS-.05); applyTS(); try{localStorage.setItem('ds_ts',TS)}catch(e){} };
 document.getElementById('tsPlus').onclick=()=>{ TS=Math.min(1.5,TS+.05); applyTS(); try{localStorage.setItem('ds_ts',TS)}catch(e){} };
 applyTS();
