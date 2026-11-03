@@ -629,10 +629,9 @@ function initUI(){
   document.getElementById('pUpd').textContent = new Date().toLocaleString('vi-VN',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit',year:'numeric'});
   document.getElementById('lg').src = LOGO;
 // ---- Text Size ----
-let TS=1; try{ const v=localStorage.getItem('ds_ts'); if(v) TS=parseFloat(v)||1; }catch(e){} TS=Math.max(.7,Math.min(1.5,TS));
+let TS=1; try{ const v=localStorage.getItem('ds_ts'); if(v) TS=parseFloat(v)||1; }catch(e){} TS=Math.max(1.0,Math.min(1.5,TS));
 function applyTS(){
-  const c = document.querySelector('.content');
-  if(c){ c.style.zoom = TS; c.style.width = (100/TS).toFixed(3)+'%'; }
+  document.body.style.zoom = TS;
   document.getElementById('tsLbl').textContent=Math.round(TS*100)+'%';
   try{ if(D) fitTables(); }catch(e){}
 }
