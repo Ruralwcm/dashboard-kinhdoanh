@@ -161,6 +161,34 @@ main > .sec-h:first-child{margin-top:4px}
 #tGrp thead .gmtd{background:#1A4E4C} #tGrp thead .gytd{background:#14423F}
 #tGrp td.name .nm{font-weight:800}
 .tw{overflow-x:auto}
+
+/* ===== Dự báo doanh thu ===== */
+.fck{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;padding:12px 12px 4px}
+@media(max-width:1300px){.fck{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:820px){.fck{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.fk{background:#FAFBFD;border:1px solid var(--line);border-left:3px solid #12245C;border-radius:10px;padding:9px 11px}
+.fk.warn{border-left-color:#D97706}.fk.bad{border-left-color:#DC2626}.fk.good{border-left-color:#0E9F6E}
+.fk .lb{font-size:10.5px;font-weight:700;color:#6F7E93;text-transform:uppercase;letter-spacing:.3px}
+.fk .vv{font-size:20px;font-weight:800;color:#0F2A4A;line-height:1.2;margin:3px 0 2px}
+.fk .vv small{font-size:11px;font-weight:600;color:#7D8BA1;margin-left:2px}
+.fk .sb{font-size:11px;color:#6F7E93}
+.fcw{display:flex;gap:8px;padding:10px 12px 2px;overflow-x:auto}
+.fwc{flex:1;min-width:118px;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:#fff}
+.fwc .wl{font-size:10.5px;font-weight:800;color:#12245C;text-transform:uppercase;letter-spacing:.3px}
+.fwc .wd{font-size:10px;color:#8B98AB}
+.fwc .wv{font-size:15px;font-weight:800;margin-top:3px;color:#0F2A4A}
+.fwc .wp{font-size:11px;font-weight:700}
+.fcn{display:grid;grid-template-columns:1.1fr 1fr 1fr;gap:10px;padding:12px}
+@media(max-width:1300px){.fcn{grid-template-columns:1fr}}
+.fcard{background:#FAFBFD;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.fcard h4{margin:0 0 6px;font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:#12245C;font-weight:800}
+.fcard ul{margin:0;padding-left:16px;font-size:12px;color:#33415A;line-height:1.55}
+.fcard li{margin-bottom:3px}
+.fcnum{text-align:right;font-variant-numeric:tabular-nums}
+.kt tr.fcbad>td{background:#FDECEC}
+.kt tr.fcwt>td{background:#FFF7EA}
+.fcbadge{font-size:10.5px;font-weight:800;padding:2px 7px;border-radius:6px;white-space:nowrap}
+
 /* section thu gọn */
 .sec-h{cursor:pointer;user-select:none}
 .sec-h h2:before{content:"▾";display:inline-block;width:14px;color:var(--navy);font-size:11px;transition:transform .18s;margin-right:2px}
@@ -397,6 +425,21 @@ body.fullscreen .ptools{opacity:.9}
   <section class="kpis" id="kpis"></section>
   </div>
 
+  <div class="blk" data-blk="fc">
+  <div class="sec-h"><h2>Dự báo doanh thu</h2><span class="sub" id="fcSub">Đang tải…</span>
+    <div class="rt">
+      <div class="seg" id="fcPerSeg"><button data-fp="p1" class="on">Tháng 11</button><button data-fp="p2">Tháng 12</button></div>
+      <div class="seg" id="fcDimSeg"><button data-fd="mi" class="on">Miền</button><button data-fd="vu">Vùng</button><button data-fd="ti">Tỉnh</button><button data-fd="gd">GĐV</button><button data-fd="ql">QLKV</button></div>
+    </div>
+  </div>
+  <section class="panel">
+    <div class="fck" id="fcKpis"></div>
+    <div class="fcw" id="fcWeeks"></div>
+    <div class="tw" style="padding:10px 12px 0"><table id="tFc" class="kt"></table></div>
+    <div class="fcn" id="fcNotes"></div>
+  </section>
+  </div>
+
   <div class="blk" data-blk="grp">
   <div class="sec-h"><h2>Hiệu quả theo nhóm cửa hàng</h2><span class="sub">LFL · STU · NSO</span>
     <div class="rt">
@@ -543,12 +586,16 @@ function agg(rows){
 function zeroN(rows){ return rows.filter(r=>!(r.d>0.0001)).length; }
 
 /* ================= data load ================= */
+let FCD=null, FCM=new Map(), FCP='p1', FCDIM='mi';
 function loadData(){
-  return fetch('dailysale_v9.json',{cache:'no-store'}).then(r=>{
-    if(!r.ok) throw new Error('HTTP '+r.status);
-    return r.json();
-  }).then(j=>{
+  return Promise.all([
+    fetch('dailysale_v9.json',{cache:'no-store'}).then(r=>{ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); }),
+    fetch('forecast_v2.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null)
+  ]).then(([j,f])=>{
     D = j; ALL = j.stores || [];
+    FCD = f;
+    FCM = new Map();
+    if(FCD && FCD.stores) FCD.stores.forEach(x=>FCM.set(String(x.sap), x));
     initUI();
   });
 }
@@ -635,8 +682,148 @@ document.getElementById('tsMinus').onclick=()=>{ TS=Math.max(.7,TS-.05); applyTS
 document.getElementById('tsPlus').onclick=()=>{ TS=Math.min(1.5,TS+.05); applyTS(); try{localStorage.setItem('ds_ts',TS)}catch(e){} };
 applyTS();
   refreshFilters();
+  initFC();
   render();
   document.getElementById('load').style.display='none';
+}
+
+
+/* ================= DỰ BÁO DOANH THU ================= */
+function fcTag(v){ return v>=100?['t-good','Vượt']:v>=97?['t-mid','Sát']:v>=93?['t-warn','Cần đẩy']:['t-bad','Cảnh báo']; }
+function initFC(){
+  const per = document.getElementById('fcPerSeg');
+  per.querySelectorAll('button').forEach(b=>b.onclick=()=>{
+    FCP=b.dataset.fp; per.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b)); render();
+  });
+  const dim = document.getElementById('fcDimSeg');
+  dim.querySelectorAll('button').forEach(b=>b.onclick=()=>{
+    FCDIM=b.dataset.fd; dim.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b)); render();
+  });
+}
+function renderFC(rows){
+  const box=document.getElementById('fcKpis'); if(!box) return;
+  if(!FCD || !FCM.size){
+    box.innerHTML='<div class="fk"><div class="lb">Dự báo</div><div class="sb">Chưa có dữ liệu dự báo</div></div>';
+    document.getElementById('fcWeeks').innerHTML='';
+    document.getElementById('tFc').innerHTML='';
+    document.getElementById('fcNotes').innerHTML='';
+    document.getElementById('fcSub').textContent='Chưa có dữ liệu';
+    return;
+  }
+  const PER=FCD.periods[FCP], fk=FCP==='p1'?'f1':'f2', tk=FCP==='p1'?'t1':'t2', lk=FCP==='p1'?'l1':'l2';
+  let f=0,t=0,l=0,nf=0,conf=0,nly=0;
+  const items=[];
+  for(const r of rows){
+    const x=FCM.get(String(r.sap)); if(!x) continue;
+    const v=x[fk]||0; if(v<=0) continue;
+    nf++; f+=v; t+=x[tk]||0; if(x.c===2) conf++;
+    if((x[lk]||0)>0){ l+=x[lk]; nly++; }
+    items.push({r, x, v, tg:x[tk]||0, ly:x[lk]||0});
+  }
+  const ht = t>0? f/t*100 : NaN, lyPct = l>0? (f/l-1)*100 : NaN, gap=f-t;
+  const status = fcTag(isFinite(ht)?ht:0);
+  const cls = v => !isFinite(v)?'':v>=100?'good':v>=95?'':'warn';
+
+  // ---------- KPI ----------
+  const card=(lb,vv,u,sb,cc)=>`<div class="fk ${cc||''}"><div class="lb">${lb}</div><div class="vv">${vv}<small>${u||''}</small></div><div class="sb">${sb||''}</div></div>`;
+  box.innerHTML = [
+    card('DT dự báo · '+PER.label, F.money(f), '', `${F.n(nf)} CH · ${PER.days} ngày`, cls(ht)),
+    card('%HT dự báo', F.pct(sane(ht))||F.pct(ht), '', `<span class="tag ${status[0]}">${status[1]}</span> target ${F.money(t)}`, cls(ht)),
+    card('GAP dự báo', (gap>=0?'+':'−')+F.money(Math.abs(gap)), '', gap>=0?'vượt target':'còn thiếu so target', gap>=0?'good':'bad'),
+    card('vs cùng kỳ LY', F.sgn(sane(lyPct)), '', `${F.n(nly)} CH có LY`, (sane(lyPct)>=0?'good':'bad')),
+    card('Độ tin cậy dữ liệu', F.pct(nf? conf/nf*100:0), '', `${F.n(conf)}/${F.n(nf)} CH đủ lịch sử`, (conf/Math.max(1,nf)>=0.7?'good':'warn'))
+  ].join('');
+
+  // ---------- tuần ----------
+  const wk=document.getElementById('fcWeeks');
+  if(FCP==='p1' && FCD.weeks){
+    const W=FCD.weeks.map((w,i)=>{
+      const sum=items.reduce((a,o)=>a+(o.x.w&&o.x.w[i]||0),0);
+      const tgd = items.reduce((a,o)=>a+((o.tg/PER.days)*w.days||0),0);
+      const p = tgd>0? sum/tgd*100 : NaN;
+      return {w,sum,tgd,p};
+    });
+    wk.innerHTML = W.map(o=>{
+      const st=fcTag(isFinite(o.p)?o.p:0);
+      return `<div class="fwc"><div class="wl">${o.w.label}</div>
+        <div class="wd">${F.dmy(o.w.from)} – ${F.dmy(o.w.to)} · ${o.w.days} ngày</div>
+        <div class="wv">${F.money(o.sum)}</div>
+        <div class="wp" style="color:${HT0.color(sane(o.p))}">${F.pct(sane(o.p))} HT</div></div>`;
+    }).join('');
+    wk.style.display='flex';
+  } else { wk.innerHTML=''; wk.style.display='none'; }
+
+  // ---------- bảng theo đơn vị ----------
+  const DIMK = {mi:'Miền',vu:'Vùng',ti:'Tỉnh / TP',gd:'GĐV',ql:'QLKV'};
+  const grp=new Map();
+  items.forEach(o=>{ const k=o.r[FCDIM]||'—'; if(!grp.has(k)) grp.set(k,[]); grp.get(k).push(o); });
+  const rws=[...grp.entries()].map(([k,arr])=>{
+    const F1=arr.reduce((a,o)=>a+o.v,0), T1=arr.reduce((a,o)=>a+o.tg,0), L1=arr.reduce((a,o)=>a+o.ly,0);
+    return {k, n:arr.length, f:F1, t:T1, l:L1, ht:T1>0?F1/T1*100:NaN, gap:F1-T1, ly:L1>0?F1/L1-1:NaN};
+  }).sort((a,b)=>{ const x=isFinite(a.ht)?a.ht:999, y=isFinite(b.ht)?b.ht:999; return x-y; });
+
+  const tF=items.reduce((a,o)=>a+o.f,0), tT=items.reduce((a,o)=>a+o.tg,0), tL=items.reduce((a,o)=>a+o.ly,0);
+  const tHT=tT>0?tF/tT*100:NaN;
+  let html = `<thead><tr><th class="name">${DIMK[FCDIM]}</th><th>#CH</th>
+      <th class="fcnum">DT dự báo</th><th class="fcnum">Target</th><th class="fcnum">%HT dự báo</th>
+      <th class="fcnum">GAP</th><th class="fcnum">vs cùng kỳ LY</th><th>Cảnh báo</th></tr></thead><tbody>`;
+  html += `<tr class="total"><td class="name">Tổng</td><td>${F.n(items.length)}</td>
+      <td class="fcnum">${F.money(tF)}</td><td class="fcnum">${F.money(tT)}</td>
+      <td class="fcnum">${F.pct(sane(tHT))}</td><td class="fcnum">${(tF-tT>=0?'+':'−')+F.money(Math.abs(tF-tT))}</td>
+      <td class="fcnum">${tL>0?F.sgn(sane((tF/tL-1)*100)):'—'}</td><td><span class="fcbadge" style="background:${HT0.bg(sane(tHT))};color:${HT0.color(sane(tHT))}">${fcTag(isFinite(tHT)?tHT:0)[1]}</span></td></tr>`;
+  rws.forEach(o=>{
+    const st = isFinite(o.ht)?fcTag(o.ht):['t-gray','—'];
+    html += `<tr class="${isFinite(o.ht)&&o.ht<93?'fcbad':(isFinite(o.ht)&&o.ht<97?'fcwt':'')}">
+      <td class="name">${o.k}<span class="cnt">${F.n(o.n)} CH</span></td><td>${F.n(o.n)}</td>
+      <td class="fcnum">${F.money(o.f)}</td><td class="fcnum">${F.money(o.t)}</td>
+      <td class="fcnum" style="font-weight:800;color:${HT0.color(sane(o.ht))}">${F.pct(sane(o.ht))}</td>
+      <td class="fcnum">${(o.gap>=0?'+':'−')+F.money(Math.abs(o.gap))}</td>
+      <td class="fcnum">${isFinite(o.ly)?F.sgn(sane(o.ly*100)):'—'}</td>
+      <td><span class="fcbadge" style="background:${HT0.bg(sane(o.ht))};color:${HT0.color(sane(o.ht))}">${st[1]}</span></td></tr>`;
+  });
+  html += '</tbody>';
+  document.getElementById('tFc').innerHTML = html;
+
+  // ---------- đánh giá / đề xuất / phương án ----------
+  const bad = rws.filter(o=>isFinite(o.ht)&&o.ht<93);
+  const wt  = rws.filter(o=>isFinite(o.ht)&&o.ht>=93&&o.ht<97);
+  const gapT = tT-tF;
+  const spdNeed = isFinite(lyPct)&&lyPct>-100 ? (gapT>0? gapT/Math.max(1,tF)*100 : 0) : 0;
+  const sp = (FCD.specials||[]).filter(x=>x.d>=PER.from&&x.d<=PER.to&&x.f>=1.05);
+  const bt = FCD.backtest||{};
+  const nmb = F.money(Math.abs(gapT));
+
+  const dg = [
+    `Dự báo ${PER.label}: <b>${F.money(tF)}</b> / target <b>${F.money(tT)}</b> → <b style="color:${HT0.color(sane(tHT))}">${F.pct(sane(tHT))}</b> HT.`,
+    gapT>0 ? `Thiếu <b>${nmb}</b> so target → cần tăng ~<b>${F.pct(spdNeed)}</b> SPD/ngày trong ${PER.days} ngày còn lại.` : `Vượt target <b>${nmb}</b> — giữ nhịp, ưu tiên không để trượt cuối kỳ.`,
+    isFinite(lyPct)? `So cùng kỳ LY: <b>${F.sgn(sane(lyPct))}</b> (chỉ ${F.n(nly)} CH có dữ liệu LY).`:'',
+    bad.length? `<b>${bad.length}</b> ${DIMK[FCDIM].toLowerCase()} dưới 93% HT: ${bad.slice(0,4).map(o=>o.k+' ('+F.pct(sane(o.ht))+')').join(', ')}.` : `Tất cả ${DIMK[FCDIM].toLowerCase()} đạt ≥93% HT dự báo.`,
+    bt.mape? `Backtest T10: lệch toàn hệ thống ${bt.bias>0?'+':''}${bt.bias}%, sai số CH điển hình ±${bt.mape}%.`:''
+  ].filter(Boolean);
+
+  const dx = [];
+  if(gapT>0){
+    dx.push(`Bù ${nmb}: ưu tiên ${bad.slice(0,3).map(o=>o.k).join(' · ')||'các đơn vị thấp nhất'} — giao lại chỉ tiêu ngày cho QLKV.`);
+    dx.push(`Tăng SPD/ngày +${F.pct(spdNeed)} ↘ chia theo CH thiếu nhiều nhất, không rải đều.`);
+  } else {
+    dx.push(`Đã vượt target ${nmb} → giữ nhịp, tập trung chống rớt cuối kỳ và kiểm soát hủy/tồn.`);
+  }
+  if(sp.length) dx.push(`Ngày cao điểm: ${sp.map(x=>F.dmy(x.d)+' ('+x.nm+', ×'+String(x.f).replace('.',',')+')').join(' · ')} — tăng nhập hàng & ca bán trước 1–2 ngày.`);
+  dx.push(bad.length? `Rà soát nguyên nhân tại ${bad.slice(0,2).map(o=>o.k).join(', ')}: thiếu hàng / đối thủ / nhân sự / target chưa hợp lý.` : `Duy trì nhịp hiện tại và theo dõi tuần thấp nhất.`);
+
+  const pa = [
+    `<b>A. Tham chiếu (đang có):</b> hiển thị dự báo cạnh target, người dùng tự đọc — không cảnh báo tự động.`,
+    `<b>B. Cảnh báo tự động (đề xuất):</b> gắn badge 3 mức ≥100 / 93–100 / <93, tô đỏ đơn vị rớt, đưa top-3 rủi ro lên đầu báo cáo tuần.`,
+    `<b>C. Gắn vào điều hành:</b> dùng dự báo để phân bổ target tháng sau & điều chỉnh target CH (CH dự báo <85% liên tiếp 2 tháng thì xem lại target), kèm cron gửi cảnh báo sáng thứ 2.`
+  ];
+
+  document.getElementById('fcNotes').innerHTML = `
+    <div class="fcard"><h4>1. Đánh giá</h4><ul>${dg.map(x=>'<li>'+x+'</li>').join('')}</ul></div>
+    <div class="fcard"><h4>2. Đề xuất</h4><ul>${dx.map(x=>'<li>'+x+'</li>').join('')}</ul></div>
+    <div class="fcard"><h4>3. Phương án</h4><ul>${pa.map(x=>'<li>'+x+'</li>').join('')}</ul></div>`;
+
+  document.getElementById('fcSub').textContent =
+    `Dữ liệu đến ${F.dmy(FCD.meta.dataEnd)} · baseline theo thứ × growth × hệ số ngày lễ · ${F.n(FCD.meta.conf.ok)} CH đủ lịch sử`;
 }
 
 /* ================= render ================= */
@@ -651,7 +838,7 @@ function render(){
   const a = agg(rows);
   document.getElementById('pCnt').innerHTML = '<b>'+F.n(rows.length)+'</b> cửa hàng';
   document.getElementById('kpiSub').textContent = rows.length!==ALL.length ? ('đang lọc · '+F.n(rows.length)+'/'+F.n(ALL.length)+' CH') : ('toàn hệ thống · '+F.n(rows.length)+' CH');
-  renderChips(); renderKPI(a, rows); renderDim(rows); renderGrp(rows); renderStore(rows); applyPeriodHide(); fitTables();
+  renderChips(); renderKPI(a, rows); try{ renderFC(rows); }catch(e){ console.warn('fc',e); } renderDim(rows); renderGrp(rows); renderStore(rows); applyPeriodHide(); fitTables();
 }
 
 function renderChips(){
