@@ -757,7 +757,7 @@ function renderFC(rows){
   } else { wk.innerHTML=''; wk.style.display='none'; }
 
   // ---------- bảng theo nhóm CH (LFL / STU / NSO) ----------
-  const GMODEL={ly:'LY cùng kỳ',ramp:'Ramp tuần',vung:'Theo vùng',flat:'Flat'};
+  const GMODEL={ly:'LY cùng kỳ',ramp:'Ramp tuần',cohort:'Curve tuổi CH',vung:'Theo vùng',flat:'Flat'};
   const gks=['LFL','STU','NSO','KHAC'];
   const gsum=gks.map(gk=>{
     const arr=items.filter(o=>(o.r.gr||'KHAC')===gk);
