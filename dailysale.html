@@ -316,6 +316,18 @@ body{display:flex;flex-direction:column;overflow:hidden}
 body.fullscreen .hdr{display:none}
 body.fullscreen .ptools{opacity:.9}
 @media print{#ink,#laser,.ptools{display:none}}
+/* ===== Block màu % vs LY (theo dải %TT) ===== */
+.kt td.lyc{font-weight:800;text-align:center}
+.kt td.lyc.ly-b1{background:#A81E14!important;color:#fff}
+.kt td.lyc.ly-b2{background:#DC4B3E!important;color:#fff}
+.kt td.lyc.ly-b3{background:#F59E0B!important;color:#3D2600}
+.kt td.lyc.ly-b4{background:#FBD98A!important;color:#7A4A02}
+.kt td.lyc.ly-b5{background:#E7F3D6!important;color:#4A7A12}
+.kt td.lyc.ly-b6{background:#C3E5A2!important;color:#2C5F0A}
+.kt td.lyc.ly-b7{background:#7CC66A!important;color:#0A3D06}
+.kt td.lyc.ly-b8{background:#1E7B33!important;color:#fff}
+.ly-legend{display:inline-flex;gap:3px;align-items:center;margin-left:8px;font-size:10.5px;color:#5A6B82}
+.ly-legend i{display:inline-block;width:22px;height:9px;border-radius:2px}
 </style>
 </head>
 <body>
@@ -410,7 +422,10 @@ body.fullscreen .ptools{opacity:.9}
   <div class="blk" data-blk="dim">
   <div class="sec-h">
     <h2>Hiệu quả theo địa bàn</h2><span class="dim-chips" id="dimChips"></span><span class="sub">Bấm ▼ để drill-down · bấm tên để lọc</span>
-    <div class="rt"><div class="seg" id="dimSeg">
+    <div class="rt"><span class="ly-legend" title="Dải màu % SPD vs LY">
+      <i style="background:#A81E14"></i><i style="background:#DC4B3E"></i><i style="background:#F59E0B"></i><i style="background:#FBD98A"></i><i style="background:#E7F3D6"></i><i style="background:#C3E5A2"></i><i style="background:#7CC66A"></i><i style="background:#1E7B33"></i>
+      <span>&lt;-15% → ≥+15%</span></span>
+      <div class="seg" id="dimSeg">
       <button data-d="mi" class="on">Miền</button><button data-d="vu">Vùng</button>
       <button data-d="ti">Tỉnh/TP</button><button data-d="gd">GĐV</button><button data-d="ql">QLKV</button>
     </div></div>
@@ -735,7 +750,10 @@ function applyPeriodHide(){
     [document.getElementById('tDim'),document.getElementById('tGrp'),document.getElementById('tStore')].forEach(t=>{ if(t) t.classList.toggle(c,!show); });
   });
 }
-function lyCell(v){ return isFinite(v)?`<td class="num ${v>=0?'pos':'neg'}">${v>=0?'+':''}${v.toFixed(1).replace('.',',')}%</td>`:'<td class="num mut">—</td>'; }
+const LYB = v => v>=15?'b8':v>=10?'b7':v>=5?'b6':v>=0?'b5':v>=-5?'b4':v>=-10?'b3':v>=-15?'b2':'b1';
+function lyCell(v, band){ return isFinite(v)
+  ? `<td class="num${band?' lyc ly-'+LYB(v):' '+(v>=0?'pos':'neg')}">${v>=0?'+':''}${v.toFixed(1).replace('.',',')}%</td>`
+  : '<td class="num mut">—</td>'; }
 const CELL = {
   spd: p => `<td class="num">${F.n1(p.spd)}</td>`,
   bill: p => `<td class="num">${F.n1(p.bill)}</td>`,
@@ -744,14 +762,18 @@ const CELL = {
   tar: p => `<td class="num">${p.tar>0?F.n(p.tar):'—'}</td>`,
   ht: p => `<td class="num">${(p.tar>0&&isFinite(p.ht))?`<span class="tag ${HT0.tag(sane(p.ht))}">${p.ht.toFixed(1).replace('.',',')}%</span>`:'—'}</td>`,
   gap: p => `<td class="num ${isFinite(p.gap)&&p.gap<0?'neg':'pos'}">${isFinite(p.gap)?(p.gap>=0?'+':'-')+F.n(Math.abs(p.gap)):'—'}</td>`,
-  spdLY: p => lyCell(p.spdLV), billLY: p => lyCell(p.billLV),
+  spdLY: p => lyCell(p.spdLV, true), billLY: p => lyCell(p.billLV),
   bsLY: p => lyCell(p.bsLV), saleLY: p => lyCell(p.revLV)
 };
+function withCls(cell, cls){
+  // thêm class vào attribute class sẵn có (tránh tạo attribute class thứ 2 -> mất màu)
+  return cell.replace(/^<td class="([^"]*)"/, (m, c)=>`<td class="${c} ${cls}"`);
+}
 function pCells(a, key){
   const p = a.pd[key], cols = lvCols();
   const cells = [];
-  cols.forEach(m=>{ cells.push(CELL[m](p).replace('<td','<td class="per-'+key+'"')); if(HASLY[m]&&showLY()) cells.push(CELL[m+'LY'](p).replace('<td','<td class="per-'+key+'"')); });
-  if(key!=='d') cells[0] = cells[0].replace(' class="',' class="gb ');
+  cols.forEach(m=>{ cells.push(withCls(CELL[m](p),'per-'+key)); if(HASLY[m]&&showLY()) cells.push(withCls(CELL[m+'LY'](p),'per-'+key)); });
+  if(key!=='d') cells[0] = withCls(cells[0],'gb');
   return cells.join('');
 }
 function periodCols(){ return 2 + 4*periodLen(); }
