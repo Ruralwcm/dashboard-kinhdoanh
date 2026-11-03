@@ -116,9 +116,13 @@ main > .sec-h:first-child{margin-top:4px}
 .kt td{border-bottom:1px solid #EDF1F7;border-right:1px solid #F4F7FB;padding:6px 5px}
 .kt td.name{text-align:left;font-weight:700;min-width:190px}
 .kt td .cnt{display:block;font-size:10.5px;font-weight:600;color:#7D8BA1;letter-spacing:.2px}
-.seg.chk{display:flex;gap:10px;flex-wrap:wrap}
-.seg.chk label.chk{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:#334155;cursor:pointer}
-.seg.chk input{width:15px;height:15px;accent-color:#0F2A4A}
+.seg.chk{display:flex;gap:5px;flex-wrap:nowrap}
+.seg.chk label.chk{display:flex;align-items:center;gap:2px;font-size:11px;font-weight:600;color:#334155;cursor:pointer}
+.seg.chk input{width:12px;height:12px;accent-color:#0F2A4A}
+.kt.hide-d .per-d{display:none!important}
+.kt.hide-w .per-w{display:none!important}
+.kt.hide-m .per-m{display:none!important}
+.kt.hide-y .per-y{display:none!important}
 .kt tr.lvl1 td{background:#EAF1FA;font-weight:800}
 .kt tr.lvl1:hover td{background:#E1EBF8}
 .kt tr.lvl2 td{background:#fff}
@@ -605,7 +609,7 @@ function render(){
   const a = agg(rows);
   document.getElementById('pCnt').innerHTML = '<b>'+F.n(rows.length)+'</b> cửa hàng';
   document.getElementById('kpiSub').textContent = rows.length!==ALL.length ? ('đang lọc · '+F.n(rows.length)+'/'+F.n(ALL.length)+' CH') : ('toàn hệ thống · '+F.n(rows.length)+' CH');
-  renderChips(); renderKPI(a, rows); renderActs(rows); renderDim(rows); renderGrp(rows); renderStore(rows);
+  renderChips(); renderKPI(a, rows); renderActs(rows); renderDim(rows); renderGrp(rows); renderStore(rows); applyPeriodHide();
 }
 
 function renderChips(){
@@ -726,6 +730,12 @@ function lvCols(){ return LVS[FILT.lv]||LVS.compact; }
 function showLY(){ return SHOWLY[FILT.lv]!==false; }
 function periodLen(){ return lvCols().reduce((n,m)=>n+1+(HASLY[m]&&showLY()?1:0),0); }
 function visiblePeriods(){ return ['d','w','m','y'].filter(k=>FILT.per[k]); }
+function applyPeriodHide(){
+  ['d','w','m','y'].forEach(k=>{
+    const c='hide-'+k, show=!!FILT.per[k];
+    [document.getElementById('tDim'),document.getElementById('tGrp'),document.getElementById('tStore')].forEach(t=>{ if(t) t.classList.toggle(c,!show); });
+  });
+}
 function lyCell(v){ return isFinite(v)?`<td class="num ${v>=0?'pos':'neg'}">${v>=0?'+':''}${v.toFixed(1).replace('.',',')}%</td>`:'<td class="num mut">—</td>'; }
 const CELL = {
   spd: p => `<td class="num">${F.n1(p.spd)}</td>`,
@@ -741,28 +751,28 @@ const CELL = {
 function pCells(a, key){
   const p = a.pd[key], cols = lvCols();
   const cells = [];
-  cols.forEach(m=>{ cells.push(CELL[m](p)); if(HASLY[m]&&showLY()) cells.push(CELL[m+'LY'](p)); });
-  if(key!=='d') cells[0] = cells[0].replace('<td class="num','<td class="num gb');
+  cols.forEach(m=>{ cells.push(CELL[m](p).replace('<td','<td class="per-'+key+'"')); if(HASLY[m]&&showLY()) cells.push(CELL[m+'LY'](p).replace('<td','<td class="per-'+key+'"')); });
+  if(key!=='d') cells[0] = cells[0].replace(' class="',' class="gb ');
   return cells.join('');
 }
-function periodCols(){ return 2 + visiblePeriods().length*periodLen(); }
+function periodCols(){ return 2 + 4*periodLen(); }
 function kpiHead(label, tg){
   const G = {d:['DAY','gday'], w:[`WTD — LŨY KẾ TUẦN (${(D&&D.meta?D.meta.wtdDays:5)} ngày)`,'gwtd'],
              m:[`MTD — LŨY KẾ THÁNG (${(D&&D.meta?D.meta.mtdDays:30)} ngày)`,'gmtd'],
              y:['YTD — LŨY KẾ NĂM','gytd']};
-  const per = visiblePeriods(), len = periodLen();
+  const per = ['d','w','m','y'], len = periodLen();
   let sub = '';
   per.forEach(k=>{
     lvCols().forEach((m,i)=>{
-      sub += `<th${i===0&&k!=='d'?' class="gb"':''}>${METRIC[m]}</th>`;
-      if(HASLY[m]&&showLY()) sub += `<th>% vs LY</th>`;
+      sub += `<th class="per-${k}${i===0&&k!=='d'?' gb':''}">${METRIC[m]}</th>`;
+      if(HASLY[m]&&showLY()) sub += `<th class="per-${k}">% vs LY</th>`;
     });
   });
   return `<thead>
       <tr class="grp${tg?' tg':''}">
         <th rowspan="2" class="name">${label}</th>
         <th rowspan="2" class="cntc">#<br>CH</th>
-        ${per.map(k=>`<th colspan="${len}" class="${G[k][1]}">${G[k][0]}</th>`).join('')}
+        ${per.map(k=>`<th colspan="${len}" class="${G[k][1]} per-${k}">${G[k][0]}</th>`).join('')}
       </tr>
       <tr class="sub">${sub}</tr>
     </thead>`;
@@ -859,7 +869,7 @@ function renderStore(rows){
 
 /* ================= events ================= */
 document.getElementById('fTt').onchange = e=>{ FILT.tt=e.target.value; render(); };
-['d','w','m','y'].forEach(k=>{ document.getElementById('per'+k.toUpperCase()).onchange = e=>{ FILT.per[k]=e.target.checked; render(); }; });
+['d','w','m','y'].forEach(k=>{ document.getElementById('per'+k.toUpperCase()).onchange = e=>{ FILT.per[k]=e.target.checked; applyPeriodHide(); }; });
 document.querySelectorAll('#lvSeg button').forEach(b=>b.onclick=()=>{
   FILT.lv = b.dataset.lv;
   document.querySelectorAll('#lvSeg button').forEach(x=>x.classList.toggle('on',x===b));
