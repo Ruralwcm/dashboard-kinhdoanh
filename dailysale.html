@@ -617,7 +617,7 @@ function render(){
   const a = agg(rows);
   document.getElementById('pCnt').innerHTML = '<b>'+F.n(rows.length)+'</b> cửa hàng';
   document.getElementById('kpiSub').textContent = rows.length!==ALL.length ? ('đang lọc · '+F.n(rows.length)+'/'+F.n(ALL.length)+' CH') : ('toàn hệ thống · '+F.n(rows.length)+' CH');
-  renderChips(); renderKPI(a, rows); renderActs(rows); renderDim(rows); renderGrp(rows); renderStore(rows); applyPeriodHide(); fitTables();
+  renderChips(); renderKPI(a, rows); renderDim(rows); renderGrp(rows); renderStore(rows); applyPeriodHide(); fitTables();
 }
 
 function renderChips(){
@@ -677,40 +677,7 @@ const IC = {
   trash:'<svg viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></svg>',
   up:'<svg viewBox="0 0 24 24" fill="none" stroke="#0E9F6E" stroke-width="2.2" stroke-linecap="round"><path d="M12 19V5m0 0 6 6m-6-6-6 6"/></svg>'
 };
-function renderActs(rows){
-  const dim = (rows.length>1500)?'ti':'ti';
-  const groups = [...byDim(rows,dim)].map(([k,v])=>({k, a:agg(v), n:v.length})).filter(g=>g.n>=5);
-  const lowHT = groups.slice().filter(g=>isFinite(g.a.htM)).sort((x,y)=>x.a.htM-y.a.htM).slice(0,4);
-  const highDIO = groups.slice().filter(g=>isFinite(g.a.dio)).sort((x,y)=>y.a.dio-x.a.dio).slice(0,4);
-  const highLoss = groups.slice().filter(g=>isFinite(g.a.lossPct)).sort((x,y)=>Math.abs(y.a.lossPct)-Math.abs(x.a.lossPct)).slice(0,4);
-  const zero = zeroN(rows);
-  const best = groups.slice().filter(g=>isFinite(g.a.ht)).sort((x,y)=>y.a.ht-x.a.ht).slice(0,4);
 
-  const li = (g, val, cls) => `<li class="clk" data-val="${String(g.k).replace(/"/g,'&quot;')}" title="Bấm để lọc ${g.k}"><span class="nm">${g.k}</span><span class="vl ${cls||''}">${val}</span></li>`;
-  const box = (title, icon, cls, items, emptyTxt) => `
-    <div class="act ${cls}"><h3>${icon} ${title}</h3>
-    <ul>${items.length?items.join(''):`<li class="empty">${emptyTxt}</li>`}</ul></div>`;
-
-  document.getElementById('acts').innerHTML = [
-    box('%HT thấp nhất',IC.down,'bad',
-      lowHT.map(g=>li(g, `<span class="tag ${HT0.tag(g.a.htM)}">${F.pct(g.a.htM)}</span>`)),
-      'Không có dữ liệu target'),
-    box('Tồn kho cao (DIO)',IC.box,'warn',
-      highDIO.map(g=>li(g, `<span class="tag ${g.a.dio>60?'t-bad':'t-warn'}">${F.n1(g.a.dio)} ngày</span>`)),
-      'Không có dữ liệu tồn kho'),
-    box('Hủy cao nhất',IC.trash,'warn',
-      highLoss.map(g=>li(g, `<span class="tag ${Math.abs(g.a.lossPct)>1?'t-bad':'t-warn'}">${F.pct(Math.abs(g.a.lossPct))}</span>`)),
-      'Không có dữ liệu hủy'),
-    box('Điểm sáng',IC.up,'good',
-      best.map(g=>li(g, `<span class="tag t-good">${F.pct(g.a.ht)}</span>`)).concat(
-        zero?[`<li><span class="nm">CH chưa phát sinh</span><span class="vl"><span class="tag ${zero>0?'t-bad':'t-good'}">${F.n(zero)} CH</span></span></li>`]:[]),
-      'Chưa đủ dữ liệu')
-  ].join('');
-  document.querySelectorAll('#acts li.clk').forEach(el=>el.onclick=()=>{
-    FILT.ti = el.dataset.val; FILT.vu=''; FILT.mi='';
-    refreshFilters(); render(); window.scrollTo({top:0,behavior:'smooth'});
-  });
-}
 
 /* ---- dimension table: DAY | WTD | MTD | YTD (RSM KPIs style) ---- */
 const DIMLBL = {mi:'Miền',vu:'Vùng',ti:'Tỉnh / TP',qu:'Quận / Huyện',gd:'Giám đốc vùng',ql:'Quản lý khu vực'};
@@ -805,9 +772,8 @@ function kpiHead(label, tg){
     </thead>`;
 }
 
-function renderDim(rows, keepExpanded){
+function renderDim(rows, _keep){
   const l1 = KEYOF[DIM]; const t = agg(rows); const NEXT=CHILD; const ek=(d,v)=>d+':'+v;
-  if(!keepExpanded) EXPANDS.clear();
   function level(items, dim, src, depth){
     const cd = NEXT[dim]; let b = '';
     for(const g of items){
@@ -839,7 +805,7 @@ function renderDim(rows, keepExpanded){
     FILT[k]=v;
     if(k==='mi'){FILT.vu='';FILT.ti='';FILT.gd='';FILT.ql='';FILT.gr='';}
     else if(k==='vu'){FILT.ti='';} else if(k==='gd'){FILT.ql='';}
-    EXPANDS.clear(); refreshFilters(); render(); window.scrollTo({top:0,behavior:'smooth'});
+    refreshFilters(); render(); window.scrollTo({top:0,behavior:'smooth'});
   };});
   renderDimChips();
 }
@@ -851,7 +817,7 @@ function renderDimChips(){
   el.querySelectorAll('.dim-chip').forEach(c=>c.onclick=()=>{
     const k=c.dataset.k; FILT[k]=''; if(k==='mi'){FILT.vu='';FILT.ti='';FILT.gd='';FILT.ql='';FILT.gr='';}
     else if(k==='vu'){FILT.ti='';} else if(k==='gd'){FILT.ql='';}
-    EXPANDS.clear(); refreshFilters(); render(); window.scrollTo({top:0,behavior:'smooth'});
+    refreshFilters(); render(); window.scrollTo({top:0,behavior:'smooth'});
   });
 }
 
