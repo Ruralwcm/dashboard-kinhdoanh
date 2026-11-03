@@ -474,7 +474,7 @@ const sane = v => (v===null||v===undefined||!isFinite(v)||v>250||v<-100) ? NaN :
 const VERDICT = v => v>=100?'Vượt':v>=95?'Sát target':v>=90?'Cần đẩy':v>=85?'Yếu':'Rất yếu';
 
 /* ================= state ================= */
-let D = null, ALL = [], EXPANDS = new Set();
+let D = null, ALL = [], EXPANDS = new Set(), SEEDED = {};
 let FILT = {mi:'',vu:'',ti:'',gd:'',ql:'',gr:'',q:'',tt:'HD',rv:'so',lv:'compact',per:{d:true,w:true,m:true,y:true}};
 let DIM = 'mi', VIEW = 'risk';
 let sortDim = {k:'ht', dir:-1}, sortStore = {k:'ht', dir:1};
@@ -790,6 +790,11 @@ function kpiHead(label, tg){
 
 function renderDim(rows, _keep){
   const l1 = KEYOF[DIM]; const t = agg(rows); const NEXT=CHILD; const ek=(d,v)=>d+':'+v;
+  /* mặc định mở sẵn 1 cấp (top-level) cho lần render đầu của mỗi chiều */
+  if(!SEEDED[DIM] && l1){
+    SEEDED[DIM] = 1;
+    rows.forEach(r=>{ const v=r[l1]; if(v!==undefined && v!==null && v!=='') EXPANDS.add(ek(DIM,v)); });
+  }
   function level(items, dim, src, depth){
     const cd = NEXT[dim]; let b = '';
     for(const g of items){
@@ -1034,7 +1039,7 @@ document.getElementById('fQ').oninput = e=>{ clearTimeout(qT); qT=setTimeout(()=
 document.getElementById('btnReset').onclick = ()=>{ FILT={mi:'',vu:'',ti:'',gd:'',ql:'',gr:'',q:'',tt:'HD',rv:'so',lv:'compact',per:{d:true,w:true,m:true,y:true}}; document.getElementById('fQ').value=''; refreshFilters(); render(); };
 document.querySelectorAll('#dimSeg button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('#dimSeg button').forEach(x=>x.classList.remove('on'));
-  b.classList.add('on'); DIM=b.dataset.d; EXPANDS.clear(); renderDim(currentRows());
+  b.classList.add('on'); DIM=b.dataset.d; EXPANDS.clear(); SEEDED={}; renderDim(currentRows());
 });
 document.querySelectorAll('#viewSeg button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('#viewSeg button').forEach(x=>x.classList.remove('on'));
