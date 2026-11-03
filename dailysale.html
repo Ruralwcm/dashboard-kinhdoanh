@@ -104,6 +104,7 @@ main > .sec-h:first-child{margin-top:4px}
   font-size:11px;font-weight:700;letter-spacing:0;text-transform:none;padding:6px 5px;white-space:nowrap;position:static;cursor:default}
 .kt thead tr.grp th{background:#173A63;font-size:11.5px;letter-spacing:.5px;text-transform:uppercase;text-align:center}
 .kt thead tr.sub th{font-size:var(--fs,10px);color:#CFDCEC;font-weight:600;line-height:1.2;width:var(--cw,74px);max-width:var(--cw,74px);white-space:normal;text-align:center;vertical-align:bottom;padding:6px 5px}
+.kt thead th .u{display:block;font-weight:500;font-size:8.5px;opacity:.7;letter-spacing:0;line-height:1.1}
 .kt thead th.name{text-align:left;min-width:190px;width:190px}
 .kt thead th.name,.kt td.name{position:sticky;left:0;z-index:3}
 .kt thead th.name{z-index:5}
@@ -732,7 +733,7 @@ const LVS = {full:['spd','bill','bs','sale','tar','ht','gap'],
              compact:['spd','bill','sale','tar','ht'],
              lite:['spd','bill','sale','tar','ht']};
 const SHOWLY = {full:true, compact:true, lite:false};
-const METRIC = {spd:'SPD', bill:'Bill', bs:'Bill Size', sale:'Total Sale', tar:'Target', ht:'%HT', gap:'GAP'};
+const METRIC = {spd:'SPD', bill:'Bill', bs:'Bill Size<br><span class="u">nghìn đ</span>', sale:'Total Sale', tar:'Target', ht:'%HT', gap:'GAP'};
 const HASLY = {spd:1, bill:1, bs:1, sale:0, tar:0, ht:0, gap:0};
 function lvCols(){ return LVS[FILT.lv]||LVS.compact; }
 function showLY(){ return SHOWLY[FILT.lv]!==false; }
