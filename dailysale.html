@@ -54,6 +54,13 @@ button,select,input{font-family:inherit}
 main{max-width:1500px;margin:0 auto;padding:12px 20px 40px}
 .sec-h{display:flex;align-items:center;gap:10px;margin:20px 0 11px}
 main > .sec-h:first-child{margin-top:4px}
+.exp{display:inline-block;width:15px;cursor:pointer;font-size:9px;color:#8896A7;margin-right:1px;text-align:center;flex-shrink:0}
+.exp:hover{color:var(--navy)}
+.indented .name{padding-left:calc(12px + var(--indent,0px))}
+.dim-chips{display:inline-flex;gap:4px;align-items:center;margin-left:4px;flex-wrap:wrap}
+.dim-chip{display:inline-flex;align-items:center;gap:2px;font-size:10px;background:#E8EDF5;color:var(--navy);padding:1px 7px;border-radius:10px;font-weight:600;cursor:pointer;white-space:nowrap;line-height:1.5}
+.dim-chip:hover{background:#D0DAE8}
+.dim-chip .cx{font-weight:700;margin-left:2px;opacity:.6}
 .sec-h h2{font-size:13.5px;margin:0;letter-spacing:.3px;text-transform:uppercase;color:var(--navy);font-weight:800;padding-left:9px;border-left:3px solid var(--red);line-height:1.1}
 .sec-h .sub{font-size:12px;color:#6F7E93;font-weight:500}
 .sec-h .rt{margin-left:auto;display:flex;gap:6px;align-items:center}
@@ -389,7 +396,7 @@ body.fullscreen .ptools{opacity:.9}
 
   <div class="blk" data-blk="dim">
   <div class="sec-h">
-    <h2>Hiệu quả theo địa bàn</h2><span class="sub">Bấm vào dòng để lọc nhanh địa bàn đó</span>
+    <h2>Hiệu quả theo địa bàn</h2><span class="dim-chips" id="dimChips"></span><span class="sub">Bấm ▼ để drill-down · bấm tên để lọc</span>
     <div class="rt"><div class="seg" id="dimSeg">
       <button data-d="mi" class="on">Miền</button><button data-d="vu">Vùng</button>
       <button data-d="ti">Tỉnh/TP</button><button data-d="gd">GĐV</button><button data-d="ql">QLKV</button>
@@ -457,7 +464,8 @@ const sane = v => (v===null||v===undefined||!isFinite(v)||v>250||v<-100) ? NaN :
 const VERDICT = v => v>=100?'Vượt':v>=95?'Sát target':v>=90?'Cần đẩy':v>=85?'Yếu':'Rất yếu';
 
 /* ================= state ================= */
-let D = null, ALL = [], FILT = {mi:'',vu:'',ti:'',gd:'',ql:'',gr:'',q:'',tt:'HD',rv:'so',lv:'compact',per:{d:true,w:true,m:true,y:true}};
+let D = null, ALL = [], EXPANDS = new Set();
+let FILT = {mi:'',vu:'',ti:'',gd:'',ql:'',gr:'',q:'',tt:'HD',rv:'so',lv:'compact',per:{d:true,w:true,m:true,y:true}};
 let DIM = 'mi', VIEW = 'risk';
 let sortDim = {k:'ht', dir:-1}, sortStore = {k:'ht', dir:1};
 
@@ -705,9 +713,9 @@ function renderActs(rows){
 }
 
 /* ---- dimension table: DAY | WTD | MTD | YTD (RSM KPIs style) ---- */
-const DIMLBL = {mi:'Miền',vu:'Vùng',ti:'Tỉnh / TP',gd:'Giám đốc vùng',ql:'Quản lý khu vực'};
-const CHILD = {mi:'vu',vu:'ti',ti:null,gd:'ql',ql:null};
-const KEYOF = {mi:'mi',vu:'vu',ti:'ti',gd:'gd',ql:'ql'};
+const DIMLBL = {mi:'Miền',vu:'Vùng',ti:'Tỉnh / TP',qu:'Quận / Huyện',gd:'Giám đốc vùng',ql:'Quản lý khu vực'};
+const CHILD = {mi:'vu',vu:'ti',ti:'qu',qu:null,gd:'ql',ql:null};
+const KEYOF = {mi:'mi',vu:'vu',ti:'ti',qu:'qu',gd:'gd',ql:'ql'};
 const esc = s => String(s).replace(/"/g,'&quot;');
 
 const bdg = v => { const s=sane(v);
@@ -778,37 +786,53 @@ function kpiHead(label, tg){
     </thead>`;
 }
 
-function renderDim(rows){
-  const l1 = KEYOF[DIM], l2 = CHILD[DIM];
-  const mk = k => sortAgg([...byDim(rows,k)].map(([key,v])=>({k:key, n:v.length, a:agg(v)})));
-  const tops = mk(l1);
-  const t = agg(rows);
-
-  let body = '';
-  for(const g of tops){
-    body += `<tr class="lvl1 clickable" data-k="${l1}" data-v="${esc(g.k)}">
-      <td class="name">${g.k}</td><td class="num cntc">${F.n(g.n)}</td>
-      ${pCells(g.a,'d')}${pCells(g.a,'w')}${pCells(g.a,'m')}${pCells(g.a,'y')}</tr>`;
-    if(l2){
-      const sub = sortAgg([...byDim(rows.filter(r=>r[l1]===g.k), l2)].map(([key,v])=>({k:key,n:v.length,a:agg(v)})));
-      for(const c of sub){
-        body += `<tr class="lvl2 clickable" data-k="${l2}" data-v="${esc(c.k)}">
-          <td class="name">${c.k}</td><td class="num cntc">${F.n(c.n)}</td>
-          ${pCells(c.a,'d')}${pCells(c.a,'w')}${pCells(c.a,'m')}${pCells(c.a,'y')}</tr>`;
+function renderDim(rows, keepExpanded){
+  const l1 = KEYOF[DIM]; const t = agg(rows); const NEXT=CHILD; const ek=(d,v)=>d+':'+v;
+  if(!keepExpanded) EXPANDS.clear();
+  function level(items, dim, src, depth){
+    const cd = NEXT[dim]; let b = '';
+    for(const g of items){
+      const e = ek(dim, g.k), open = EXPANDS.has(e);
+      b += `<tr class="lvl${Math.min(depth,2)} clickable${depth>1?' indented':''}" style="--indent:${(depth-1)*20}px" data-k="${dim}" data-v="${esc(g.k)}" data-ek="${esc(e)}">
+        <td class="name"><span class="exp">${cd?(open?'▼':'▶'):''}</span>${g.k}</td><td class="num cntc">${F.n(g.n)}</td>
+        ${pCells(g.a,'d')}${pCells(g.a,'w')}${pCells(g.a,'m')}${pCells(g.a,'y')}</tr>`;
+      if(open && cd){
+        const cr = src.filter(r=>r[dim]===g.k);
+        const ci = sortAgg([...byDim(cr, cd)].map(([key,v])=>({k:key, n:v.length, a:agg(v)})));
+        b += level(ci, cd, cr, depth+1);
       }
     }
+    return b;
   }
+  const tops = sortAgg([...byDim(rows, l1)].map(([key,v])=>({k:key, n:v.length, a:agg(v)})));
   document.getElementById('tDim').innerHTML = kpiHead(DIMLBL[DIM]||'Địa bàn') + `
-    <tbody>${body||'<tr><td colspan="${periodCols()}" class="empty-row">Không có dữ liệu</td></tr>'}
+    <tbody>${level(tops, l1, rows, 1)||'<tr><td colspan="${periodCols()}" class="empty-row">Không có dữ liệu</td></tr>'}
       <tr class="total"><td class="name">TỔNG CỘNG</td><td class="num cntc">${F.n(rows.length)}</td>
         ${pCells(t,'d')}${pCells(t,'w')}${pCells(t,'m')}${pCells(t,'y')}</tr>
     </tbody>`;
-  document.querySelectorAll('#tDim tbody tr.clickable').forEach(tr=>tr.onclick=()=>{
+  document.querySelectorAll('#tDim tbody .exp').forEach(ic=>{ ic.onclick = e => {
+    e.stopPropagation(); const ek2 = ic.closest('tr').dataset.ek;
+    EXPANDS.has(ek2)?EXPANDS.delete(ek2):EXPANDS.add(ek2); renderDim(rows, true);
+  };});
+  document.querySelectorAll('#tDim tbody tr.clickable').forEach(tr=>{tr.onclick=e=>{
+    if(e.target.classList.contains('exp')) return;
     const k=tr.dataset.k, v=tr.dataset.v;
     FILT[k]=v;
-    if(k==='mi'){ FILT.vu=''; FILT.ti=''; } else if(k==='vu'){ FILT.ti=''; }
-    else if(k==='gd'){ FILT.ql=''; }
-    refreshFilters(); render(); window.scrollTo({top:0,behavior:'smooth'});
+    if(k==='mi'){FILT.vu='';FILT.ti='';FILT.gd='';FILT.ql='';FILT.gr='';}
+    else if(k==='vu'){FILT.ti='';} else if(k==='gd'){FILT.ql='';}
+    EXPANDS.clear(); refreshFilters(); render(); window.scrollTo({top:0,behavior:'smooth'});
+  };});
+  renderDimChips();
+}
+function renderDimChips(){
+  const el=document.getElementById('dimChips'); if(!el) return;
+  const p=[['mi','Miền'],['vu','Vùng'],['ti','Tỉnh'],['gd','GĐV'],['ql','QLKV'],['gr','Nhóm']].filter(([k])=>FILT[k]);
+  if(!p.length){el.innerHTML='';return;}
+  el.innerHTML = p.map(([k,lbl])=>`<span class="dim-chip" data-k="${k}" title="Xoá lọc ${lbl}">${lbl}: ${FILT[k]}<span class="cx"> ×</span></span>`).join('');
+  el.querySelectorAll('.dim-chip').forEach(c=>c.onclick=()=>{
+    const k=c.dataset.k; FILT[k]=''; if(k==='mi'){FILT.vu='';FILT.ti='';FILT.gd='';FILT.ql='';FILT.gr='';}
+    else if(k==='vu'){FILT.ti='';} else if(k==='gd'){FILT.ql='';}
+    EXPANDS.clear(); refreshFilters(); render(); window.scrollTo({top:0,behavior:'smooth'});
   });
 }
 
@@ -1009,7 +1033,7 @@ document.getElementById('fQ').oninput = e=>{ clearTimeout(qT); qT=setTimeout(()=
 document.getElementById('btnReset').onclick = ()=>{ FILT={mi:'',vu:'',ti:'',gd:'',ql:'',gr:'',q:'',tt:'HD',rv:'so',lv:'compact',per:{d:true,w:true,m:true,y:true}}; document.getElementById('fQ').value=''; refreshFilters(); render(); };
 document.querySelectorAll('#dimSeg button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('#dimSeg button').forEach(x=>x.classList.remove('on'));
-  b.classList.add('on'); DIM=b.dataset.d; renderDim(currentRows());
+  b.classList.add('on'); DIM=b.dataset.d; EXPANDS.clear(); renderDim(currentRows());
 });
 document.querySelectorAll('#viewSeg button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('#viewSeg button').forEach(x=>x.classList.remove('on'));
