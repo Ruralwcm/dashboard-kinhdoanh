@@ -717,12 +717,14 @@ const sortAgg = list => list.sort((x,y)=>{ const a=sane(x.a.htM), b=sane(y.a.htM
   if(!isFinite(a)) return 1; if(!isFinite(b)) return -1; return a-b; });
 
 const LVS = {full:['spd','bill','bs','sale','tar','ht','gap'],
-             compact:['spd','bill','bs','sale','tar','ht'],
+             compact:['spd','bill','sale','tar','ht'],
              lite:['spd','bill','sale','tar','ht']};
+const SHOWLY = {full:true, compact:true, lite:false};
 const METRIC = {spd:'SPD', bill:'Bill', bs:'Bill Size', sale:'Total Sale', tar:'Target', ht:'%HT', gap:'GAP'};
-const HASLY = {spd:1, bill:1, bs:1, sale:1, tar:0, ht:0, gap:0};
+const HASLY = {spd:1, bill:1, bs:1, sale:0, tar:0, ht:0, gap:0};
 function lvCols(){ return LVS[FILT.lv]||LVS.compact; }
-function periodLen(){ return lvCols().reduce((n,m)=>n+1+HASLY[m],0); }
+function showLY(){ return SHOWLY[FILT.lv]!==false; }
+function periodLen(){ return lvCols().reduce((n,m)=>n+1+(HASLY[m]&&showLY()?1:0),0); }
 function visiblePeriods(){ return ['d','w','m','y'].filter(k=>FILT.per[k]); }
 function lyCell(v){ return isFinite(v)?`<td class="num ${v>=0?'pos':'neg'}">${v>=0?'+':''}${v.toFixed(1).replace('.',',')}%</td>`:'<td class="num mut">—</td>'; }
 const CELL = {
@@ -739,7 +741,7 @@ const CELL = {
 function pCells(a, key){
   const p = a.pd[key], cols = lvCols();
   const cells = [];
-  cols.forEach(m=>{ cells.push(CELL[m](p)); if(HASLY[m]) cells.push(CELL[m+'LY'](p)); });
+  cols.forEach(m=>{ cells.push(CELL[m](p)); if(HASLY[m]&&showLY()) cells.push(CELL[m+'LY'](p)); });
   if(key!=='d') cells[0] = cells[0].replace('<td class="num','<td class="num gb');
   return cells.join('');
 }
@@ -753,7 +755,7 @@ function kpiHead(label, tg){
   per.forEach(k=>{
     lvCols().forEach((m,i)=>{
       sub += `<th${i===0&&k!=='d'?' class="gb"':''}>${METRIC[m]}</th>`;
-      if(HASLY[m]) sub += `<th>% vs LY</th>`;
+      if(HASLY[m]&&showLY()) sub += `<th>% vs LY</th>`;
     });
   });
   return `<thead>
