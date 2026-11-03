@@ -435,6 +435,7 @@ body.fullscreen .ptools{opacity:.9}
   <section class="panel">
     <div class="fck" id="fcKpis"></div>
     <div class="fcw" id="fcWeeks"></div>
+    <div class="tw" style="padding:10px 12px 0"><table id="tFcGrp" class="kt"></table></div>
     <div class="tw" style="padding:10px 12px 0"><table id="tFc" class="kt"></table></div>
     <div class="fcn" id="fcNotes"></div>
   </section>
@@ -754,6 +755,33 @@ function renderFC(rows){
     }).join('');
     wk.style.display='flex';
   } else { wk.innerHTML=''; wk.style.display='none'; }
+
+  // ---------- bảng theo nhóm CH (LFL / STU / NSO) ----------
+  const GMODEL={ly:'LY cùng kỳ',ramp:'Ramp tuần',vung:'Theo vùng',flat:'Flat'};
+  const gks=['LFL','STU','NSO','KHAC'];
+  const gsum=gks.map(gk=>{
+    const arr=items.filter(o=>(o.r.gr||'KHAC')===gk);
+    if(!arr.length) return null;
+    const F1=arr.reduce((a,o)=>a+o.v,0), T1=arr.reduce((a,o)=>a+o.tg,0), L1=arr.reduce((a,o)=>a+o.ly,0);
+    const FL=arr.reduce((a,o)=>a+((o.ly||0)>0?o.v:0),0);
+    const md={}; arr.forEach(o=>{const m=o.x.m||'flat'; md[m]=(md[m]||0)+1;});
+    const top=Object.keys(md).sort((a,b)=>md[b]-md[a])[0];
+    return {gk,n:arr.length,f:F1,t:T1,ht:T1>0?F1/T1*100:NaN,gap:F1-T1,ly:L1>0?FL/L1-1:NaN,md:GMODEL[top]||top};
+  }).filter(Boolean);
+  let gh=`<thead><tr><th class="name">Nhóm cửa hàng</th><th>#CH</th><th class="fcnum">DT dự báo</th>
+      <th class="fcnum">Target</th><th class="fcnum">%HT dự báo</th><th class="fcnum">GAP</th>
+      <th class="fcnum">vs cùng kỳ LY</th><th>Mô hình</th></tr></thead><tbody>`;
+  gsum.forEach(o=>{
+    const st=isFinite(o.ht)?fcTag(o.ht):['t-gray','—'];
+    gh+=`<tr class="${isFinite(o.ht)&&o.ht<93?'fcbad':(isFinite(o.ht)&&o.ht<97?'fcwt':'')}">
+      <td class="name">${o.gk}<span class="cnt">${F.n(o.n)} CH</span></td><td>${F.n(o.n)}</td>
+      <td class="fcnum">${F.money(o.f)}</td><td class="fcnum">${o.t>0?F.money(o.t):'—'}</td>
+      <td class="fcnum" style="font-weight:800;color:${HT0.color(sane(o.ht))}">${F.pct(sane(o.ht))}</td>
+      <td class="fcnum">${o.t>0?((o.gap>=0?'+':'−')+F.money(Math.abs(o.gap))):'—'}</td>
+      <td class="fcnum">${isFinite(o.ly)?F.sgn(sane(o.ly*100)):'—'}</td>
+      <td>${o.md}</td></tr>`;
+  });
+  document.getElementById('tFcGrp').innerHTML=gh+'</tbody>';
 
   // ---------- bảng theo đơn vị ----------
   const DIMK = {mi:'Miền',vu:'Vùng',ti:'Tỉnh / TP',gd:'GĐV',ql:'QLKV'};
