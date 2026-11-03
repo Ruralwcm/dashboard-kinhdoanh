@@ -711,16 +711,18 @@ function renderFC(rows){
     return;
   }
   const PER=FCD.periods[FCP], fk=FCP==='p1'?'f1':'f2', tk=FCP==='p1'?'t1':'t2', lk=FCP==='p1'?'l1':'l2';
-  let f=0,t=0,l=0,nf=0,conf=0,nly=0;
+  let f=0,t=0,l=0,fly=0,nf=0,conf=0,nly=0,totD=0,covD=0;
   const items=[];
   for(const r of rows){
+    totD += (r.d||0);
     const x=FCM.get(String(r.sap)); if(!x) continue;
     const v=x[fk]||0; if(v<=0) continue;
+    covD += (r.d||0);
     nf++; f+=v; t+=x[tk]||0; if(x.c===2) conf++;
-    if((x[lk]||0)>0){ l+=x[lk]; nly++; }
+    if((x[lk]||0)>0){ l+=x[lk]; fly+=v; nly++; }
     items.push({r, x, v, tg:x[tk]||0, ly:x[lk]||0});
   }
-  const ht = t>0? f/t*100 : NaN, lyPct = l>0? (f/l-1)*100 : NaN, gap=f-t;
+  const ht = t>0? f/t*100 : NaN, lyPct = l>0? (fly/l-1)*100 : NaN, gap=f-t;
   const status = fcTag(isFinite(ht)?ht:0);
   const cls = v => !isFinite(v)?'':v>=100?'good':v>=95?'':'warn';
 
@@ -731,7 +733,7 @@ function renderFC(rows){
     card('%HT dự báo', F.pct(sane(ht))||F.pct(ht), '', `<span class="tag ${status[0]}">${status[1]}</span> target ${F.money(t)}`, cls(ht)),
     card('GAP dự báo', (gap>=0?'+':'−')+F.money(Math.abs(gap)), '', gap>=0?'vượt target':'còn thiếu so target', gap>=0?'good':'bad'),
     card('vs cùng kỳ LY', F.sgn(sane(lyPct)), '', `${F.n(nly)} CH có LY`, (sane(lyPct)>=0?'good':'bad')),
-    card('Độ tin cậy dữ liệu', F.pct(nf? conf/nf*100:0), '', `${F.n(conf)}/${F.n(nf)} CH đủ lịch sử`, (conf/Math.max(1,nf)>=0.7?'good':'warn'))
+    card('Độ tin cậy dữ liệu', F.pct(nf? conf/nf*100:0), '', `${F.n(conf)}/${F.n(nf)} CH đủ lịch sử · phủ ${F.pct(totD>0?covD/totD*100:0)} DT`, (conf/Math.max(1,nf)>=0.7?'good':'warn'))
   ].join('');
 
   // ---------- tuần ----------
@@ -759,10 +761,11 @@ function renderFC(rows){
   items.forEach(o=>{ const k=o.r[FCDIM]||'—'; if(!grp.has(k)) grp.set(k,[]); grp.get(k).push(o); });
   const rws=[...grp.entries()].map(([k,arr])=>{
     const F1=arr.reduce((a,o)=>a+o.v,0), T1=arr.reduce((a,o)=>a+o.tg,0), L1=arr.reduce((a,o)=>a+o.ly,0);
-    return {k, n:arr.length, f:F1, t:T1, l:L1, ht:T1>0?F1/T1*100:NaN, gap:F1-T1, ly:L1>0?F1/L1-1:NaN};
+    const FL=arr.reduce((a,o)=>a+((o.ly||0)>0?o.v:0),0);
+    return {k, n:arr.length, f:F1, t:T1, l:L1, ht:T1>0?F1/T1*100:NaN, gap:F1-T1, ly:L1>0?FL/L1-1:NaN};
   }).sort((a,b)=>{ const x=isFinite(a.ht)?a.ht:999, y=isFinite(b.ht)?b.ht:999; return x-y; });
 
-  const tF=items.reduce((a,o)=>a+o.f,0), tT=items.reduce((a,o)=>a+o.tg,0), tL=items.reduce((a,o)=>a+o.ly,0);
+  const tF=items.reduce((a,o)=>a+o.v,0), tT=items.reduce((a,o)=>a+o.tg,0), tL=items.reduce((a,o)=>a+o.ly,0);
   const tHT=tT>0?tF/tT*100:NaN;
   let html = `<thead><tr><th class="name">${DIMK[FCDIM]}</th><th>#CH</th>
       <th class="fcnum">DT dự báo</th><th class="fcnum">Target</th><th class="fcnum">%HT dự báo</th>
@@ -770,7 +773,7 @@ function renderFC(rows){
   html += `<tr class="total"><td class="name">Tổng</td><td>${F.n(items.length)}</td>
       <td class="fcnum">${F.money(tF)}</td><td class="fcnum">${F.money(tT)}</td>
       <td class="fcnum">${F.pct(sane(tHT))}</td><td class="fcnum">${(tF-tT>=0?'+':'−')+F.money(Math.abs(tF-tT))}</td>
-      <td class="fcnum">${tL>0?F.sgn(sane((tF/tL-1)*100)):'—'}</td><td><span class="fcbadge" style="background:${HT0.bg(sane(tHT))};color:${HT0.color(sane(tHT))}">${fcTag(isFinite(tHT)?tHT:0)[1]}</span></td></tr>`;
+      <td class="fcnum">${isFinite(lyPct)?F.sgn(sane(lyPct)):'—'}</td><td><span class="fcbadge" style="background:${HT0.bg(sane(tHT))};color:${HT0.color(sane(tHT))}">${fcTag(isFinite(tHT)?tHT:0)[1]}</span></td></tr>`;
   rws.forEach(o=>{
     const st = isFinite(o.ht)?fcTag(o.ht):['t-gray','—'];
     html += `<tr class="${isFinite(o.ht)&&o.ht<93?'fcbad':(isFinite(o.ht)&&o.ht<97?'fcwt':'')}">
@@ -788,7 +791,7 @@ function renderFC(rows){
   const bad = rws.filter(o=>isFinite(o.ht)&&o.ht<93);
   const wt  = rws.filter(o=>isFinite(o.ht)&&o.ht>=93&&o.ht<97);
   const gapT = tT-tF;
-  const spdNeed = isFinite(lyPct)&&lyPct>-100 ? (gapT>0? gapT/Math.max(1,tF)*100 : 0) : 0;
+  const spdNeed = gapT>0 ? gapT/Math.max(1,tF)*100 : 0;
   const sp = (FCD.specials||[]).filter(x=>x.d>=PER.from&&x.d<=PER.to&&x.f>=1.05);
   const bt = FCD.backtest||{};
   const nmb = F.money(Math.abs(gapT));
@@ -798,6 +801,7 @@ function renderFC(rows){
     gapT>0 ? `Thiếu <b>${nmb}</b> so target → cần tăng ~<b>${F.pct(spdNeed)}</b> SPD/ngày trong ${PER.days} ngày còn lại.` : `Vượt target <b>${nmb}</b> — giữ nhịp, ưu tiên không để trượt cuối kỳ.`,
     isFinite(lyPct)? `So cùng kỳ LY: <b>${F.sgn(sane(lyPct))}</b> (chỉ ${F.n(nly)} CH có dữ liệu LY).`:'',
     bad.length? `<b>${bad.length}</b> ${DIMK[FCDIM].toLowerCase()} dưới 93% HT: ${bad.slice(0,4).map(o=>o.k+' ('+F.pct(sane(o.ht))+')').join(', ')}.` : `Tất cả ${DIMK[FCDIM].toLowerCase()} đạt ≥93% HT dự báo.`,
+    (totD>0 && covD/totD<0.97)? `${F.n(rows.length-nf)} CH chưa đủ ≥7 ngày dữ liệu (phần lớn CH PTO/AGG báo gộp cuối tháng) — chưa đưa vào dự báo.`:'',
     bt.mape? `Backtest T10: lệch toàn hệ thống ${bt.bias>0?'+':''}${bt.bias}%, sai số CH điển hình ±${bt.mape}%.`:''
   ].filter(Boolean);
 
