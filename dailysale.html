@@ -43,7 +43,7 @@ button,select,input{font-family:inherit}
 .btn:hover{background:#F7F9FC;border-color:#CBD5E1}
 .btn.primary{background:var(--red);border-color:var(--red);color:#fff}
 .btn.primary:hover{background:var(--red2)}
-.chips{max-width:1500px;margin:0 auto;padding:0 20px 9px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.chips{max-width:1500px;margin:0 auto;padding:0 20px 9px;display:flex;gap:5px;flex-wrap:wrap;align-items:center;overflow-x:auto}
 .chip{background:var(--midbg);color:#1E40AF;border:1px solid #CBDBFB;border-radius:999px;padding:3px 9px;font-size:11.5px;font-weight:600;display:inline-flex;gap:5px;align-items:center}
 .chip b{font-weight:700}
 .chip .x{cursor:pointer;opacity:.6;font-size:13px;line-height:1}
@@ -57,7 +57,7 @@ main > .sec-h:first-child{margin-top:4px}
 .exp{display:inline-block;width:15px;cursor:pointer;font-size:9px;color:#8896A7;margin-right:1px;text-align:center;flex-shrink:0}
 .exp:hover{color:var(--navy)}
 .indented .name{padding-left:calc(12px + var(--indent,0px))}
-.dim-chips{display:inline-flex;gap:4px;align-items:center;margin-left:4px;flex-wrap:wrap}
+.dim-chips{display:inline-flex;gap:4px;align-items:center;margin-left:4px;flex-wrap:wrap;overflow:hidden;max-width:320px}
 .dim-chip{display:inline-flex;align-items:center;gap:2px;font-size:10px;background:#E8EDF5;color:var(--navy);padding:1px 7px;border-radius:10px;font-weight:600;cursor:pointer;white-space:nowrap;line-height:1.5}
 .dim-chip:hover{background:#D0DAE8}
 .dim-chip .cx{font-weight:700;margin-left:2px;opacity:.6}
@@ -103,7 +103,7 @@ main > .sec-h:first-child{margin-top:4px}
 .kt thead th{background:#0F2A4A;color:#fff;border-bottom:1px solid #23456B;border-right:1px solid #23456B;
   font-size:11px;font-weight:700;letter-spacing:0;text-transform:none;padding:6px 5px;white-space:nowrap;position:static;cursor:default}
 .kt thead tr.grp th{background:#173A63;font-size:11.5px;letter-spacing:.5px;text-transform:uppercase;text-align:center}
-.kt thead tr.sub th{font-size:10px;color:#CFDCEC;font-weight:600;line-height:1.2;width:74px;max-width:74px;white-space:normal;text-align:center;vertical-align:bottom;padding:6px 5px}
+.kt thead tr.sub th{font-size:var(--fs,10px);color:#CFDCEC;font-weight:600;line-height:1.2;width:var(--cw,74px);max-width:var(--cw,74px);white-space:normal;text-align:center;vertical-align:bottom;padding:6px 5px}
 .kt thead th.name{text-align:left;min-width:190px;width:190px}
 .kt thead th.name,.kt td.name{position:sticky;left:0;z-index:3}
 .kt thead th.name{z-index:5}
@@ -617,7 +617,7 @@ function render(){
   const a = agg(rows);
   document.getElementById('pCnt').innerHTML = '<b>'+F.n(rows.length)+'</b> cửa hàng';
   document.getElementById('kpiSub').textContent = rows.length!==ALL.length ? ('đang lọc · '+F.n(rows.length)+'/'+F.n(ALL.length)+' CH') : ('toàn hệ thống · '+F.n(rows.length)+' CH');
-  renderChips(); renderKPI(a, rows); renderActs(rows); renderDim(rows); renderGrp(rows); renderStore(rows); applyPeriodHide();
+  renderChips(); renderKPI(a, rows); renderActs(rows); renderDim(rows); renderGrp(rows); renderStore(rows); applyPeriodHide(); fitTables();
 }
 
 function renderChips(){
@@ -764,6 +764,25 @@ function pCells(a, key){
   return cells.join('');
 }
 function periodCols(){ return 2 + 4*periodLen(); }
+
+function fitTables(){
+  const vs = {full:10,compact:7,lite:5};
+  const cols = 2 + 4*(vs[FILT.lv]||7); // name + #CH + periods * cols/period
+  const wName = 190, wCntc = 56;
+  const vw = Math.max(document.querySelector('.content')?.clientWidth||1200, 800);
+  const avail = vw - wName - wCntc - 12; // padding
+  const cw = Math.max(40, Math.min(90, Math.floor(avail/(cols-2))));
+  const fs = cols>35?'10px':cols>28?'10.5px':'11px';
+  [document.getElementById('tDim'),document.getElementById('tGrp'),document.getElementById('tStore')].forEach(t=>{
+    if(!t) return;
+    t.style.setProperty('--cw',cw+'px');
+    t.style.setProperty('--fs',fs);
+    // adjust td font
+    t.querySelectorAll('td.num').forEach(td=>td.style.fontSize=fs);
+    t.querySelectorAll('th.sub th').forEach(th=>th.style.fontSize=`${parseFloat(fs)-0.5}px`);
+  });
+}
+
 function kpiHead(label, tg){
   const G = {d:['DAY','gday'], w:[`WTD — LŨY KẾ TUẦN (${(D&&D.meta?D.meta.wtdDays:5)} ngày)`,'gwtd'],
              m:[`MTD — LŨY KẾ THÁNG (${(D&&D.meta?D.meta.mtdDays:30)} ngày)`,'gmtd'],
