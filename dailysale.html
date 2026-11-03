@@ -97,7 +97,7 @@ main > .sec-h:first-child{margin-top:4px}
 .act.good{border-top:3px solid var(--good)} .act.info{border-top:3px solid var(--mid)}
 
 /* panel + table */
-.panel{background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:var(--sh);overflow:hidden}
+.panel{background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:var(--sh);overflow:clip}
 /* --- bảng kiểu RSM KPIs --- */
 .kt{border-collapse:separate;border-spacing:0;font-size:11.5px}
 .kt thead th{background:#0F2A4A;color:#fff;border-bottom:1px solid #23456B;border-right:1px solid #23456B;
@@ -123,9 +123,13 @@ main > .sec-h:first-child{margin-top:4px}
 .kt td{border-bottom:1px solid #EDF1F7;border-right:1px solid #F4F7FB;padding:6px 5px}
 .kt td.name{text-align:left;font-weight:700;min-width:190px}
 .kt td .cnt{display:block;font-size:10.5px;font-weight:600;color:#7D8BA1;letter-spacing:.2px}
-.seg.chk{display:flex;gap:5px;flex-wrap:nowrap}
+.seg.chk{display:flex;gap:5px;flex-wrap:wrap}
 .seg.chk label.chk{display:flex;align-items:center;gap:2px;font-size:11px;font-weight:600;color:#334155;cursor:pointer}
 .seg.chk input{width:12px;height:12px;accent-color:#0F2A4A}
+/* drawer checkbox compact */
+.side .seg.chk{flex-wrap:wrap;gap:4px}
+.side .seg.chk label.chk{font-size:10.5px;padding:2px 5px;background:#F1F4F9;border-radius:6px}
+.side .seg.chk input{width:10px;height:10px}
 .kt.hide-d .per-d{display:none!important}
 .kt.hide-w .per-w{display:none!important}
 .kt.hide-m .per-m{display:none!important}
@@ -364,21 +368,6 @@ body.fullscreen .ptools{opacity:.9}
         <button data-rv="retail" title="Retail = Sale POS revenue">Retail</button>
       </div>
     </div>
-    <div class="f"><label>Mức hiển thị</label>
-      <div class="seg" id="lvSeg">
-        <button data-lv="full" title="Toàn bộ chỉ số">Full</button>
-        <button data-lv="compact" class="on" title="Bỏ GAP (mặc định)">Compact</button>
-        <button data-lv="lite" title="Bỏ GAP và Bill Size">Lite</button>
-      </div>
-    </div>
-    <div class="f"><label>Kỳ hiển thị</label>
-      <div class="seg chk" id="perSeg">
-        <label class="chk"><input type="checkbox" id="perD" checked> D</label>
-        <label class="chk"><input type="checkbox" id="perW" checked> W</label>
-        <label class="chk"><input type="checkbox" id="perM" checked> M</label>
-        <label class="chk"><input type="checkbox" id="perY" checked> Y</label>
-      </div>
-    </div>
     <div class="chips" id="chips"></div>
     <div class="cnt" id="pCnt">—</div>
     <div class="act">
@@ -398,7 +387,20 @@ body.fullscreen .ptools{opacity:.9}
   </div>
 
   <div class="blk" data-blk="grp">
-  <div class="sec-h"><h2>Hiệu quả theo nhóm cửa hàng</h2><span class="sub">LFL · STU · NSO</span></div>
+  <div class="sec-h"><h2>Hiệu quả theo nhóm cửa hàng</h2><span class="sub">LFL · STU · NSO</span>
+    <div class="rt">
+      <div class="seg" id="lvSeg">
+        <button data-lv="full" title="Toàn bộ chỉ số">Full</button>
+        <button data-lv="compact" class="on" title="Bỏ GAP (mặc định)">Compact</button>
+        <button data-lv="lite" title="Bỏ GAP và Bill Size">Lite</button>
+      </div>
+      <div class="seg chk" id="perSeg">
+        <label class="chk"><input type="checkbox" id="perD" checked> D</label>
+        <label class="chk"><input type="checkbox" id="perW" checked> W</label>
+        <label class="chk"><input type="checkbox" id="perM" checked> M</label>
+        <label class="chk"><input type="checkbox" id="perY" checked> Y</label>
+      </div>
+    </div></div>
   <section class="panel"><div class="tw"><table id="tGrp" class="kt"></table></div></section>
   </div>
 
