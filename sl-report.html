@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>S&L Report — Rural WCM</title>
+<style>
+:root{--h:62px;--navW:0px;--sideW:260px;--bg:#f0f2f5;--cardBg:#fff;--text:#1a1a2e;--muted:#6b7280;--red:#dc2626;--orange:#f59e0b;--green:#16a34a;--blue:#2563eb;--navy:#0f1a2e;--navy2:#162240;--brd:#e5e7eb}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font:13px/1.5 'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);overflow:hidden}
+/* HEADER */
+.topbar{height:var(--h);background:linear-gradient(135deg,var(--navy),var(--navy2));color:#fff;display:flex;align-items:center;padding:0 16px;gap:12px;flex-shrink:0;z-index:100}
+.topbar .logo{height:34px;margin-right:4px}
+.topbar h1{font-size:17px;font-weight:700;white-space:nowrap}
+.topbar .sub{font-size:11px;opacity:.7;white-space:nowrap}
+.topbar .spacer{flex:1}
+.topbar nav{display:flex;gap:6px}
+.topbar nav a{color:#cbd5e1;text-decoration:none;padding:6px 12px;border-radius:6px;font-size:12px;transition:.15s}
+.topbar nav a:hover,.topbar nav a.active{background:rgba(255,255,255,.12);color:#fff}
+/* SHELL */
+.shell{display:flex;height:calc(100vh - var(--h));overflow:hidden}
+/* SIDEBAR */
+.sidebar{width:var(--sideW);min-width:var(--sideW);background:#fff;border-right:1px solid var(--brd);overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px;flex-shrink:0}
+.sidebar h3{font-size:12px;text-transform:uppercase;color:var(--muted);letter-spacing:.5px;margin:4px 0}
+.sidebar select,.sidebar button{width:100%;padding:7px 10px;border:1px solid var(--brd);border-radius:6px;font-size:12px;background:#fff;cursor:pointer}
+.sidebar button{background:var(--blue);color:#fff;border:none;font-weight:600;margin-top:4px}
+.sidebar button:hover{opacity:.9}
+.sidebar button.secondary{background:#fff;color:var(--text);border:1px solid var(--brd)}
+.filter-group{display:flex;flex-direction:column;gap:4px}
+/* MAIN */
+.main{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+/* KPI CARDS */
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
+.kpi-card{background:var(--cardBg);border-radius:8px;padding:12px 14px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.kpi-card .label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.kpi-card .val{font-size:22px;font-weight:700;margin:2px 0}
+.kpi-card .sub{font-size:11px;color:var(--muted)}
+.kpi-card.red .val{color:var(--red)}
+.kpi-card.orange .val{color:var(--orange)}
+/* TABLE */
+.tbl-wrap{background:var(--cardBg);border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.06);overflow:hidden}
+.tbl-wrap table{width:100%;border-collapse:collapse;font-size:12px}
+.tbl-wrap th{background:#f8fafc;color:var(--muted);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.3px;padding:8px 10px;text-align:right;border-bottom:2px solid var(--brd);position:sticky;top:0;white-space:nowrap}
+.tbl-wrap th:first-child{text-align:left;padding-left:16px}
+.tbl-wrap td{padding:6px 10px;border-bottom:1px solid var(--brd);text-align:right}
+.tbl-wrap td:first-child{text-align:left;padding-left:16px}
+.tbl-wrap tbody tr:hover{background:#f8fafc}
+.tbl-wrap .row-grp{background:#f0f4f8;font-weight:700;cursor:pointer}
+.tbl-wrap .row-grp td{font-weight:700;font-size:12px}
+.tbl-wrap .row-grp:hover{background:#e2e8f0}
+.tbl-wrap .row-sub td:first-child{padding-left:32px;color:#475569}
+.tbl-wrap .row-ch td:first-child{padding-left:48px;font-size:11px}
+.tbl-wrap .indent1{padding-left:28px!important}
+.tbl-wrap .indent2{padding-left:44px!important}
+/* BADGES */
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.badge-red{background:#fee2e2;color:var(--red)}
+.badge-orange{background:#fef3c7;color:var(--orange)}
+.badge-green{background:#dcfce7;color:var(--green)}
+/* CHARTS */
+.chart-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.chart-box{background:var(--cardBg);border-radius:8px;padding:14px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.chart-box h4{font-size:13px;margin-bottom:10px;color:var(--navy)}
+.chart-box .bar-wrap{display:flex;flex-direction:column;gap:5px}
+.bar-item{display:flex;align-items:center;gap:8px;font-size:11px}
+.bar-item .bar-name{width:120px;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar-item .bar-fill{height:20px;border-radius:4px;transition:width .3s;min-width:4px}
+.bar-item .bar-val{width:60px;font-weight:600}
+/* EXPAND */
+.expand-icon{cursor:pointer;font-size:11px;width:16px;display:inline-block;text-align:center}
+.collapsed .row-sub,.collapsed .row-ch{display:none}
+/* hidden */
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <svg class="logo" viewBox="0 0 100 34"><rect width="100" height="34" rx="6" fill="#fff"/><text x="8" y="24" font-size="18" font-weight="800" fill="#C00000">W</text><text x="28" y="24" font-size="12" font-weight="600" fill="#333">WinMart+</text></svg>
+  <h1>Shrink & Loss</h1>
+  <span class="sub" id="hdr-period"></span>
+  <span class="spacer"></span>
+  <nav>
+    <a href="https://ruralwcm.github.io/dashboard-kinhdoanh/dailysale.html">Daily Sale</a>
+    <a href="https://ruralwcm.github.io/dashboard-kinhdoanh/competitor.html">Đối thủ</a>
+    <a class="active" href="#">S&L</a>
+  </nav>
+</div>
+<div class="shell">
+  <div class="sidebar" id="sidebar">
+    <h3>🎛 Bộ lọc</h3>
+    <div class="filter-group">
+      <select id="f-mien"><option value="">Tất cả Miền</option></select>
+      <select id="f-vung"><option value="">Tất cả Vùng</option></select>
+      <select id="f-tinh"><option value="">Tất cả Tỉnh</option></select>
+      <select id="f-gdv"><option value="">Tất cả GĐV</option></select>
+    </div>
+    <h3>📊 Xem theo</h3>
+    <div class="filter-group">
+      <select id="f-view">
+        <option value="mien">Miền</option>
+        <option value="gdv" selected>GĐV</option>
+        <option value="tinh">Tỉnh</option>
+      </select>
+    </div>
+    <button onclick="applyFilters()">✅ Áp dụng</button>
+    <button class="secondary" onclick="resetFilters()">🔄 Reset</button>
+    <div style="margin-top:8px;font-size:10px;color:var(--muted);text-align:center" id="sidebar-info"></div>
+  </div>
+  <div class="main" id="main">
+    <div class="kpi-row" id="kpi-row"></div>
+    <div class="chart-row" id="chart-row"></div>
+    <div class="tbl-wrap" id="tbl-wrap"></div>
+  </div>
+</div>
+<script>
+// DATA
+var DATA = null;
+var filters = { mien:'', vung:'', tinh:'', gdv:'', view:'gdv' };
+var collapsed = {};
+
+function fmt(n){
+  if(Math.abs(n)>=1e6) return (n/1e6).toFixed(2)+'M';
+  if(Math.abs(n)>=1000) return (n/1000).toFixed(1)+'K';
+  return Math.round(n).toLocaleString();
+}
+function pct(a,b){
+  if(!b||b===0) return '—';
+  let v=((a/b)*100);
+  return (v>0?'+':'')+v.toFixed(1)+'%';
+}
+function clr(v,th,dir){
+  // dir=-1: negative=bad (S&L), dir=1: positive=good
+  if(!v||v===0) return '';
+  let bad = dir>0 ? v<0 : v>0;
+  if(Math.abs(v)>10000) return bad?'red':'green';
+  if(Math.abs(v)>5000) return bad?'orange':'green';
+  return '';
+}
+
+async function load(){
+  try{
+    let r=await fetch('sl_report_data.json');
+    DATA=await r.json();
+    document.getElementById('hdr-period').textContent='Tháng '+DATA.period.replace('2026-','')+'/2026';
+    buildFilters();
+    applyFilters();
+  }catch(e){
+    document.getElementById('main').innerHTML='<p style="color:red;padding:40px">⚠️ Lỗi tải dữ liệu: '+e.message+'</p>';
+  }
+}
+
+function buildFilters(){
+  let miens={},vungs={},tinhs={},gdvs={};
+  DATA.stores.forEach(s=>{
+    if(s.mien) miens[s.mien]=1;
+    if(s.vung) vungs[s.vung]=1;
+    if(s.tinh) tinhs[s.tinh]=1;
+    if(s.gdv) gdvs[s.gdv]=1;
+  });
+  let opts=(set)=>[''].concat(Object.keys(set).sort()).map(v=>'<option value="'+v+'">'+v+'</option>').join('');
+  document.getElementById('f-mien').innerHTML=opts(miens);
+  document.getElementById('f-vung').innerHTML=opts(vungs);
+  document.getElementById('f-tinh').innerHTML=opts(tinhs);
+  document.getElementById('f-gdv').innerHTML=opts(gdvs);
+  document.getElementById('sidebar-info').textContent=DATA.total_stores+' CH · '+DATA.available_months.length+' tháng';
+}
+
+function getFilters(){
+  return {
+    mien:document.getElementById('f-mien').value,
+    vung:document.getElementById('f-vung').value,
+    tinh:document.getElementById('f-tinh').value,
+    gdv:document.getElementById('f-gdv').value,
+    view:document.getElementById('f-view').value,
+  };
+}
+
+function match(s,filters){
+  if(filters.mien&&s.mien!==filters.mien) return false;
+  if(filters.vung&&s.vung!==filters.vung) return false;
+  if(filters.tinh&&s.tinh!==filters.tinh) return false;
+  if(filters.gdv&&s.gdv!==filters.gdv) return false;
+  return true;
+}
+
+function applyFilters(){
+  filters=getFilters();
+  let filtered=DATA.stores.filter(s=>match(s,filters));
+  renderKPIs(filtered);
+  renderTable(filtered);
+  renderCharts(filtered);
+}
+
+function resetFilters(){
+  document.getElementById('f-mien').value='';
+  document.getElementById('f-vung').value='';
+  document.getElementById('f-tinh').value='';
+  document.getElementById('f-gdv').value='';
+  applyFilters();
+}
+
+function renderKPIs(data){
+  let total_sl=0,total_shrink=0,total_loss=0,stores=0,with_sl=0;
+  data.forEach(s=>{total_sl+=s.sl;total_shrink+=s.abs_shrink;total_loss+=s.abs_loss;stores++;if(s.sl>0)with_sl++;});
+  let avg_per_ch=stores?Math.round(total_sl/stores):0;
+  let avg_per_day=stores?Math.round(total_sl/(stores*30)):0;
+  document.getElementById('kpi-row').innerHTML=`
+    <div class="kpi-card"><div class="label">📋 Tổng CH</div><div class="val">${stores.toLocaleString()}</div><div class="sub">${with_sl} CH có S&L</div></div>
+    <div class="kpi-card red"><div class="label">🔴 Tổng Shrink</div><div class="val">${fmt(total_shrink)}</div><div class="sub">${pct(total_shrink,total_shrink+total_loss)} của S&L</div></div>
+    <div class="kpi-card orange"><div class="label">🟠 Tổng Loss</div><div class="val">${fmt(total_loss)}</div><div class="sub">${pct(total_loss,total_shrink+total_loss)} của S&L</div></div>
+    <div class="kpi-card red"><div class="label">💥 Tổng S&L</div><div class="val">${fmt(total_sl)}</div><div class="sub">Shrink + Loss</div></div>
+    <div class="kpi-card"><div class="label">📊 S&L/CH/tháng</div><div class="val">${fmt(avg_per_ch)}</div><div class="sub">~${fmt(avg_per_day)}/ngày/CH</div></div>
+  `;
+}
+
+function renderTable(data){
+  let view=filters.view;
+  let groups={};
+  data.forEach(s=>{
+    let key;
+    if(view==='mien') key=s.mien||'Chưa XĐ';
+    else if(view==='gdv') {key=(s.mien||'')+'|@|'+(s.gdv||'Chưa XĐ');s._grp_mien=s.mien;}
+    else if(view==='tinh') {key=(s.mien||'')+'|@|'+(s.tinh||'Chưa XĐ');s._grp_mien=s.mien;}
+    else key=s.gdv||'Chưa XĐ';
+    if(!groups[key]) groups[key]={stores:[],total_sl:0,total_shrink:0,total_loss:0,count:0};
+    groups[key].stores.push(s);
+    groups[key].total_sl+=s.sl;
+    groups[key].total_shrink+=s.abs_shrink;
+    groups[key].total_loss+=s.abs_loss;
+    groups[key].count++;
+  });
+
+  // Sort groups by total SL descending
+  let sorted=Object.entries(groups).sort((a,b)=>b[1].total_sl-a[1].total_sl);
+
+  let html=`<table><thead><tr>
+    <th>${view==='gdv'?'GĐV':'Nhóm'}</th>
+    <th>#CH</th>
+    <th>Shrink</th>
+    <th>Loss</th>
+    <th>S&L</th>
+    <th>S&L/CH</th>
+    <th>S&L/CH/ng</th>
+    <th>vs Tháng trước</th>
+  </tr></thead><tbody>`;
+
+  sorted.forEach(([key,g])=>{
+    let label=key.includes('|@|')?key.split('|@|')[1]:key;
+    let mienLabel=key.includes('|@|')?key.split('|@|')[0]:'';
+    let avg=g.count?Math.round(g.total_sl/g.count):0;
+    let avgDay=g.count?Math.round(g.total_sl/(g.count*30)):0;
+    let prevTotal=g.stores.reduce((a,s)=>a+(s.prev_sl||0),0);
+    let vsPrev=prevTotal?((g.total_sl-prevTotal)/prevTotal*100):null;
+    let vsClr=vsPrev!==null?(vsPrev>0?'badge-red':vsPrev<0?'badge-green':''):'';
+    let grpId='grp_'+key.replace(/[^a-z0-9]/gi,'_');
+
+    html+=`<tr class="row-grp" onclick="toggleGroup('${grpId}',this)" data-grp="${grpId}">
+      <td><span class="expand-icon" id="exp_${grpId}">▶</span> ${label}${mienLabel?' <span style="color:var(--muted);font-weight:400;font-size:11px">('+mienLabel+')</span>':''}</td>
+      <td>${g.count}</td>
+      <td><span class="${clr(g.total_shrink,5000,-1)}">${fmt(g.total_shrink)}</span></td>
+      <td><span class="${clr(g.total_loss,2000,-1)}">${fmt(g.total_loss)}</span></td>
+      <td><b><span class="${clr(g.total_sl,10000,-1)}">${fmt(g.total_sl)}</span></b></td>
+      <td>${fmt(avg)}</td>
+      <td>${fmt(avgDay)}</td>
+      <td>${vsPrev!==null?'<span class="badge '+vsClr+'">'+(vsPrev>0?'+':'')+vsPrev.toFixed(1)+'%</span>':'—'}</td>
+    </tr>`;
+
+    // Sub: individual stores
+    let sortedStores=g.stores.sort((a,b)=>b.sl-a.sl);
+    sortedStores.forEach(s=>{
+      let subCls=view==='gdv'?'row-ch':'row-sub';
+      let chLabel=view==='gdv'?s.sap+' '+((s.tinh||'')?s.tinh:''):s.sap;
+      let vsP=s.prev_sl?((s.sl-s.prev_sl)/s.prev_sl*100):null;
+      let vsPClr=vsP!==null?(vsP>0?'badge-red':vsP<-5?'badge-green':''):'';
+      html+=`<tr class="${subCls} ${grpId} collapsed">
+        <td>${chLabel}</td>
+        <td>1</td>
+        <td>${fmt(s.abs_shrink)}</td>
+        <td>${fmt(s.abs_loss)}</td>
+        <td>${fmt(s.sl)}</td>
+        <td>—</td>
+        <td>${fmt(Math.round(s.sl/(s.days||30)))}</td>
+        <td>${vsP!==null?'<span class="badge '+vsPClr+'">'+(vsP>0?'+':'')+vsP.toFixed(1)+'%</span>':'—'}</td>
+      </tr>`;
+    });
+  });
+  html+=`</tbody></table>`;
+  document.getElementById('tbl-wrap').innerHTML=html;
+}
+
+function toggleGroup(grpId,row){
+  let els=document.querySelectorAll('.'+grpId);
+  let icon=document.getElementById('exp_'+grpId);
+  if(collapsed[grpId]){
+    els.forEach(e=>e.classList.remove('hidden'));
+    if(icon) icon.textContent='▼';
+    collapsed[grpId]=false;
+  }else{
+    els.forEach(e=>e.classList.add('hidden'));
+    if(icon) icon.textContent='▶';
+    collapsed[grpId]=true;
+  }
+}
+
+function renderCharts(data){
+  // Top 10 stores by S&L
+  let top10=data.slice(0,10);
+  let maxSL=top10[0]?.sl||1;
+  let barHtml='<div class="bar-wrap">';
+  top10.forEach(s=>{
+    let pct=(s.sl/maxSL*100).toFixed(0);
+    barHtml+=`<div class="bar-item">
+      <span class="bar-name">${s.sap}</span>
+      <div style="flex:1;background:#e2e8f0;border-radius:4px"><div class="bar-fill" style="width:${pct}%;background:${s.sl>5000?'#dc2626':s.sl>2000?'#f59e0b':'#16a34a'}"></div></div>
+      <span class="bar-val">${fmt(s.sl)}</span>
+    </div>`;
+  });
+  barHtml+='</div>';
+
+  // MCH5 breakdown if available
+  let mch5Html='';
+  if(DATA.mch5&&DATA.mch5.length>0){
+    let mch5ByGroup={};
+    DATA.mch5.forEach(m=>{
+      if(!mch5ByGroup[m.mch5_name]) mch5ByGroup[m.mch5_name]={sl:0,shrink:0,loss:0,stores:0};
+      mch5ByGroup[m.mch5_name].sl+=m.sl;
+      mch5ByGroup[m.mch5_name].shrink+=m.abs_shrink;
+      mch5ByGroup[m.mch5_name].loss+=m.abs_loss;
+      mch5ByGroup[m.mch5_name].stores=Math.max(mch5ByGroup[m.mch5_name].stores,m.stores);
+    });
+    let topMch5=Object.entries(mch5ByGroup).sort((a,b)=>b[1].sl-a[1].sl).slice(0,12);
+    let maxM=topMch5[0]?.[1]?.sl||1;
+    mch5Html='<div class="bar-wrap">';
+    topMch5.forEach(([name,d])=>{
+      let p=(d.sl/maxM*100).toFixed(0);
+      mch5Html+=`<div class="bar-item">
+        <span class="bar-name">${name}</span>
+        <div style="flex:1;background:#e2e8f0;border-radius:4px"><div class="bar-fill" style="width:${p}%;background:${p>50?'#dc2626':p>25?'#f59e0b':'#16a34a'}"></div></div>
+        <span class="bar-val">${fmt(d.sl)} (${d.stores}CH)</span>
+      </div>`;
+    });
+    mch5Html+='</div>';
+  }
+
+  document.getElementById('chart-row').innerHTML=`
+    <div class="chart-box"><h4>🔴 Top S&L theo CH (${DATA.period})</h4>${barHtml}</div>
+    <div class="chart-box"><h4>🥬 Top S&L theo nhóm RCQ (4 tuần gần nhất)</h4>${mch5Html||'<p style="color:var(--muted)">Đang tải...</p>'}</div>
+  `;
+}
+
+window.addEventListener('DOMContentLoaded',load);
+</script>
+</body>
+</html>
