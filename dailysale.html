@@ -699,7 +699,24 @@ function renderFC(){
   riskNote+='<span style="color:#94A3B8;">Dự báo đến '+meta.today+' · baseline theo thứ × growth × hệ số ngày lễ · '+FCU.meta.p1_label+'</span>';
   body.innerHTML=kpi+tbl; note.innerHTML=riskNote;
 }
+
+function initBlk(){
+  let st={}; try{ st=JSON.parse(localStorage.getItem('ds_blk')||'{}'); }catch(e){}
+  document.querySelectorAll('.blk').forEach(b=>{
+    const k=b.dataset.blk;
+    if(st[k]) b.classList.add('closed');
+    const h=b.querySelector('.sec-h');
+    if(!h) return;
+    h.addEventListener('click',e=>{
+      if(e.target.closest('.seg')||e.target.closest('button')) return;
+      b.classList.toggle('closed');
+      st[k]=b.classList.contains('closed');
+      try{ localStorage.setItem('ds_blk',JSON.stringify(st)); }catch(_){}
+    });
+  });
+}
 function initUI(){
+  initBlk();
   initBlk();
   const m = D.meta||{};
   document.getElementById('pDate').innerHTML = 'Báo cáo ngày <b>'+F.dmy(m.reportDate)+'</b> · MTD <b>'+(m.mtdDays||0)+'/'+(m.daysInMonth||31)+' ngày</b>';
