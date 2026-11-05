@@ -205,8 +205,6 @@ body.lv-lite .vi{display:none}
 
 #moreBox{text-align:center;padding:12px}
 .rowinfo{font-size:12px;color:var(--ink2);padding:8px 4px}
-#xscroll{overflow-x:auto;overflow-y:hidden;height:14px}
-#xscrollIn{height:1px}
 .warnBox{background:var(--warnbg);border:1px solid #F3D9A6;border-radius:10px;padding:10px 14px;color:#8a5a00;font-size:12.5px;margin:8px 0}
 .demoBanner{background:var(--midbg);border:1px solid #B9D1FF;border-radius:10px;padding:8px 14px;color:var(--mid);font-size:12.5px;font-weight:600;margin:8px 0}
 
@@ -466,7 +464,6 @@ body.fullscreen .ptools{opacity:.9}
 
 <div class="tbl-card">
     <div id="tblWrap"><table id="tbl"><thead></thead><tbody></tbody></table></div>
-    <div id="xscroll"><div id="xscrollIn"></div></div>
   </div>
   <div class="rowinfo" id="rowinfo"></div>
   <div id="moreBox" hidden><button class="btn" id="btnMore"></button></div>
@@ -1484,7 +1481,7 @@ function rowHtml(r, isTotal, mx, asSku, trCls){
   if (!isTotal && !asSku && (_ed2 === 'bg' || _ed2 === 'cg') && S.open.has((_ed2 === 'bg' ? 'bg:' : 'cg:') + r.key)) for (const k of (S.bgKids?.get(r.key) || [])) h += rowHtml(k, false, null, true, 'lvb');
   return h;
 }
-function syncX(){ const w = $('tblWrap'), x = $('xscroll'); $('xscrollIn').style.width = $('tbl').scrollWidth + 'px'; x.hidden = $('tbl').scrollWidth <= w.clientWidth + 1; x.scrollLeft = w.scrollLeft; }
+function syncX(){}   /* bảng dùng thanh cuộn gốc của #tblWrap — đã bỏ thanh cuộn phụ */
 function dimLabel(){ const l = TABS.find(t => t[0]===S.dim)[1]; return effDim() === 'cg' ? l + ' · gộp cùng tính chất' : l; }
 function renderTable(){
   const gs = visibleGroups(); S._vg = gs; const _ed2 = effDim();
@@ -1746,8 +1743,6 @@ function initUI(){
   $('tbl').tHead.onclick = e => { const sv = e.target.closest('.sv-btn'); if (sv){ e.stopPropagation(); setSecView(sv.dataset.sv, sv.dataset.v); return; } const th = e.target.closest('th[data-k]'); if (!th) return; const k = th.dataset.k; S.sort = {k, asc: S.sort.k===k ? !S.sort.asc : (k==='key' || k==='rank' || k==='score')}; sortRows(); renderTable(); };
   $('tbl').tBodies[0].onclick = e => { const b = e.target.closest('button.tg'); if (!b) return; const p = b.dataset.p; S.open.has(p) ? S.open.delete(p) : S.open.add(p); renderTable(); };
 
-  $('xscroll').addEventListener('scroll', () => { if ($('tblWrap').scrollLeft !== $('xscroll').scrollLeft) $('tblWrap').scrollLeft = $('xscroll').scrollLeft; });
-  $('tblWrap').addEventListener('scroll', () => { if ($('xscroll').scrollLeft !== $('tblWrap').scrollLeft) $('xscroll').scrollLeft = $('tblWrap').scrollLeft; });
 
   const tip = $('tip'); let tipOn = null;
   const showTip = (el) => { const id = el.dataset.tip; if (!S.tips[id]) return; tip.innerHTML = S.tips[id]; tip.hidden = false; tipOn = el;
@@ -1759,7 +1754,6 @@ function initUI(){
   $('tblWrap').addEventListener('click', e => { const el = e.target.closest('[data-tip]'); if (el){ tipOn === el ? hideTip() : showTip(el); } });
   $('tblWrap').addEventListener('scroll', hideTip);
 
-  $('tblWrap').addEventListener('wheel', e => { const dx = e.shiftKey && !e.deltaX ? e.deltaY : e.deltaX; if (dx){ $('xscroll').scrollLeft += dx; e.preventDefault(); } }, {passive:false});
   window.addEventListener('resize', () => { if (S.M) syncX(); });
 
   $('btnMore').onclick = () => { S.page += 500; renderTable(); };
