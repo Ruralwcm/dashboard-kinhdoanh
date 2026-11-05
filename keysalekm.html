@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Key Sale KM v4.3 — Win Rural</title>
+<title>Key Sale KM v4.4.2 — Win Rural</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 [hidden]{display:none!important}
@@ -73,6 +73,12 @@ main{max-width:1680px;margin:0 auto;padding:16px 20px 60px}
 #drawer .dr-body .cfgBox{margin:12px 0;border-left:3px solid var(--red);border-radius:0 8px 8px 0}
 #drawer .dr-body .filters .grid{grid-template-columns:1fr}
 #drawer .dr-body .filters .frow{flex-wrap:wrap}
+
+
+.sec-view{position:absolute;right:6px;top:50%;transform:translateY(-50%);display:none;gap:3px}
+th:hover .sec-view,th:focus-within .sec-view{display:flex}
+.sec-view button{font-size:9.5px;font-weight:700;padding:2px 6px;border:1px solid var(--line);border-radius:4px;background:var(--bg);cursor:pointer;line-height:1.3}
+.sec-view button.on{background:var(--navy);color:#fff;border-color:var(--navy)}
 
 /* ---------- toolbar ---------- */
 .toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:8px 0}
@@ -260,7 +266,7 @@ body.fullscreen .ptools{opacity:.9}
 <header class="hd">
   <div class="hd-in">
     <img id="lg" class="lg" alt="WinMart+">
-    <div class="tt">Key Sale KM <span>v4.3 · Win Rural · Theo dõi CTKM</span></div>
+    <div class="tt">Key Sale KM <span>v4.4.2 · Win Rural · Theo dõi CTKM</span></div>
     <div class="mt">
       <span class="pill" id="fileinfo">Chưa có dữ liệu</span>
       <button class="btn" id="btnFilters" aria-expanded="false">⚙ Bộ lọc <span id="fCount"></span></button>
@@ -399,7 +405,10 @@ body.fullscreen .ptools{opacity:.9}
   <div class="scopeInfo" id="scopeInfo"></div>
   <div id="kpis"></div>
 
-  <div class="tbl-card">
+  
+  <div id="recap" class="recap"></div>
+
+<div class="tbl-card">
     <div id="tblWrap"><table id="tbl"><thead></thead><tbody></tbody></table></div>
     <div id="xscroll"><div id="xscrollIn"></div></div>
   </div>
@@ -779,9 +788,13 @@ function computeNosaleLoss(M, flt, rows){
 const $ = id => document.getElementById(id);
 const ST_LIST = ['Chạy KM','Ngày KM cuối','Chưa KM','Hết KM'];
 const ST_CLS = {'chạy km':'st-run','ngày km cuối':'st-last','chưa km':'st-pre','hết km':'st-end'};
-const TABS = [['sku','SKU'],['cg','Nhóm cùng t/c'],['bg','TH × GROUP'],['rm','RM'],['rsm','RSM'],['asm','QLKV'],['trend','🔥 Top Trending']];
+const TABS = [['overall','Tổng quan CTKM'],['hottrend','🔥 Hot Trend'],['downtrend','📉 Down Trend'],['sku','SKUs'],['rsmasm','RSM×ASM']];
 const CG_ATTRS = [['brand','Thương hiệu'],['size','Size'],['price','Giá KM'],['group','GROUP KM'],['mech','Cơ chế CTKM'],['mch3','MCH3']];
 const RANK_INDS = [['trLK','DT BQ/CH'],['bqV','DT BQ/mã key/CH'],['stR','Tỷ lệ Sale/Tồn']];
+
+
+const TABS = [['sku','SKU'],['cg','Nhóm cùng t/c'],['bg','TH × GROUP'],['rm','RM'],['rsm','RSM'],['asm','QLKV'],['trend','🔥 Top Trending']];
+const _DIM_MAP = {};
 
 const COLGROUPS = [
   ['hq','Hiệu quả / Xếp hạng',[['rank','Hạng','rank'],['score','Điểm TB','t2'],['trLK','DT BQ/CH','tv'],['bqV','DT BQ/mã/CH','tv'],['stR','Sale/Tồn','sr']]],
@@ -1024,7 +1037,7 @@ const S = {
   cg:new Set(['brand','size','price','group']),
   open:new Set(), rows:[], fileName:'', tips:{},
   view:'full', fs:13, viewInfo:false,
-  rankInds:new Set(['trLK','bqV','stR']), rankByNhom:false,
+  rankInds:new Set(['trLK','bqV','stR']), rankByNhom:false, grpSku:false,
   trThr:0, trTopN:50, wVal:40, wQty:30, wCov:30,
 };
 try {
@@ -1034,8 +1047,9 @@ try {
   if (sv.tb) S.tb = sv.tb;
   if (sv.view) S.view = sv.view;
   if (sv.fs) S.fs = sv.fs;
+  if (sv.grpSku !== undefined) S.grpSku = sv.grpSku;
 } catch(e){}
-const savePrefs = () => { try { localStorage.setItem('kskv4_prefs', JSON.stringify({cols:[...S.cols], unit:S.unit, tb:S.tb, view:S.view, fs:S.fs})); } catch(e){} };
+const savePrefs = () => { try { localStorage.setItem('kskv4_prefs', JSON.stringify({cols:[...S.cols], unit:S.unit, tb:S.tb, view:S.view, fs:S.fs, grpSku:S.grpSku})); } catch(e){} };
 
 const nf0 = new Intl.NumberFormat('vi-VN',{maximumFractionDigits:0});
 const nf1 = new Intl.NumberFormat('vi-VN',{maximumFractionDigits:1, minimumFractionDigits:1});
@@ -1222,6 +1236,7 @@ function computeTrend(list){
 }
 
 function render(){
+  renderRecap();
   if (!S.M) return;
   const flt = buildFilter(); S.flt = flt;
   const artByCode = new Map(S.M.arts.map((a,i) => [a.code, i]));
@@ -1660,7 +1675,12 @@ function initUI(){
   document.addEventListener('keydown', e=>{ if(e.key==='Escape' && drawer.classList.contains('on') && !document.fullscreenElement){ e.preventDefault(); closeDrawer(); } });
   // Move filters into drawer body
   const filterEl = $('filters');
-  if (filterEl && $('drawerBody')) { $('drawerBody').appendChild(filterEl); $('drawerBody').appendChild($('rankCfg')); $('drawerBody').appendChild($('trendCfg')); $('trendCfg').removeAttribute('hidden'); }
+  if (filterEl && $('drawerBody')) { $('drawerBody').appendChild(filterEl); $('drawerBody').appendChild($('rankCfg')); $('drawerBody').appendChild($('trendCfg')); $('trendCfg').removeAttribute('hidden');
+  // Add Group SKUs toggle
+  const grpDiv = document.createElement('div'); grpDiv.id='grpSkuCfg'; grpDiv.className='cfgBox';
+  grpDiv.innerHTML = '<h4 style="margin:0 0 6px;font-size:12px;color:var(--ink2);text-transform:uppercase">🔗 Nhóm SKUs</h4><label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="grpSku" '+(S.grpSku?'checked':'')+'> Gộp SKU cùng tính chất</label>';
+  $('drawerBody').appendChild(grpDiv);
+  $('grpSku').addEventListener('change', function(){ S.grpSku = this.checked; savePrefs(); render(); }); }
 
   // Sync header text size buttons
   $('tsDown2').onclick = ()=>$('tsDown').click();
