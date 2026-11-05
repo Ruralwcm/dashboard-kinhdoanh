@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Key Sale KM v4.6.3 — Win Rural</title>
+<title>Key Sale KM v4.7.0 — Win Rural</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 [hidden]{display:none!important}
@@ -254,15 +254,33 @@ body.fullscreen .hd{display:none}
 body.fullscreen .ptools{opacity:.9}
 @media print{#ink,#laser,.ptools{display:none}}
 
-@media (max-width:640px){
-  .hd-in{padding:8px 12px;gap:9px} .hd .lg{height:30px;width:auto;object-fit:contain;object-position:left center} .hd .tt{font-size:14.5px} .hd .tt span{display:none}
-.sv-sel{display:none;margin-left:4px;gap:1px}
-.th-grp-name:hover .sv-sel{display:inline-flex}
-.sv-btn{font-size:9px;padding:1px 4px;border:1px solid var(--line);border-radius:3px;background:var(--bg);color:var(--ink2);cursor:pointer;line-height:1.5}
-.sv-btn.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+/* chọn mức cột theo section (F/C/L) — hiện khi rê chuột vào tiêu đề nhóm */
+.sv-sel{display:none;margin-left:6px;gap:2px;vertical-align:1px}
+#tbl thead tr.g th:hover .sv-sel,#tbl thead tr.g th:focus-within .sv-sel{display:inline-flex}
+.sv-btn{font-size:9.5px;font-weight:700;padding:1px 5px;border:1px solid rgba(255,255,255,.35);border-radius:4px;background:transparent;color:#fff;cursor:pointer;line-height:1.5}
+.sv-btn.on{background:#fff;color:var(--navy);border-color:#fff}
+.sv-dot{display:inline-block;margin-left:5px;font-size:9.5px;font-weight:700;opacity:.75}
+#tbl thead tr.g th:hover .sv-dot{display:none}
+/* bộ lọc nằm trong drawer luôn hiển thị */
+#drawer .filters{display:block}
+/* chip bộ lọc đang áp dụng */
+.fchip{border:1px solid #B9D1FF;background:var(--midbg);color:var(--mid);border-radius:999px;padding:2px 9px;font-size:11.5px;font-weight:600;cursor:pointer;margin-left:6px}
+.fchip:hover{background:#fff}
+.fchip.clr{border-color:var(--line);background:#fff;color:var(--ink2)}
+.toolbar .tlbl{font-size:11px;font-weight:600;color:var(--ink2);text-transform:uppercase;margin-left:4px}
 
+@media (max-width:640px){
+  .hd-in{padding:8px 12px;gap:9px;flex-wrap:wrap} .hd .lg{height:30px;width:auto;object-fit:contain;object-position:left center} .hd .tt{font-size:14.5px} .hd .tt span{display:none}
+  .hd .mt{width:100%;margin-left:0;justify-content:flex-start;flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px}
+  #fileinfo{display:none}
   main{padding:10px}
+  #kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
   .kpi .v{font-size:16px}
+  #tabs{flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px} #tabs button{flex:none}
+  .secTog{flex-wrap:nowrap!important;overflow-x:auto} #secChips{display:inline-flex;gap:4px;flex:none}
+  #tblWrap{max-height:calc(100vh - 150px)}
+  #tbl th.sticky,#tbl td.sticky{max-width:180px}
+  .ptools,.pzone{display:none}
 }
 </style>
 </head>
@@ -271,11 +289,11 @@ body.fullscreen .ptools{opacity:.9}
 <header class="hd">
   <div class="hd-in">
     <img id="lg" class="lg" alt="WinMart+">
-    <div class="tt">Key Sale KM <span>v4.6.3 · Win Rural · Theo dõi CTKM</span></div>
+    <div class="tt">Key Sale KM <span>v4.7.0 · Win Rural · Theo dõi CTKM</span></div>
     <div class="mt">
       <span class="pill" id="fileinfo">Chưa có dữ liệu</span>
       <button class="btn" id="btnFilters" aria-expanded="false">⚙ Bộ lọc <span id="fCount"></span></button>
-      <span class="ts" title="Cỡ chữ" style="display:inline-flex;align-items:center;gap:2px;font-size:12px"><button id="tsDown2" style="border:1px solid var(--line);background:#fff;border-radius:4px;cursor:pointer;width:24px;height:24px;font-size:11px;line-height:1">A⁻</button><span id="tsLbl2" style="min-width:32px;text-align:center;font-size:11px">13px</span><button id="tsUp2" style="border:1px solid var(--line);background:#fff;border-radius:4px;cursor:pointer;width:24px;height:24px;font-size:12px;line-height:1">A⁺</button></span> <button class="btn" id="btnOpen">📂 Mở file</button>
+      <button class="btn" id="btnOpen">📂 Mở file</button>
       <button class="btn" id="btnDemo">▶ Demo</button>
       <button class="btn" id="btnExport" hidden>⬇ Excel</button>
       <button class="btn pri" id="btnSnap" hidden>💾 Lưu bản xem</button>
@@ -299,7 +317,7 @@ body.fullscreen .ptools{opacity:.9}
 <input type="file" id="file" accept=".xlsx,.xls" hidden>
 
 <div id="drop">
-  <h1>📊 Key Sale KM v4</h1>
+  <h1>📊 Key Sale KM</h1>
   <p>Kéo-thả file Excel (có sheet <b>SALE</b>, <b>CTKM</b>, <b>FC</b>) vào đây, hoặc bấm mở file.<br>Số liệu được xử lý hoàn toàn trên máy bạn — không gửi đi đâu.</p>
   <div class="row">
     <button class="btn pri" id="btnOpen2">📂 Chọn file Excel</button>
@@ -346,10 +364,6 @@ body.fullscreen .ptools{opacity:.9}
       <div id="chipCg"></div>
     </div>
     <div class="frow">
-      <span style="font-size:11.5px;font-weight:600;color:var(--ink2)">Nhóm cột hiển thị:</span>
-      <div id="chipCols"></div>
-    </div>
-    <div class="frow">
       <button class="btn" id="btnReset">↺ Xoá lọc</button>
     </div>
   </div>
@@ -358,18 +372,18 @@ body.fullscreen .ptools{opacity:.9}
   <div id="tabs" role="tablist"></div>
 
 <div class="secTog" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:6px 0">
-  <span style="font-size:11px;font-weight:600;color:var(--ink2);text-transform:uppercase">Section:</span>
+  <span style="font-size:11px;font-weight:600;color:var(--ink2);text-transform:uppercase">Nhóm cột:</span>
   <span id="secChips"></span>
 </div>
 
 
   <!-- Toolbar -->
   <div class="toolbar">
-    <div class="seg" id="segView" title="Mức hiển thị">
+    <span class="tlbl">Mức cột</span><div class="seg" id="segView" title="Mức hiển thị cột (áp dụng cho mọi nhóm cột chưa chỉnh riêng)">
       <button data-v="full" aria-pressed="true">Full</button><button data-v="compact" aria-pressed="false">Compact</button><button data-v="lite" aria-pressed="false">Lite</button>
     </div>
     <div class="ts" title="Cỡ chữ">
-      <button id="tsDown">A⁻</button><span class="ts-lbl lbl" id="tsLbl">13px</span><button id="tsUp">A⁺</button><button id="tsReset" style="font-size:11px">A</button>
+      <button id="tsDown">A⁻</button><span class="ts-lbl lbl" id="tsLbl">13px</span><button id="tsUp">A⁺</button><button id="tsReset" style="font-size:11px" title="Về 13px">A</button>
     </div>
     <div class="seg" id="segTb" title="Tính trung bình chia cho">
       <button data-v="ps" aria-pressed="true">TB CH phát sinh</button><button data-v="all" aria-pressed="false">TB mọi CH</button>
@@ -410,8 +424,6 @@ body.fullscreen .ptools{opacity:.9}
   <div class="scopeInfo" id="scopeInfo"></div>
   <div id="kpis"></div>
 
-  
-  <div id="recap" class="recap"></div>
 
 <div class="tbl-card">
     <div id="tblWrap"><table id="tbl"><thead></thead><tbody></tbody></table></div>
@@ -598,9 +610,9 @@ function buildModel(sale, ctkm, fc){
 }
 
 /* ---- aggregate ---- */
-const STORE_DIMS = {region:1, rm:1, rsm:1, asm:1, code:1};
-function newG(key){ return {key, f:new Float64Array(NF), cDR:0, dSale:0, dStock:0, dNo:0, dND:0, nArt:0, nAct:0, nosaleCH:0, st:null}; }
-function finishStores(g){ if (!g.st) return; for (const v of g.st.values()){ if (v[0] > 0) g.dSale++; if (v[1] > 0){ g.dStock++; if (v[2] <= 0) g.dNo++; } } g.st = null; }
+const STORE_DIMS = {region:1, rm:1, rsm:1, asm:1, code:1, rsmasm:1};
+function newG(key){ return {key, f:new Float64Array(NF), cDR:0, dSale:0, dStock:0, dNo:0, dND:0, dD:0, dD1:0, pStock:0, pNo:0, nArt:0, nAct:0, nosaleCH:0, st:null}; }
+function finishStores(g){ if (!g.st) return; for (const v of g.st.values()){ if (v[0] > 0) g.dSale++; if (v[1] > 0){ g.dStock++; if (v[2] <= 0) g.dNo++; } if (v[2] > 0) g.dD++; if (v[3] > 0) g.dD1++; } g.st = null; }
 function aggregate(M, flt, dim){
   const {stores, arts} = M;
   const artKey = ai => dim==='sku' ? arts[ai].code : dim==='group' ? (flt.kmOf[ai]?.group || '(Không có KM)') : dim==='bg' ? (flt.kmOf[ai]?.group || '(Không có KM)') + ' | ' + arts[ai].brand : dim==='cg' ? flt.cgKey(ai) : dim==='trend' ? 'trend' : null;
@@ -608,7 +620,7 @@ function aggregate(M, flt, dim){
   const isStoreDim = !!STORE_DIMS[dim], perFact = dim === 'sku' || dim === 'trend';
   const groups = new Map();
   const mk = key => { let g = groups.get(key); if (!g){ g = newG(key); if (!perFact) g.st = new Map(); groups.set(key,g); } return g; };
-  const total = newG('__total'); const tS = new Float64Array(stores.length * 5);
+  const total = newG('__total'); const TW = 6, tS = new Float64Array(stores.length * TW);
   let nAct = 0, nArtSel = 0;
   const actByKey = new Map();
   for (let si = 0; si < stores.length; si++) if (flt.storeOK[si] && stores[si].active){ nAct++; if (isStoreDim){ const k = storeKey(si); actByKey.set(k,(actByKey.get(k)||0)+1); } }
@@ -623,11 +635,13 @@ function aggregate(M, flt, dim){
     for (let k = 0; k < NF; k++){ const v = fv[o+k]; if (v){ g.f[k] += v; total.f[k] += v; } }
     const qLK = fv[o+F.qLK], sQ = fv[o+F.sQ], qDD = fv[o+F.qD];
     if (sQ >= thr[ai]){ g.cDR++; total.cDR++; }
-    tS[si*5] += qLK; tS[si*5+1] += sQ; tS[si*5+2] += qDD; tS[si*5+3] += fv[o+F.ndQ]; tS[si*5+4] += fv[o+F.qD];
-    if (perFact){ if (qLK > 0) g.dSale++; if (sQ > 0){ g.dStock++; if (qDD <= 0) g.dNo++; if (qDD <= 0) g.nosaleCH++; } }
-    else { let v = g.st.get(si); if (!v){ v = [0,0,0]; g.st.set(si, v); } v[0] += qLK; v[1] += sQ; v[2] += qDD; }
+    if (sQ > 0){ total.pStock++; if (qDD <= 0) total.pNo++; }
+    const qD1 = fv[o+F.qD1];
+    tS[si*TW] += qLK; tS[si*TW+1] += sQ; tS[si*TW+2] += qDD; tS[si*TW+3] += fv[o+F.ndQ]; tS[si*TW+5] += qD1;
+    if (perFact){ if (qLK > 0) g.dSale++; if (sQ > 0){ g.dStock++; if (qDD <= 0){ g.dNo++; g.nosaleCH++; } } if (qDD > 0) g.dD++; if (qD1 > 0) g.dD1++; }
+    else { let v = g.st.get(si); if (!v){ v = [0,0,0,0]; g.st.set(si, v); } v[0] += qLK; v[1] += sQ; v[2] += qDD; v[3] += qD1; }
   }
-  for (let si = 0; si < stores.length; si++){ if (tS[si*5] > 0) total.dSale++; if (tS[si*5+1] > 0){ total.dStock++; if (tS[si*5+2] <= 0) total.dNo++; } if (tS[si*5+3] > 0) total.dND++; tS[si*5+4] > 0 ? total.nosaleCH++ : 0; }
+  for (let si = 0; si < stores.length; si++){ const o = si*TW; if (tS[o] > 0) total.dSale++; if (tS[o+1] > 0){ total.dStock++; if (tS[o+2] <= 0){ total.dNo++; total.nosaleCH++; } } if (tS[o+3] > 0) total.dND++; if (tS[o+2] > 0) total.dD++; if (tS[o+5] > 0) total.dD1++; }
   for (const g of groups.values()){
     finishStores(g);
     if (isStoreDim){ g.nAct = actByKey.get(g.key) || 0; g.nArt = nArtSel; } else { g.nAct = nAct; g.nArt = artCount.get(g.key) || 0; }
@@ -670,7 +684,7 @@ function metrics(g, tbMode){
     bqQ:div(div(f[F.qLK],dS), g.nArt), bqV:div(div(f[F.rLK],dS), g.nArt), stR:f[F.sQ] > 0 ? f[F.qLK] / f[F.sQ] : (f[F.qLK] > 0 ? Infinity : null),
     nDR:g.nArt ? g.cDR / g.nArt : 0, dr:div(g.cDR,pairs), nNo:g.dNo, noSale:div(g.dNo,g.dStock), nAct:g.nAct, nArt:g.nArt,
     fcQ:f[F.fcQ], fcV:f[F.fcV], poQ:f[F.poQ], poV:f[F.poV], ndQ:f[F.ndQ], ndV:f[F.ndV], nND:g.dND, tndQ:div(f[F.ndQ], tbMode === 'ps' ? g.dND : g.nAct), tndV:div(f[F.ndV], tbMode === 'ps' ? g.dND : g.nAct), vQ:f[F.vQ], vV:f[F.vV], pairs,
-    nosaleLoss:null, nosaleCH:g.nosaleCH||0
+    nosaleLoss:null, nosaleCH:g.nosaleCH||0, nD:g.dD||0, nD1:g.dD1||0, pStock:g.pStock||0, pNo:g.pNo||0
   };
 }
 
@@ -691,7 +705,7 @@ function rankRows(list){
 }
 /* v4: Rank × Nhóm DT: tính rank riêng từng nhóm N1→N8, tổng = BQ rank các nhóm */
 function rankByNhomDt(M, flt, artIdxList){
-  if (!artIdxList || !artIdxList.length) return;
+  if (!artIdxList || !artIdxList.length) return new Map();
   const {stores, arts} = M;
   const nhomMap = new Map();
   for (const si of [...Array(stores.length).keys()]){
@@ -704,7 +718,7 @@ function rankByNhomDt(M, flt, artIdxList){
     const ia = NHOM_DT_ORDER.indexOf(a), ib = NHOM_DT_ORDER.indexOf(b);
     return (ia>=0?ia:99) - (ib>=0?ib:99) || a.localeCompare(b);
   });
-  if (!nhomNames.length) return;
+  if (!nhomNames.length) return new Map();
 
   const nArt = artIdxList.length;
   const rankMatrix = new Float64Array(nArt * nhomNames.length).fill(-1);
@@ -716,11 +730,7 @@ function rankByNhomDt(M, flt, artIdxList){
     const nFlt = {...flt, storeOK:nMask};
     // Aggregate per SKU within this nhom
     const res = aggregate(M, nFlt, 'sku');
-    const rows = res.rows.map(g => {
-      const m = metrics(g, 'ps'); m.key = g.key;
-      const ai = artIdxList.find(i => arts[i].code === g.key) ?? -1;
-      return m;
-    }).filter(r => r.key && (r.trLK ?? -1) >= 0);
+    const rows = res.rows.map(g => { const m = metrics(g, 'ps'); m.key = g.key; return m; }).filter(r => r.key && (r.trLK ?? -1) >= 0);
     rankRows(rows);
     const rankMap = new Map(); rows.forEach(r => rankMap.set(r.key, r.rank));
     for (let ai = 0; ai < nArt; ai++){
@@ -731,6 +741,7 @@ function rankByNhomDt(M, flt, artIdxList){
   }
 
   // Final rank: average of non-null ranks across groups
+  const out = new Map();
   for (let ai = 0; ai < nArt; ai++){
     let sum = 0, cnt = 0;
     for (let gi = 0; gi < nhomNames.length; gi++){
@@ -743,10 +754,9 @@ function rankByNhomDt(M, flt, artIdxList){
       const rk = rankMatrix[ai * nhomNames.length + gi];
       dist.push({nhom:nhomNames[gi], rank:rk >= 0 ? rk : null});
     }
-    artIdxList[ai]._nhomRankAvg = cnt ? sum / cnt : null;
-    artIdxList[ai]._nhomDist = dist;
-    artIdxList[ai]._nhomCnt = cnt;
+    out.set(artIdxList[ai], {avg: cnt ? sum / cnt : null, dist, cnt});
   }
+  return out;
 }
 
 /* ---- v4: Top Trending Score (0-100) ---- */
@@ -755,9 +765,8 @@ function trendingScore(m){
   const vQty = m.qD1 > 0 ? ((m.qD - m.qD1) / m.qD1) * 100 : (m.qD > 0 ? 100 : 0);
   /* Value: %Δ Revenue D vs D-1 */
   const vVal = m.rD1 > 0 ? ((m.rD - m.rD1) / m.rD1) * 100 : (m.rD > 0 ? 100 : 0);
-  /* Coverage: using nSale (CH count — proxy for coverage) */
-  const covD = m.nAct > 0 ? (m.dSale || 0) / m.nAct * 100 : 0;
-  const covD1 = m.nAct > 0 ? Math.max(0, (m.dSale||0) - (m.nNo||0)) / m.nAct * 100 : 0;
+  /* Coverage: số CH có bán ngày D so với D-1 */
+  const covD = m.nD || 0, covD1 = m.nD1 || 0;
   const vCov = covD1 > 0 ? ((covD - covD1) / covD1) * 100 : (covD > 0 ? 100 : 0);
   /* Composite score scaled to 0-100 */
   const clip = v => Math.max(-100, Math.min(100, v));
@@ -801,6 +810,9 @@ const RANK_INDS = [['trLK','DT BQ/CH'],['bqV','DT BQ/mã key/CH'],['stR','Tỷ l
 // Map new 5-tab dims to existing render logic
 const _DM = {overall:'bg', hottrend:'trend', downtrend:'trend', sku:'sku', rsmasm:'rsmasm'};
 const _EFF = d => _DM[d] || d;
+/* dim thực tế: tab SKUs + bật "Gộp SKU cùng tính chất" => nhóm theo tính chất (cg) */
+const effDim = () => { const d = _DM[S.dim] || S.dim; return d === 'sku' && S.grpSku ? 'cg' : d; };
+const LV_OF_VIEW = {full:'F', compact:'C', lite:'L'};
 
 const COLGROUPS = [
   ['hq','Hiệu quả / Xếp hạng',[['rank','Hạng','rank'],['score','Điểm TB','t2'],['trLK','DT BQ/CH','tv'],['bqV','DT BQ/mã/CH','tv'],['stR','Sale/Tồn','sr']]],
@@ -1045,6 +1057,7 @@ const S = {
   view:'full', fs:13, viewInfo:false,
   rankInds:new Set(['trLK','bqV','stR']), rankByNhom:false, grpSku:false,
   trThr:0, trTopN:50, wVal:40, wQty:30, wCov:30,
+  secView:{},
 };
 try {
   const sv = JSON.parse(localStorage.getItem('kskv4_prefs')||'{}');
@@ -1055,6 +1068,7 @@ try {
   if (sv.fs) S.fs = sv.fs;
   if (sv.grpSku !== undefined) S.grpSku = sv.grpSku;
 } catch(e){}
+try { const sv = JSON.parse(localStorage.getItem('ksk_secView')||'{}'); if (sv && typeof sv === 'object') S.secView = sv; } catch(e){}
 const savePrefs = () => { try { localStorage.setItem('kskv4_prefs', JSON.stringify({cols:[...S.cols], unit:S.unit, tb:S.tb, view:S.view, fs:S.fs, grpSku:S.grpSku})); } catch(e){} };
 
 const nf0 = new Intl.NumberFormat('vi-VN',{maximumFractionDigits:0});
@@ -1163,6 +1177,7 @@ function applyFs(){ document.documentElement.style.setProperty('--fs', S.fs + 'p
 
 function start(M, demo){
   S.M = M; $('staticNote').hidden = true;
+  for (const st of M.stores) st.rsmasm = (st.rsm || '(Trống)') + ' | ' + (st.asm || '(Trống)');
   $('drop').hidden = true; $('app').hidden = false; $('btnExport').hidden = false; $('btnSnap').hidden = !!demo;
   $('demoBanner').hidden = !demo;
   $('fileinfo').textContent = demo ? 'Dữ liệu demo' : S.fileName;
@@ -1242,128 +1257,71 @@ function computeTrend(list){
 }
 
 
-function renderRecap(){
-  if (!S.rows || !S.rows.length){ $('recap').innerHTML = ''; return; }
-  let total = {rLK:0, rD:0, sV:0, dio:0, nDR:0, nNo:0, ct:0};
-  S.rows.forEach(r => {
-    total.rLK += (r.rLK||0); total.rD += (r.rD||0); total.sV += (r.sV||0);
-    total.dio += (r.dio||0);
-    if (r.dr != null){ total.nDR += (r.nDR||0); }
-    else { total.nNo += (r.nNo||0); }
-    total.ct++;
-  });
-  const n = total.ct || 1;
-  $('recap').innerHTML = [
-    ['Lũy kế', fmtV(total.rLK), ''],
-    ['Hôm nay', fmtV(total.rD), ''],
-    ['Tồn kho', fmtV(total.sV), ''],
-    ['DIO', nf0.format(total.dio/n), 'ngày'],
-    ['Độ phủ', nf1.format((total.nDR/n)*100)+'%', nf0.format(total.nDR)+' CH'],
-    ['NoSale', nf1.format((total.nNo/n)*100)+'%', nf0.format(total.nNo)+' CH'],
-    ['FC', '—', ''],
-    ['PO', '—', ''],
-  ].map(([l,v,s]) => '<div class="rc"><div class="rc-l">'+esc(l)+'</div><div class="rc-v">'+v+'</div>'+(s?'<div class="rc-s">'+s+'</div>':'')+'</div>').join('');
-}
-
 function render(){
-  renderRecap();
   if (!S.M) return;
-  // Map new tab dims to existing logic
-  const effDim = _DM[S.dim] || S.dim;
-  // For rsmasm: compute cross-tab using RSM×ASM grouping
-  if (S.dim === 'rsmasm'){
-    S._rsmAsmMap = new Map();
-    S.M.stores.forEach((st, i) => {
-      const key = (st.rsm || '?') + ' | ' + (st.asm || '?');
-      if (!S._rsmAsmMap.has(key)) S._rsmAsmMap.set(key, new Set());
-      S._rsmAsmMap.get(key).add(i);
-    });
-  }
+  const ed = effDim();
   const flt = buildFilter(); S.flt = flt;
   const artByCode = new Map(S.M.arts.map((a,i) => [a.code, i]));
+  const skuRow = g => { const m = metrics(g, S.tb); m.key = g.key; const ai = artByCode.get(g.key); m.ai = ai; m.art = S.M.arts[ai]; m.km = flt.kmOf[ai]; return m; };
 
-  if (effDim === 'trend'){
+  if (ed === 'trend'){
+    const down = S.dim === 'downtrend';
     const sk = aggregate(S.M, flt, 'sku');
-    S.rows = sk.rows.map(g => { const m = metrics(g, S.tb); m.key = g.key; const ai = artByCode.get(g.key); m.ai = ai; m.art = S.M.arts[ai]; m.km = flt.kmOf[ai]; return m; });
-    computeTrend(S.rows);
-    const thr = Number(S.trThr) || 0;
-    S.rows = S.rows.filter(r => r.vVal >= thr || r.vQty >= thr || r.vCov >= thr);
-    S.rows.sort((a,b) => b.trendScore - a.trendScore);
-    S.rows = S.rows.slice(0, Math.max(5, Number(S.trTopN) || 50));
-    S.rows.forEach((r,i)=>{ r.rank = i+1; });
-    S.totalRow = metrics(aggregate(S.M, flt, 'sku').total, S.tb); computeTrend([S.totalRow]); S.totalRow.rank = null;
-    S.ctx = {nArtSel: S.rows.length, nAct: sk.nAct}; S.rankN = S.rows.length;
-    sortRows(); renderKpis({total:S.totalRow, nArtSel:sk.nArtSel, nAct:sk.nAct}); renderTable();
+    let rows = sk.rows.map(skuRow).filter(r => r.qD || r.qD1);           // phải có bán ngày D hoặc D-1
+    computeTrend(rows);
+    const thr = Math.abs(Number(S.trThr) || 0);
+    // Hot: điểm > 50 (tăng ròng) và ít nhất 1 chiều ≥ ngưỡng; Down: điểm < 50 (giảm ròng) và ít nhất 1 chiều ≤ -ngưỡng
+    rows = down ? rows.filter(r => r.trendScore < 50 && Math.min(r.vVal, r.vQty, r.vCov) <= -thr)
+                : rows.filter(r => r.trendScore > 50 && Math.max(r.vVal, r.vQty, r.vCov) >= thr);
+    rows.sort((a,b) => down ? (a.trendScore - b.trendScore || a.vVal - b.vVal) : (b.trendScore - a.trendScore || b.vVal - a.vVal));
+    rows = rows.slice(0, Math.max(5, Number(S.trTopN) || 50));
+    rows.forEach((r,i) => { r.rank = i + 1; r.rankN = rows.length; });
+    S.rows = rows;
+    S.totalRow = metrics(sk.total, S.tb); { const t = S.totalRow; t.nNo = t.pNo; t.noSale = t.pStock ? t.pNo / t.pStock : null; } computeTrend([S.totalRow]); S.totalRow.rank = null; S.totalRow.score = null;
+    S.ctx = {nArtSel: rows.length, nAct: sk.nAct}; S.rankN = rows.length;
+    sortRows(); renderKpis({nArtSel: sk.nArtSel, nAct: sk.nAct}); renderTable();
     return;
   }
 
-  if (S.dim === 'rsmasm'){
-    // Aggregate by RSM×ASM
-    const groups = {};
-    for (const art of S.M.arts){ if (!flt.artOK[art._i]) continue;
-      S.M.stores.forEach((st, i) => { if (!flt.storeOK[i]) return;
-        const key = (st.rsm || '?') + ' | ' + (st.asm || '?');
-        groups[key] = groups[key] || [];
-        const f = S.M.facts[art._i];
-        if (!f || !f[i]) return;
-        groups[key].push({storeIdx: i, f: f[i]});
-      });
-    }
-    S.rows = Object.entries(groups).map(([key, items]) => {
-      const m = {}; m.key = key; let ct = 0, rLK=0, rD=0, sV=0, dio=0, nDR=0;
-      items.forEach(({storeIdx, f}) => { ct++;
-        rLK += (f.tqLK*f.sV*1000)||(f.tqLK*f.cogs*1000)||0; rD += f.rD||0; sV += f.sV||0;
-        dio += (f.dio||0);
-        if (f.dr != null) nDR++;
-      });
-      m.rLK = rLK; m.rD = rD; m.sV = sV; m.dio = dio/ct; m.nDR = nDR;
-      m.tqLK = rLK/ct/1000; m.trLK = 0; m.bqV = 0; m.stR = 0;
-      m.nNo = items.length - nDR; m.noSale = (items.length-nDR)/items.length||0;
-      m.fcV = 0; m.poV = 0; m.ndV = 0; m.vV = 0;
-      m.rank = null; m.score = null; return m;
-    });
-    S.totalRow = metrics({total: S.rows, nArtSel: S.rows.length, nAct: S.rows.length}, 'all');
-    S.ctx = {nArtSel: S.rows.length, nAct: S.rows.length};
-    sortRows(); renderKpis(S.ctx); renderTable(); return;
-  }
-  const res = aggregate(S.M, flt, effDim);
-  S.rows = res.rows.map(g => { const m = metrics(g, S.tb); m.key = g.key; if (effDim==='sku'){ const ai = artByCode.get(g.key); m.ai = ai; m.art = S.M.arts[ai]; m.km = flt.kmOf[ai]; } return m; });
+  const res = aggregate(S.M, flt, ed);
+  S.rows = res.rows.map(g => { if (ed === 'sku') return skuRow(g); const m = metrics(g, S.tb); m.key = g.key; return m; });
   S.totalRow = metrics(res.total, S.tb);
-  S.ctx = res;  S.bgKids = null;
+  if (!STORE_DIMS[ed]){ const t = S.totalRow; t.nNo = t.pNo; t.noSale = t.pStock ? t.pNo / t.pStock : null; }
+  S.ctx = res; S.bgKids = null;
 
-  if (effDim === 'sku' && S.rankByNhom){
-    const artIdxList = S.rows.map(r => r.ai).filter(i => i != null);
-    rankByNhomDt(S.M, flt, artIdxList);
-    const avgMap = new Map(); artIdxList.forEach(i => avgMap.set(S.M.arts[i].code, S.M.arts[i]._nhomRankAvg));
-    const valid = S.rows.filter(r => avgMap.get(r.key) != null).sort((a,b)=> avgMap.get(a.key) - avgMap.get(b.key));
-    valid.forEach((r,i)=>{ r.rank = i+1; r.score = avgMap.get(r.key); });
-    S.rows.filter(r => avgMap.get(r.key) == null).forEach(r=>{ r.rank = null; r.score = null; });
+  if (ed === 'sku' && S.rankByNhom){
+    const nr = rankByNhomDt(S.M, flt, S.rows.map(r => r.ai).filter(i => i != null));
+    const avg = r => nr.get(r.ai)?.avg ?? null;
+    const valid = S.rows.filter(r => avg(r) != null).sort((a,b) => avg(a) - avg(b));
+    valid.forEach((r,i) => { r.rank = i + 1; r.score = avg(r); });
+    S.rows.filter(r => avg(r) == null).forEach(r => { r.rank = null; r.score = null; });
     S.rankN = valid.length;
   } else {
     rankRowsCfg(S.rows); S.rows.forEach(r => delete r.rankN); S.rankN = S.rows.length;
   }
   S.totalRow.rank = null; S.totalRow.score = null;
 
-  if (effDim === 'code'){ const byCode = new Map(S.M.stores.map(st => [st.code, st])); S.rows.forEach(r => { const st = byCode.get(r.key); r.label = r.key + ' · ' + (st?.name || ''); }); }
-  if (effDim === 'bg' || effDim === 'cg' || S.dim === 'overall'){
+  if (ed === 'bg' || ed === 'cg'){
     const sk = aggregate(S.M, flt, 'sku'); S.bgKids = new Map();
-    for (const g of sk.rows){ const m = metrics(g, S.tb); const ai = artByCode.get(g.key); m.key = g.key; m.ai = ai; m.art = S.M.arts[ai]; m.km = flt.kmOf[ai];
-      const bk = S.dim === 'cg' ? flt.cgKey(ai) : (m.km?.group || '(Không có KM)') + ' | ' + m.art.brand; if (!S.bgKids.has(bk)) S.bgKids.set(bk, []); S.bgKids.get(bk).push(m); }
+    for (const g of sk.rows){ const m = skuRow(g);
+      const bk = ed === 'cg' ? flt.cgKey(m.ai) : (m.km?.group || '(Không có KM)') + ' | ' + m.art.brand;
+      if (!S.bgKids.has(bk)) S.bgKids.set(bk, []); S.bgKids.get(bk).push(m); }
     for (const list of S.bgKids.values()){ list.sort((a,b) => (b.tqLK ?? -1) - (a.tqLK ?? -1) || b.rLK - a.rLK); rankRowsCfg(list); }
   }
   sortRows(); renderKpis(res); renderTable();
 }
 
-function toggleSecView(k, ev){ ev.stopPropagation();
-  S.secView[k] = S.secView[k]==='F'?'C':S.secView[k]==='C'?'L':'F';
-  localStorage.setItem('ksk_secView', JSON.stringify(S.secView));
+function secLevel(gk){ return S.secView[gk] || LV_OF_VIEW[S.view] || 'F'; }
+function setSecView(gk, lv){
+  if (S.secView[gk] === lv) delete S.secView[gk]; else S.secView[gk] = lv;   // bấm lại mức đang chọn => theo mức chung
+  try { localStorage.setItem('ksk_secView', JSON.stringify(S.secView)); } catch(e){}
   renderTable();
 }
 
 function sortRows(){
   const {k, asc} = S.sort;
-  const effDim = _DM[S.dim] || S.dim;
-  const get = r => k === 'key' ? (effDim==='sku' ? (r.art?.name||r.key) : r.key) : r[k];
+  const ed = effDim();
+  const get = r => k === 'key' ? ((ed==='sku' || ed==='trend') ? (r.art?.name||r.key) : r.key) : r[k];
   S.rows.sort((a,b) => { const x = get(a), y = get(b);
     if (typeof x === 'string' || typeof y === 'string') return (asc?1:-1) * String(x??'').localeCompare(String(y??''),'vi');
     if (x === null && y === null) return 0; if (x === null) return 1; if (y === null) return -1;
@@ -1379,25 +1337,23 @@ function renderKpis(res){
     ['Giá trị tồn', fmtV(t.sV), 'TBCH: SL ' + (t.tsQ===null?'—':nf1.format(t.tsQ)) + ' · GT ' + fmtV(t.tsV) + ' · ' + fmtQ(t.nStock) + ' CH tồn'],
     ['DIO', t.dio===null ? '—' : nf0.format(t.dio) + ' ngày', ''],
     ['Độ phủ (DR)', fmtPct(t.dr), 'BQ ' + fmtQ(t.nDR) + '/' + fmtQ(t.nAct) + ' CH đạt Min TB'],
-    ['% No sale', fmtPct(t.noSale), fmtQ(t.nNo) + '/' + fmtQ(t.nStock) + ' CH tồn không bán ngày D'],
+    ['% No sale', fmtPct(t.pStock ? t.pNo / t.pStock : null), fmtQ(t.pNo) + '/' + fmtQ(t.pStock) + ' cặp CH×mã có tồn nhưng không bán ngày D'],
     ['FC / Validate', fmtV(t.fcV) + ' / ' + fmtV(t.vV), 'SL ' + fmtQ(t.fcQ) + ' / ' + fmtQ(t.vQ)],
     ['GT PO chờ giao', fmtV(t.ndV), 'TBCH: SL ' + (t.tndQ===null?'—':nf1.format(t.tndQ)) + ' · GT ' + fmtV(t.tndV)],
   ];
-  const _ed = _DM[S.dim] || S.dim;
-  $('scopeInfo').innerHTML = '<b>' + fmtQ(res.nArtSel) + '</b> mã · <b>' + fmtQ(res.nAct) + '</b> CH hoạt động' + (_ed==='trend'?' · 🔥 Top '+S.rows.length+' theo xu hướng':'');
+  const _ed = effDim();
+  const FL = [['q','Tìm'],['fStore','CH'],['fGroup','GROUP'],['fMch3','MCH3'],['fRegion','Miền'],['fRm','RM'],['fRsm','RSM'],['fAsm','QLKV'],['fType','Loại CH']];
+  const act = FL.filter(([id]) => $(id).value.trim()).map(([id,l]) => '<button type="button" class="fchip" data-clr="' + id + '" title="Bỏ lọc này">' + l + ': ' + esc($(id).value.trim()) + ' ✕</button>');
+  if (S.keySel) act.push('<button type="button" class="fchip" data-clr="key" title="Bỏ lọc này">Key: ' + esc([...S.keySel].join(', ') || '(trống)') + ' ✕</button>');
+  if (act.length > 1) act.push('<button type="button" class="fchip clr" data-clr="all">Xoá tất cả</button>');
+  $('scopeInfo').innerHTML = '<b>' + fmtQ(res.nArtSel) + '</b> mã · <b>' + fmtQ(res.nAct) + '</b> CH hoạt động' + (_ed==='trend' ? ' · ' + (S.dim==='downtrend' ? '📉 Top ' + S.rows.length + ' giảm mạnh nhất' : '🔥 Top ' + S.rows.length + ' tăng mạnh nhất') : '') + act.join('');
   $('kpis').innerHTML = tiles.map(([l,v,s]) => '<div class="kpi" title="' + (l + ': ' + v + ' — ' + String(s)).replace(/<[^>]+>/g,'') + '"><span class="lbl">' + l + '</span><span class="v">' + v + '</span><span class="s">' + s + '</span></div>').join('');
 }
 
+function filterCols(gk, cols, cfgKey){ const lv = secLevel(gk), cfg = COLS_VIEW[cfgKey || gk]; return lv === 'F' || !cfg ? cols : cols.filter(([k]) => !cfg[k] || cfg[k][lv]); }
 function visibleGroups(){
-  const base = COLGROUPS.filter(g => {
-    if (!S.cols.has(g[0])) return false;
-    const sv = S.secView[g[0]] || 'F';
-    if (sv === 'F') return true;
-    const cfg = SECTION_VIEWS[g[0]];
-    if (!cfg) return true;
-    return g[2].some(([k]) => cfg[k] && cfg[k][sv]);
-  });
-  if ((_DM[S.dim]||S.dim)==='trend') return [TREND_GROUP, ...base];
+  const base = COLGROUPS.filter(g => S.cols.has(g[0])).map(([gk, l, cols]) => [gk, l, filterCols(gk, cols)]).filter(g => g[2].length);
+  if (effDim() === 'trend') return [[TREND_GROUP[0], TREND_GROUP[1], filterCols(TREND_GROUP[0], TREND_GROUP[2], 'trend')], ...base];
   return base;
 }
 function kmTip(a, k){
@@ -1420,8 +1376,8 @@ function viewInfoHtml(a, k){
 }
 function firstCell(r, isTotal, asSku){
   if (isTotal) return '<td class="sticky">Tổng cộng <span class="code">(' + fmtQ(S.ctx.nArtSel) + ' mã)</span></td>';
-  const _ed2 = _DM[S.dim] || S.dim;
-  if (!asSku && (_ed2 === 'bg' || S.dim === 'overall')){ const [grp, br] = r.key.split(' | '); const pid = 'bg:' + r.key, op = S.open.has(pid);
+  const _ed2 = effDim();
+  if (!asSku && _ed2 === 'bg'){ const [grp, br] = r.key.split(' | '); const pid = 'bg:' + r.key, op = S.open.has(pid);
     return '<td class="sticky"><div class="nm"><button class="tg" data-p="' + esc(pid) + '" aria-expanded="' + op + '">' + (op ? '−' : '+') + '</button><span class="cd">' + esc(br) + '</span> · ' + esc(grp) + ' <span class="code">(' + fmtQ(r.nArt) + ' mã)</span></div></td>'; }
   if (!asSku && _ed2 === 'cg'){ const pid = 'cg:' + r.key, op = S.open.has(pid);
     return '<td class="sticky"><div class="nm" title="' + esc(r.key) + '"><button class="tg" data-p="' + esc(pid) + '" aria-expanded="' + op + '">' + (op ? '−' : '+') + '</button>' + esc(r.key) + ' <span class="code">(' + fmtQ(r.nArt) + ' mã)</span></div></td>'; }
@@ -1438,13 +1394,13 @@ function firstCell(r, isTotal, asSku){
 const LV_NAME = ['RM','RSM','QLKV','CH'];
 const HEAT = {q:1, v:1, t:1, tv:1, t1:1};
 function heatScale(rows){ const mx = {}; for (const [, , cols] of visibleGroups()) for (const [k, , t] of cols) if (HEAT[t]){ let m = 0; for (const r of rows){ const v = r[k]; if (v > m) m = v; } mx[k] = m; } return mx; }
-function bandOf(gk){ return visibleGroups().findIndex(g => g[0]===gk) % 2 ? 'gB' : 'gA'; }
+function bandOf(gk){ return (S._vg || visibleGroups()).findIndex(g => g[0]===gk) % 2 ? 'gB' : 'gA'; }
 function cellsHtml(m, mx){
   let h = ''; S.curRankN = m.rankN;
-  for (const [gk, , cols] of visibleGroups()) cols.forEach(([k, , t], i) => {
+  (S._vg || visibleGroups()).forEach(([gk, , cols], gi) => { const band = gi % 2 ? 'gB' : 'gA'; cols.forEach(([k, , t], i) => {
     const [txt, cls] = fmtCell(t, m[k]);
-    h += '<td class="' + bandOf(gk) + (i===0?' gs ':' ') + cls + '">' + txt + '</td>';
-  });
+    h += '<td class="' + band + (i===0?' gs ':' ') + cls + '">' + txt + '</td>';
+  }); });
   return h;
 }
 function childHtml(ai, path){
@@ -1480,27 +1436,29 @@ function sdChildHtml(path){
   return h;
 }
 function rowHtml(r, isTotal, mx, asSku, trCls){
+  const _ed2 = effDim();
   asSku = asSku ?? (_ed2 === 'sku' || _ed2 === 'trend');
   let h = '<tr' + (isTotal ? ' class="total"' : trCls ? ' class="' + trCls + '"' : '') + '>' + firstCell(r, isTotal, asSku) + cellsHtml(r, isTotal ? null : mx) + '</tr>';
-  if (!isTotal && S.dim === 'sku' && S.open.has(String(r.ai))) h += childHtml(r.ai, []);
+  if (!isTotal && _ed2 === 'sku' && S.open.has(String(r.ai))) h += childHtml(r.ai, []);
   if (!isTotal && !asSku && SD_CHAIN[S.dim] && S.open.has('sd:' + JSON.stringify([r.key]))) h += sdChildHtml([r.key]);
-  if (!isTotal && !asSku && (_ed2 === 'bg' || _ed2 === 'cg') && S.open.has(S.dim + ':' + r.key)) for (const k of (S.bgKids?.get(r.key) || [])) h += rowHtml(k, false, null, true, 'lvb');
+  if (!isTotal && !asSku && (_ed2 === 'bg' || _ed2 === 'cg') && S.open.has((_ed2 === 'bg' ? 'bg:' : 'cg:') + r.key)) for (const k of (S.bgKids?.get(r.key) || [])) h += rowHtml(k, false, null, true, 'lvb');
   return h;
 }
 function syncX(){ const w = $('tblWrap'), x = $('xscroll'); $('xscrollIn').style.width = $('tbl').scrollWidth + 'px'; x.hidden = $('tbl').scrollWidth <= w.clientWidth + 1; x.scrollLeft = w.scrollLeft; }
+function dimLabel(){ const l = TABS.find(t => t[0]===S.dim)[1]; return effDim() === 'cg' ? l + ' · gộp cùng tính chất' : l; }
 function renderTable(){
-  const gs = visibleGroups();
-  const dimLbl = TABS.find(t => t[0]===S.dim)[1];
-  const firstLbl = (_ed2==='sku'||_ed2==='trend') ? 'Mã hàng / CTKM' : esc(dimLbl);
+  const gs = visibleGroups(); S._vg = gs; const _ed2 = effDim();
+  const dimLbl = dimLabel();
+  const firstLbl = (_ed2==='sku'||_ed2==='trend') ? 'Mã hàng / CTKM' : _ed2==='cg' ? 'Nhóm SKU cùng tính chất' : esc(dimLbl);
   let g = '<tr class="g"><th rowspan="2" data-k="key" class="sticky' + (S.sort.k==='key' ? ' sorted' + (S.sort.asc?' asc':'') : '') + '">' + firstLbl + '</th>';
   let c = '<tr class="c">';
-  for (const [gk, label, cols] of gs){
-    if (!cols.length) continue;
-    const curSv = S.secView[gk] || 'F';
-    const svBtns = '<span class="sv-sel"><button class="sv-btn' + (curSv==='F'?' on':'') + '" onclick="toggleSecView(\'' + gk + '\',event)" data-v="F">F</button><button class="sv-btn' + (curSv==='C'?' on':'') + '" onclick="toggleSecView(\'' + gk + '\',event)" data-v="C">C</button><button class="sv-btn' + (curSv==='L'?' on':'') + '" onclick="toggleSecView(\'' + gk + '\',event)" data-v="L">L</button></span>';
-    g += '<th colspan="' + cols.length + '" class="' + bandOf(gk) + ' gs">' + label + svBtns + '</th>';
-    cols.forEach(([k, l], i) => { c += '<th data-k="' + k + '" class="' + bandOf(gk) + (i===0?' gs ':' ') + (S.sort.k===k ? 'sorted' + (S.sort.asc?' asc':'') : '') + '">' + l + '</th>'; });
-  }
+  const SV_T = {F:'Full — mọi cột', C:'Compact — cột chính', L:'Lite — cột tối thiểu'};
+  gs.forEach(([gk, label, cols], gi) => {
+    const band = gi % 2 ? 'gB' : 'gA', lv = secLevel(gk), own = !!S.secView[gk];
+    const svBtns = '<span class="sv-sel">' + ['F','C','L'].map(v => '<button type="button" class="sv-btn' + (lv===v?' on':'') + '" data-sv="' + gk + '" data-v="' + v + '" title="' + SV_T[v] + (own && lv===v ? ' (bấm lại để theo mức chung)' : '') + '">' + v + '</button>').join('') + '</span>';
+    g += '<th colspan="' + cols.length + '" class="' + band + ' gs">' + label + (own ? '<span class="sv-dot">' + lv + '</span>' : '') + svBtns + '</th>';
+    cols.forEach(([k, l], i) => { c += '<th data-k="' + k + '" class="' + band + (i===0?' gs ':' ') + (S.sort.k===k ? 'sorted' + (S.sort.asc?' asc':'') : '') + '">' + l + '</th>'; });
+  });
   $('tbl').tHead.innerHTML = g + '</tr>' + c + '</tr>';
   const shown = S.rows.slice(0, S.page);
   const mx = heatScale(S.rows);
@@ -1515,8 +1473,8 @@ function renderTable(){
 /* ---- export ---- */
 function exportExcel(){
   if (typeof XLSX === 'undefined') return;
-  const gs = visibleGroups(); const dimLbl = TABS.find(t => t[0]===S.dim)[1];
-  const asSku = S.dim==='sku' || S.dim==='trend';
+  const gs = visibleGroups(); const dimLbl = dimLabel(); const ed = effDim();
+  const asSku = ed==='sku' || ed==='trend';
   const head = asSku ? ['Mã hàng','Tên hàng','MCH3','Trạng thái KM','GROUP KM','Phân loại key','CTKM','Giá thường','Giá KM','Từ ngày','Đến ngày','Min TB'] : [dimLbl];
   const cols = gs.flatMap(([, gl, cs]) => cs.map(([k,l,t]) => [k, gl + ' - ' + l + ((t==='v'||t==='tv') ? ' (' + unitLbl() + ')' : ''), t]));
   const val = (t, v) => v == null ? null : v === Infinity ? 'Hết tồn' : (t==='v'||t==='tv') ? Math.round(v / S.unit * 100)/100 : (t==='pct'||t==='nspct') ? Math.round(v*10000)/10000 : (t==='trl') ? v : Math.round(v*100)/100;
@@ -1527,7 +1485,7 @@ function exportExcel(){
   aoa.push(tl.concat(cols.map(([k,,t]) => val(t, S.totalRow[k]))));
   for (const r of S.rows) aoa.push(lead(r).concat(cols.map(([k,,t]) => val(t, r[k]))));
   const ws = XLSX.utils.aoa_to_sheet(aoa); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Key Sale KM');
-  XLSX.writeFile(wb, 'KeySaleKM_' + S.dim + '_' + new Date().toISOString().slice(0,10) + '.xlsx');
+  XLSX.writeFile(wb, 'KeySaleKM_' + S.dim + (ed==='cg' ? '_gop' : '') + '_' + new Date().toISOString().slice(0,10) + '.xlsx');
 }
 
 /* ---- demo ---- */
@@ -1574,7 +1532,7 @@ function renderLogic(){
   <ul>
     <li><b>DR</b> = số (CH × mã) đạt Min trưng bày ÷ tổng cặp (CH × mã) trong phạm vi.</li>
     <li><b>CH đạt Min TB</b>: SL tồn ≥ Min TB (của CTKM), nếu không khai báo thì ngưỡng = 1.</li>
-    <li><b>% No sale</b> = số CH có tồn nhưng không bán ngày D ÷ số CH có tồn.</li>
+    <li><b>% No sale</b> (mỗi dòng) = số CH có tồn nhưng không bán ngày D ÷ số CH có tồn. Ô KPI và dòng Tổng tính theo <b>cặp CH × mã</b>.</li>
   </ul>
   <h4>Xếp hạng (Hạng &amp; Điểm TB)</h4>
   <ul>
@@ -1585,7 +1543,9 @@ function renderLogic(){
   <h4>🔥 Top Trending (xu hướng)</h4>
   <ul>
     <li>So sánh ngày D với D-1 theo 3 chiều: <b>%Δ Doanh thu</b>, <b>%Δ Sản lượng</b>, <b>%Δ Độ phủ</b> (mỗi chiều kẹp trong [-100%, +100%]).</li>
-    <li><b>Điểm</b> = (Σ chiều × trọng số + 100) ÷ 2, quy về thang 0–100. Trọng số đặt ở "Cấu hình Top Trending".</li>
+    <li><b>Điểm</b> = (Σ chiều × trọng số + 100) ÷ 2, quy về thang 0–100 (50 = không đổi). Trọng số đặt ở "Cấu hình Top Trending".</li>
+    <li><b>%Δ Phủ</b> = thay đổi số CH có bán ngày D so với D-1.</li>
+    <li><b>Hot Trend</b>: điểm &gt; 50, xếp từ cao xuống. <b>Down Trend</b>: điểm &lt; 50, xếp từ thấp lên. Chỉ xét mã có bán ngày D hoặc D-1.</li>
     <li>Nhãn: 🟢 Bùng nổ (≥70) · 🟡 Tăng trưởng (40–69) · ⚪ Ổn định (10–39) · 🔴 Sụt giảm (&lt;10).</li>
   </ul>
   <h4>DIO &amp; Sale/Tồn</h4>
@@ -1658,6 +1618,13 @@ async function loadSnapshot(el){
 }
 
 /* ---- events ---- */
+function updateTabUI(){
+  const ed = effDim();
+  $('cgBox').hidden = ed !== 'cg';
+  $('trendCfg').hidden = ed !== 'trend';
+  $('rankCfg').hidden = ed === 'trend';
+  $('btnViewInfo').hidden = ed !== 'sku';
+}
 function seg(id, cb){ const el = $(id); el.onclick = e => { const b = e.target.closest('button'); if (!b) return; el.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x===b))); cb(b.dataset.v); }; }
 function initUI(){
   $('lg').src = (typeof LOGO !== 'undefined') ? LOGO : '';
@@ -1669,15 +1636,10 @@ function initUI(){
 
   $('tabs').innerHTML = TABS.map(([k,l]) => '<button role="tab" data-k="' + k + '" aria-selected="' + (k===S.dim) + '">' + l + '</button>').join('');
   $('tabs').onclick = e => { const b = e.target.closest('button'); if (!b) return; S.dim = b.dataset.k; S.page = 200; S.open = new Set([...S.open].filter(x => !x.startsWith('sd:')));
-    const _ed3 = _DM[S.dim] || S.dim;
-    $('cgBox').hidden = S.dim !== 'cg';
-    $('trendCfg').hidden = _ed3 !== 'trend';
-    $('rankCfg').style.display = (_ed3==='trend') ? 'none' : '';
-    $('btnViewInfo').hidden = (_DM[S.dim]||S.dim) !== 'sku';
     $('tabs').querySelectorAll('button').forEach(x => x.setAttribute('aria-selected', String(x===b)));
-    if (S.dim==='trend') S.sort = {k:'trendScore',asc:false};
-    else if (S.sort.k==='key'||S.sort.k==='trendScore') S.sort = {k:'rLK',asc:false};
-    render(); };
+    if (effDim()==='trend') S.sort = {k:'trendScore', asc:S.dim==='downtrend'};
+    else if (['key','trendScore','trendLabel','vVal','vQty','vCov'].includes(S.sort.k)) S.sort = {k:'rLK',asc:false};
+    updateTabUI(); render(); };
 
   // multiselect status
   const msLabel = () => { const sel = ST_LIST.filter(x => S.status.has(x)); $('msStatusBtn').textContent = sel.length === ST_LIST.length ? 'Tất cả' : sel.length ? sel.join(', ') : '(Chưa chọn)'; };
@@ -1697,11 +1659,8 @@ function initUI(){
 
   $('fScope').addEventListener('change', () => { S.scope = $('fScope').value; $('msStatus').classList.toggle('dim', S.scope === 'all'); render(); });
 
-  $('chipCols').innerHTML = COLGROUPS.map(([k,l]) => '<button class="chip" data-c="' + k + '" aria-pressed="' + S.cols.has(k) + '">' + l + '</button>').join('');
   $('secChips').innerHTML = COLGROUPS.map(([k,l]) => '<button class="chip" data-c="' + k + '" aria-pressed="' + S.cols.has(k) + '" style="padding:3px 8px;font-size:11px">' + l + '</button>').join('');
-  const _secChipClick = e => { if(!e.target.classList.contains('chip')) return; const c = e.target.dataset.c; if(S.cols.has(c)) S.cols.delete(c); else S.cols.add(c); e.target.setAttribute('aria-pressed', S.cols.has(c)); savePrefs(); render(); };
-  $('secChips').addEventListener('click', _secChipClick);
-  $('chipCols').onclick = e => { const b = e.target.closest('button'); if (!b) return; const c = b.dataset.c; S.cols.has(c) ? S.cols.delete(c) : S.cols.add(c); b.setAttribute('aria-pressed', String(S.cols.has(c))); savePrefs(); renderTable(); };
+  $('secChips').addEventListener('click', e => { const b = e.target.closest('.chip'); if (!b) return; const c = b.dataset.c; S.cols.has(c) ? S.cols.delete(c) : S.cols.add(c); b.setAttribute('aria-pressed', String(S.cols.has(c))); savePrefs(); if (S.M) renderTable(); });
 
   $('chipCg').innerHTML = CG_ATTRS.map(([k,l]) => '<button class="chip" data-g="' + k + '" aria-pressed="' + S.cg.has(k) + '">' + l + '</button>').join('');
   $('chipCg').onclick = e => { const b = e.target.closest('button'); if (!b) return; const g = b.dataset.g; S.cg.has(g) ? S.cg.delete(g) : S.cg.add(g); b.setAttribute('aria-pressed', String(S.cg.has(g))); S.open = new Set([...S.open].filter(x => !x.startsWith('cg:'))); render(); };
@@ -1713,13 +1672,14 @@ function initUI(){
 
   // trend config
   const trW = () => { $('wValL').textContent = $('wVal').value + '%'; $('wQtyL').textContent = $('wQty').value + '%'; $('wCovL').textContent = $('wCov').value + '%'; S.wVal = +$('wVal').value; S.wQty = +$('wQty').value; S.wCov = +$('wCov').value; };
-  ['wVal','wQty','wCov'].forEach(id => $(id).addEventListener('input', () => { trW(); if (S.dim==='trend') render(); }));
-  $('trThr').addEventListener('change', () => { S.trThr = +$('trThr').value; if (S.dim==='trend') render(); });
-  $('trTopN').addEventListener('change', () => { S.trTopN = +$('trTopN').value; if (S.dim==='trend') render(); });
+  let trT; const trRender = () => { clearTimeout(trT); trT = setTimeout(() => { if (effDim()==='trend') render(); }, 120); };
+  ['wVal','wQty','wCov'].forEach(id => $(id).addEventListener('input', () => { trW(); trRender(); }));
+  $('trThr').addEventListener('change', () => { S.trThr = +$('trThr').value; trRender(); });
+  $('trTopN').addEventListener('change', () => { S.trTopN = +$('trTopN').value; trRender(); });
   trW();
 
   // view level + font size
-  seg('segView', v => { S.view = v; applyView(); savePrefs(); });
+  seg('segView', v => { S.view = v; applyView(); savePrefs(); if (S.M) renderTable(); });
   seg('segTb', v => { S.tb = v; savePrefs(); render(); });
   seg('segUnit', v => { S.unit = Number(v); savePrefs(); renderKpis(S.ctx || {total:S.totalRow,nArtSel:0,nAct:0}); renderTable(); });
   $('tsDown').onclick = () => { S.fs = Math.max(10, S.fs - 1); applyFs(); savePrefs(); };
@@ -1733,9 +1693,14 @@ function initUI(){
   ['fGroup','fMch3','fRegion','fRm','fRsm','fAsm','fType'].forEach(id => $(id).addEventListener('change', () => { S.page = 200; if (id==='fRegion' || id==='fRm' || id==='fRsm') cascade(); render(); }));
   document.querySelectorAll('.filters select').forEach(cbMake);
 
-  $('btnReset').onclick = () => { S.keySel = null; $('msKeyPanel').querySelectorAll('input').forEach(x => x.checked = true); keyLabel(); ['q','fStore','fGroup','fMch3','fRegion','fRm','fRsm','fAsm','fType'].forEach(id => $(id).value = ''); cascade(); render(); };
+  $('scopeInfo').addEventListener('click', e => { const b = e.target.closest('[data-clr]'); if (!b) return; const id = b.dataset.clr;
+    if (id === 'all') return $('btnReset').click();
+    if (id === 'key'){ S.keySel = null; $('msKeyPanel').querySelectorAll('input').forEach(x => x.checked = true); keyLabel(); }
+    else { $(id).value = ''; if (['fRegion','fRm','fRsm'].includes(id)) cascade(); cbSyncAll(); }
+    S.page = 200; render(); });
+  $('btnReset').onclick = () => { S.keySel = null; $('msKeyPanel').querySelectorAll('input').forEach(x => x.checked = true); keyLabel(); ['q','fStore','fGroup','fMch3','fRegion','fRm','fRsm','fAsm','fType'].forEach(id => $(id).value = ''); cascade(); cbSyncAll(); S.page = 200; render(); };
 
-  $('tbl').tHead.onclick = e => { const th = e.target.closest('th[data-k]'); if (!th) return; const k = th.dataset.k; S.sort = {k, asc: S.sort.k===k ? !S.sort.asc : (k==='key' || k==='rank' || k==='score')}; sortRows(); renderTable(); };
+  $('tbl').tHead.onclick = e => { const sv = e.target.closest('.sv-btn'); if (sv){ e.stopPropagation(); setSecView(sv.dataset.sv, sv.dataset.v); return; } const th = e.target.closest('th[data-k]'); if (!th) return; const k = th.dataset.k; S.sort = {k, asc: S.sort.k===k ? !S.sort.asc : (k==='key' || k==='rank' || k==='score')}; sortRows(); renderTable(); };
   $('tbl').tBodies[0].onclick = e => { const b = e.target.closest('button.tg'); if (!b) return; const p = b.dataset.p; S.open.has(p) ? S.open.delete(p) : S.open.add(p); renderTable(); };
 
   $('xscroll').addEventListener('scroll', () => { if ($('tblWrap').scrollLeft !== $('xscroll').scrollLeft) $('tblWrap').scrollLeft = $('xscroll').scrollLeft; });
@@ -1751,7 +1716,6 @@ function initUI(){
   $('tblWrap').addEventListener('click', e => { const el = e.target.closest('[data-tip]'); if (el){ tipOn === el ? hideTip() : showTip(el); } });
   $('tblWrap').addEventListener('scroll', hideTip);
 
-  $('btnFilters').onclick = () => { const f = $('filters'), o = !f.classList.contains('open'); f.classList.toggle('open', o); $('btnFilters').setAttribute('aria-expanded', String(o)); };
   $('tblWrap').addEventListener('wheel', e => { const dx = e.shiftKey && !e.deltaX ? e.deltaY : e.deltaX; if (dx){ $('xscroll').scrollLeft += dx; e.preventDefault(); } }, {passive:false});
   window.addEventListener('resize', () => { if (S.M) syncX(); });
 
@@ -1775,14 +1739,11 @@ function initUI(){
   if (filterEl && $('drawerBody')) { $('drawerBody').appendChild(filterEl); $('drawerBody').appendChild($('rankCfg')); $('drawerBody').appendChild($('trendCfg')); $('trendCfg').removeAttribute('hidden');
   // Add Group SKUs toggle
   const grpDiv = document.createElement('div'); grpDiv.id='grpSkuCfg'; grpDiv.className='cfgBox';
-  grpDiv.innerHTML = '<h4 style="margin:0 0 6px;font-size:12px;color:var(--ink2);text-transform:uppercase">🔗 Nhóm SKUs</h4><label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="grpSku" '+(S.grpSku?'checked':'')+'> Gộp SKU cùng tính chất</label>';
-  $('drawerBody').appendChild(grpDiv);
-  $('grpSku').addEventListener('change', function(){ S.grpSku = this.checked; savePrefs(); render(); }); }
+  grpDiv.innerHTML = '<h4 style="margin:0 0 6px;font-size:12px;color:var(--ink2);text-transform:uppercase">🔗 Nhóm SKUs (tab SKUs)</h4><label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="grpSku" '+(S.grpSku?'checked':'')+'> Gộp SKU cùng tính chất</label>';
+  $('drawerBody').appendChild(grpDiv); grpDiv.appendChild($('cgBox'));
+  $('grpSku').addEventListener('change', function(){ S.grpSku = this.checked; S.open = new Set([...S.open].filter(x => !x.startsWith('cg:'))); savePrefs(); updateTabUI(); render(); }); }
 
-  // Sync header text size buttons
-  $('tsDown2').onclick = ()=>$('tsDown').click();
-  $('tsUp2').onclick = ()=>$('tsUp').click();
-  const syncTs = ()=>{ $('tsLbl2').textContent = $('tsLbl').textContent; };
+  updateTabUI();
 
   $('btnExport').onclick = exportExcel; $('btnSnap').onclick = saveSnapshot;
 
