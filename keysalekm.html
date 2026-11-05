@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Key Sale KM v4.9.0 — Win Rural</title>
+<title>Key Sale KM v4.9.1 — Win Rural</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 [hidden]{display:none!important}
@@ -201,7 +201,6 @@ table#tbl{border-collapse:separate;border-spacing:0;font-size:var(--fs);width:ma
 /* view level */
 body.lv-compact #tbl th,body.lv-compact #tbl td{padding:4px 7px}
 body.lv-lite #tbl th,body.lv-lite #tbl td{padding:3px 6px;font-size:12px}
-body.lv-lite .vi{display:none}
 
 #moreBox{text-align:center;padding:12px}
 .rowinfo{font-size:12px;color:var(--ink2);padding:8px 4px}
@@ -332,7 +331,7 @@ body.fullscreen .ptools{opacity:.9}
 <header class="hd">
   <div class="hd-in">
     <img id="lg" class="lg" alt="WinMart+">
-    <div class="tt">Key Sale KM <span>v4.9.0 · Win Rural · Theo dõi CTKM</span></div>
+    <div class="tt">Key Sale KM <span>v4.9.1 · Win Rural · Theo dõi CTKM</span></div>
     <div class="mt">
       <span class="pill" id="fileinfo" title="">Chưa có dữ liệu</span>
       <div class="ts hd-ts" title="Cỡ chữ">
@@ -434,7 +433,7 @@ body.fullscreen .ptools{opacity:.9}
     <div class="seg" id="segUnit" title="Đơn vị tiền">
       <button data-v="1" aria-pressed="false">đ</button><button data-v="1000" aria-pressed="true">nghìn</button><button data-v="1000000" aria-pressed="false">triệu</button>
     </div>
-    <button class="chip" id="btnViewInfo" aria-pressed="false" hidden>👁 View Info</button>
+    <button class="chip" id="btnViewInfo" aria-pressed="false" title="Hiện thông tin CTKM (Group, giá KM, điều kiện, thời gian, ngày còn lại) dưới tên mã — áp dụng mọi chiều xem có dòng SKU">👁 View CTKM</button>
     </div>
     <div class="ctl ctl-sec"><span class="tlbl">View Section</span><div class="seg segSec" id="secChips"></div></div>
     <div class="ctl ctl-sw"><span class="tlbl">Group SKUs</span>
@@ -1129,11 +1128,12 @@ try {
   if (sv.view) S.view = sv.view;
   if (sv.fs) S.fs = sv.fs;
   if (sv.grpSku !== undefined) S.grpSku = sv.grpSku;
+  if (sv.viewInfo !== undefined) S.viewInfo = !!sv.viewInfo;
 } catch(e){}
 const TW_DEF = {dv:30, pv:10, dq:30, pq:10, pc:20};
 try { const w = JSON.parse(localStorage.getItem('ksk_trW')||'null'); if (w && Object.keys(TW_DEF).every(k => typeof w[k] === 'number') && Object.keys(TW_DEF).reduce((a,k) => a + w[k], 0) === 100) S.trW = w; } catch(e){}
 try { const sv = JSON.parse(localStorage.getItem('ksk_secView')||'{}'); if (sv && typeof sv === 'object') S.secView = sv; } catch(e){}
-const savePrefs = () => { try { localStorage.setItem('kskv4_prefs', JSON.stringify({cols:[...S.cols], unit:S.unit, tb:S.tb, view:S.view, fs:S.fs, grpSku:S.grpSku})); } catch(e){} };
+const savePrefs = () => { try { localStorage.setItem('kskv4_prefs', JSON.stringify({cols:[...S.cols], unit:S.unit, tb:S.tb, view:S.view, fs:S.fs, grpSku:S.grpSku, viewInfo:S.viewInfo})); } catch(e){} };
 
 const nf0 = new Intl.NumberFormat('vi-VN',{maximumFractionDigits:0});
 const nf1 = new Intl.NumberFormat('vi-VN',{maximumFractionDigits:1, minimumFractionDigits:1});
@@ -1457,7 +1457,7 @@ function firstCell(r, isTotal, asSku){
   if (!asSku) return '<td class="sticky"><div class="nm">' + esc(r.key) + '</div></td>';
   const a = r.art, k = r.km;
   S.tips[r.ai] = kmTip(a, k);
-  const vi = (S.viewInfo && (_ed2 === 'sku')) ? viewInfoHtml(a, k) : '';
+  const vi = S.viewInfo ? viewInfoHtml(a, k) : '';
   const canExpand = _ed2 === 'sku';
   const tg = canExpand ? '<button class="tg" data-p="' + esc(String(r.ai)) + '" aria-expanded="' + S.open.has(String(r.ai)) + '" title="Xem RM → RSM → QLKV → CH">' + (S.open.has(String(r.ai)) ? '−' : '+') + '</button>' : '';
   return '<td class="sticky"><div class="nm">' + tg + '<span class="cd" data-tip="' + r.ai + '">' + esc(a.code) + '</span> - <span class="tipname" data-tip="' + r.ai + '">' + esc(a.name || '(Không tên)') + '</span></div>' + vi + '</td>';
@@ -1698,7 +1698,6 @@ function updateTabUI(){
   $('cgBox').hidden = false;
   $('trendCfg').hidden = ed !== 'trend';
   $('rankCfg').hidden = ed === 'trend';
-  $('btnViewInfo').hidden = ed !== 'sku';
 }
 function seg(id, cb){ const el = $(id); el.onclick = e => { const b = e.target.closest('button'); if (!b) return; el.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x===b))); cb(b.dataset.v); }; }
 function initUI(){
@@ -1772,7 +1771,8 @@ function initUI(){
   $('tsUp').onclick = () => { S.fs = Math.min(18, S.fs + 1); applyFs(); savePrefs(); };
   $('tsReset').onclick = () => { S.fs = 13; applyFs(); savePrefs(); };
 
-  $('btnViewInfo').onclick = () => { S.viewInfo = !S.viewInfo; $('btnViewInfo').setAttribute('aria-pressed', String(S.viewInfo)); renderTable(); };
+  $('btnViewInfo').setAttribute('aria-pressed', String(S.viewInfo));
+  $('btnViewInfo').onclick = () => { S.viewInfo = !S.viewInfo; $('btnViewInfo').setAttribute('aria-pressed', String(S.viewInfo)); savePrefs(); if (S.M) renderTable(); };
 
   let tmr; const deb = () => { clearTimeout(tmr); tmr = setTimeout(() => { S.page = 200; render(); }, 220); };
   ['q','fStore'].forEach(id => $(id).addEventListener('input', deb));
