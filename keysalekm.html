@@ -16,7 +16,7 @@
   --fs:13px;
 }
 *{box-sizing:border-box}
-html,body{margin:0;padding:0}
+html,body{margin:0;padding:0;height:100%;overflow:hidden}
 body{font-family:"Be Vietnam Pro",Inter,"Segoe UI",system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink);font-size:var(--fs);-webkit-font-smoothing:antialiased}
 img{max-width:100%}
 button,select,input{font-family:inherit}
@@ -25,7 +25,7 @@ a{color:inherit}
 /* ---------- header ---------- */
 .hd{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:60}
 .hd-in{max-width:1680px;margin:0 auto;display:flex;align-items:center;gap:14px;padding:10px 20px}
-.hd .lg{height:34px;width:auto;display:block;flex:none}
+.hd .lg{height:34px;width:auto;max-width:180px;display:block;flex:none;object-fit:contain;object-position:left center}
 .hd .tt{font-size:17px;font-weight:700;letter-spacing:-.2px;line-height:1.2}
 .hd .tt span{display:block;font-size:11.5px;font-weight:600;color:var(--ink2);letter-spacing:.4px;text-transform:uppercase}
 .hd .mt{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
@@ -118,7 +118,7 @@ main{max-width:1680px;margin:0 auto;padding:16px 20px 60px}
 .scopeInfo{font-size:12.5px;color:var(--ink2);margin:4px 0}
 .scopeInfo b{color:var(--ink)}
 .tbl-card{background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:var(--sh);overflow:hidden;position:relative}
-#tblWrap{overflow:auto;max-height:72vh;position:relative}
+#tblWrap{overflow:auto;max-height:calc(100vh - 280px);position:relative}
 table#tbl{border-collapse:separate;border-spacing:0;font-size:var(--fs);width:max-content;min-width:100%}
 #tbl th,#tbl td{padding:6px 9px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line)}
 #tbl thead th{position:sticky;background:#fff;z-index:5;font-size:11.5px;font-weight:700;color:var(--ink2);text-transform:none}
@@ -1427,7 +1427,8 @@ function initPresent(){
   $('tFull').onclick=()=>{ if(!document.fullscreenElement){ (document.documentElement.requestFullscreen||function(){}).call(document.documentElement); } else document.exitFullscreen(); };
   document.addEventListener('fullscreenchange',()=>{ document.body.classList.toggle('fullscreen',!!document.fullscreenElement); if(window.__showBar) window.__showBar(); $('tFull').classList.toggle('on',!!document.fullscreenElement); setTimeout(size,80); });
   document.addEventListener('keydown',e=>{ if(/input|select|textarea/i.test(e.target.tagName)) return; const k=e.key.toLowerCase();
-    if(k==='p'){e.preventDefault();setTool('pen');} else if(k==='h'){e.preventDefault();setTool('hi');} else if(k==='l'){e.preventDefault();setTool('laser');} else if(k==='e'){e.preventDefault();setTool('erase');} else if(k==='c'){e.preventDefault();$('tClear').click();} else if(k==='f'){e.preventDefault();$('tFull').click();} });
+    if(k==='p'){e.preventDefault();setTool('pen');} else if(k==='h'){e.preventDefault();setTool('hi');} else if(k==='l'){e.preventDefault();setTool('laser');} else if(k==='e'){e.preventDefault();setTool('erase');} else if(k==='c'){e.preventDefault();$('tClear').click();} else if(k==='f'){e.preventDefault();$('tFull').click();} else if(k==='escape'){ exitPresent(); } });
+  function exitPresent(){ tool=null; Object.values(btns).forEach(b=>b.classList.remove('on')); ink.classList.remove('on'); lz.classList.remove('on'); laserPts=[]; ictx.clearRect(0,0,ink.width,ink.height); lctx.clearRect(0,0,lz.width,lz.height); _tb.classList.remove('show'); }
 }
 
 initUI();
