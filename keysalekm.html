@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Key Sale KM v4.2 — Win Rural</title>
+<title>Key Sale KM v4.3 — Win Rural</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 [hidden]{display:none!important}
@@ -55,6 +55,25 @@ main{max-width:1680px;margin:0 auto;padding:16px 20px 60px}
 .kpi .s .up{color:var(--good);font-weight:700}
 .kpi .s .down{color:var(--bad);font-weight:700}
 
+
+/* ----- drawer ----- */
+#drawerBackdrop{position:fixed;inset:0;background:rgba(15,42,74,.45);z-index:200;opacity:0;pointer-events:none;transition:opacity .2s}
+#drawerBackdrop.on{opacity:1;pointer-events:auto}
+#drawer{position:fixed;top:0;left:0;width:min(380px,90vw);height:100vh;z-index:201;background:#fff;
+  box-shadow:4px 0 24px rgba(0,0,0,.15);overflow-y:auto;overflow-x:hidden;
+  transform:translateX(-100%);transition:transform .25s cubic-bezier(.4,0,.2,1);
+  padding:0 0 24px}
+#drawer.on{transform:translateX(0)}
+#drawer .dr-hd{position:sticky;top:0;z-index:5;background:#fff;border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:10px;padding:12px 16px}
+#drawer .dr-hd h3{font-size:15px;font-weight:700;margin:0;flex:1}
+#drawer .dr-hd button{width:32px;height:32px;border:0;border-radius:8px;background:var(--bg);font-size:16px;cursor:pointer}
+#drawer .dr-body{padding:12px 16px}
+#drawer .dr-body .filters{border:0;box-shadow:none;padding:0;margin:0}
+#drawer .dr-body .cfgBox{margin:12px 0;border-left:3px solid var(--red);border-radius:0 8px 8px 0}
+#drawer .dr-body .filters .grid{grid-template-columns:1fr}
+#drawer .dr-body .filters .frow{flex-wrap:wrap}
+
 /* ---------- toolbar ---------- */
 .toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:8px 0}
 .seg{display:inline-flex;background:#fff;border:1px solid var(--line);border-radius:9px;overflow:hidden}
@@ -105,7 +124,7 @@ main{max-width:1680px;margin:0 auto;padding:16px 20px 60px}
 .cb-none{padding:6px 8px;color:var(--ink2);font-size:12px}
 
 /* logic panel */
-.logic{background:#fff;border:1px solid var(--line);border-radius:12px;margin:10px 0;box-shadow:var(--sh);overflow:hidden}
+.logic{background:#fff;border:1px solid var(--line);border-radius:12px;margin:12px 0 0;box-shadow:var(--sh);overflow:hidden;order:999}
 .logic summary{cursor:pointer;padding:11px 14px;font-weight:700;font-size:13.5px;list-style:none;display:flex;align-items:center;gap:8px}
 .logic summary::-webkit-details-marker{display:none}
 .logic[open] summary{border-bottom:1px solid var(--line)}
@@ -118,7 +137,7 @@ main{max-width:1680px;margin:0 auto;padding:16px 20px 60px}
 .scopeInfo{font-size:12.5px;color:var(--ink2);margin:4px 0}
 .scopeInfo b{color:var(--ink)}
 .tbl-card{background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:var(--sh);overflow:hidden;position:relative}
-#app{overflow-x:hidden}
+#app{overflow-x:hidden;display:flex;flex-direction:column}
 #tblWrap{overflow:auto;max-height:calc(100vh - 260px);position:relative}
 table#tbl{border-collapse:separate;border-spacing:0;font-size:var(--fs);width:max-content;min-width:100%}
 #tbl th,#tbl td{padding:6px 9px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line)}
@@ -241,17 +260,30 @@ body.fullscreen .ptools{opacity:.9}
 <header class="hd">
   <div class="hd-in">
     <img id="lg" class="lg" alt="WinMart+">
-    <div class="tt">Key Sale KM <span>v4.2 · Win Rural · Theo dõi CTKM</span></div>
+    <div class="tt">Key Sale KM <span>v4.3 · Win Rural · Theo dõi CTKM</span></div>
     <div class="mt">
       <span class="pill" id="fileinfo">Chưa có dữ liệu</span>
       <button class="btn" id="btnFilters" aria-expanded="false">⚙ Bộ lọc <span id="fCount"></span></button>
-      <button class="btn" id="btnOpen">📂 Mở file</button>
+      <span class="ts" title="Cỡ chữ" style="display:inline-flex;align-items:center;gap:2px;font-size:12px"><button id="tsDown2" style="border:1px solid var(--line);background:#fff;border-radius:4px;cursor:pointer;width:24px;height:24px;font-size:11px;line-height:1">A⁻</button><span id="tsLbl2" style="min-width:32px;text-align:center;font-size:11px">13px</span><button id="tsUp2" style="border:1px solid var(--line);background:#fff;border-radius:4px;cursor:pointer;width:24px;height:24px;font-size:12px;line-height:1">A⁺</button></span> <button class="btn" id="btnOpen">📂 Mở file</button>
       <button class="btn" id="btnDemo">▶ Demo</button>
       <button class="btn" id="btnExport" hidden>⬇ Excel</button>
       <button class="btn pri" id="btnSnap" hidden>💾 Lưu bản xem</button>
     </div>
   </div>
 </header>
+
+
+<!-- Drawer -->
+<div id="drawerBackdrop"></div>
+<div id="drawer">
+  <div class="dr-hd">
+    <h3>🎛 Bộ lọc</h3>
+    <button id="drawerClose" title="Đóng (Esc)">✕</button>
+  </div>
+  <div class="dr-body" id="drawerBody">
+    <!-- filters will be moved here by JS -->
+  </div>
+</div>
 
 <input type="file" id="file" accept=".xlsx,.xls" hidden>
 
@@ -313,6 +345,12 @@ body.fullscreen .ptools{opacity:.9}
 
   <!-- Tabs -->
   <div id="tabs" role="tablist"></div>
+
+<div class="secTog" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:6px 0">
+  <span style="font-size:11px;font-weight:600;color:var(--ink2);text-transform:uppercase">Section:</span>
+  <span id="secChips"></span>
+</div>
+
 
   <!-- Toolbar -->
   <div class="toolbar">
@@ -757,6 +795,225 @@ const COLGROUPS = [
   ['po','PO',[['poQ','SL PO','q'],['poV','GT PO','v'],['ndQ','SL chờ giao','q'],['ndV','GT chờ giao','v']]],
   ['val','Validate',[['vQ','SL Validate','q'],['vV','GT Validate','v']]],
 ];
+const COLS_VIEW = {
+"trend": {
+"trendScore": {
+"F": true,
+"C": true,
+"L": false
+},
+"trendLabel": {
+"F": true,
+"C": true,
+"L": true
+},
+"vVal": {
+"F": true,
+"C": true,
+"L": true
+},
+"vQty": {
+"F": true,
+"C": false,
+"L": false
+},
+"vCov": {
+"F": true,
+"C": false,
+"L": false
+}
+},
+"hq": {
+"rank": {
+"F": true,
+"C": true,
+"L": true
+},
+"score": {
+"F": true,
+"C": true,
+"L": false
+},
+"trLK": {
+"F": true,
+"C": true,
+"L": true
+},
+"bqV": {
+"F": true,
+"C": false,
+"L": false
+},
+"stR": {
+"F": true,
+"C": false,
+"L": false
+}
+},
+"lk": {
+"qLK": {
+"F": true,
+"C": false,
+"L": false
+},
+"rLK": {
+"F": true,
+"C": true,
+"L": true
+},
+"tqLK": {
+"F": true,
+"C": false,
+"L": false
+},
+"trLK": {
+"F": true,
+"C": true,
+"L": false
+}
+},
+"ns": {
+"nNo": {
+"F": true,
+"C": false,
+"L": false
+},
+"noSale": {
+"F": true,
+"C": true,
+"L": true
+}
+},
+"d": {
+"qD": {
+"F": true,
+"C": false,
+"L": false
+},
+"rD": {
+"F": true,
+"C": true,
+"L": true
+},
+"tqD": {
+"F": true,
+"C": false,
+"L": false
+},
+"trD": {
+"F": true,
+"C": true,
+"L": false
+}
+},
+"d1": {
+"qD1": {
+"F": true,
+"C": false,
+"L": false
+},
+"rD1": {
+"F": true,
+"C": true,
+"L": true
+},
+"tqD1": {
+"F": true,
+"C": true,
+"L": false
+},
+"trD1": {
+"F": true,
+"C": false,
+"L": false
+}
+},
+"tk": {
+"sQ": {
+"F": true,
+"C": false,
+"L": false
+},
+"sV": {
+"F": true,
+"C": true,
+"L": true
+},
+"tsQ": {
+"F": true,
+"C": false,
+"L": false
+},
+"tsV": {
+"F": true,
+"C": true,
+"L": false
+},
+"dio": {
+"F": true,
+"C": true,
+"L": true
+}
+},
+"dr": {
+"nDR": {
+"F": true,
+"C": false,
+"L": false
+},
+"dr": {
+"F": true,
+"C": true,
+"L": true
+}
+},
+"fc": {
+"fcQ": {
+"F": true,
+"C": false,
+"L": false
+},
+"fcV": {
+"F": true,
+"C": true,
+"L": true
+}
+},
+"po": {
+"poQ": {
+"F": true,
+"C": false,
+"L": false
+},
+"poV": {
+"F": true,
+"C": true,
+"L": true
+},
+"ndQ": {
+"F": true,
+"C": false,
+"L": false
+},
+"ndV": {
+"F": true,
+"C": true,
+"L": true
+}
+},
+"val": {
+"vQ": {
+"F": true,
+"C": false,
+"L": false
+},
+"vV": {
+"F": true,
+"C": true,
+"L": true
+}
+}
+};
 const TREND_GROUP = ['tr','🔥 Trending',[['trendScore','Điểm','trs'],['trendLabel','Xu hướng','trl'],['vVal','%Δ DT','trp'],['vQty','%Δ SL','trp'],['vCov','%Δ Phủ','trp']]];
 
 const S = {
@@ -1329,6 +1586,9 @@ function initUI(){
   $('fScope').addEventListener('change', () => { S.scope = $('fScope').value; $('msStatus').classList.toggle('dim', S.scope === 'all'); render(); });
 
   $('chipCols').innerHTML = COLGROUPS.map(([k,l]) => '<button class="chip" data-c="' + k + '" aria-pressed="' + S.cols.has(k) + '">' + l + '</button>').join('');
+  $('secChips').innerHTML = COLGROUPS.map(([k,l]) => '<button class="chip" data-c="' + k + '" aria-pressed="' + S.cols.has(k) + '" style="padding:3px 8px;font-size:11px">' + l + '</button>').join('');
+  const _secChipClick = e => { if(!e.target.classList.contains('chip')) return; const c = e.target.dataset.c; if(S.cols.has(c)) S.cols.delete(c); else S.cols.add(c); e.target.setAttribute('aria-pressed', S.cols.has(c)); savePrefs(); render(); };
+  $('secChips').addEventListener('click', _secChipClick);
   $('chipCols').onclick = e => { const b = e.target.closest('button'); if (!b) return; const c = b.dataset.c; S.cols.has(c) ? S.cols.delete(c) : S.cols.add(c); b.setAttribute('aria-pressed', String(S.cols.has(c))); savePrefs(); renderTable(); };
 
   $('chipCg').innerHTML = CG_ATTRS.map(([k,l]) => '<button class="chip" data-g="' + k + '" aria-pressed="' + S.cg.has(k) + '">' + l + '</button>').join('');
@@ -1389,6 +1649,24 @@ function initUI(){
   $('file').onchange = e => { const f = e.target.files[0]; if (f) loadFile(f); e.target.value = ''; };
   $('btnDemo').onclick = () => start(demoModel(), true);
   $('btnDemo2').onclick = () => start(demoModel(), true);
+
+  // Drawer toggle
+  const drawer = $('drawer'), backdrop = $('drawerBackdrop');
+  const openDrawer = ()=>{ drawer.classList.add('on'); backdrop.classList.add('on'); $('btnFilters').setAttribute('aria-expanded','true'); };
+  const closeDrawer = ()=>{ drawer.classList.remove('on'); backdrop.classList.remove('on'); $('btnFilters').setAttribute('aria-expanded','false'); };
+  $('btnFilters').onclick = ()=> drawer.classList.contains('on') ? closeDrawer() : openDrawer();
+  $('drawerClose').onclick = closeDrawer;
+  backdrop.addEventListener('click', closeDrawer);
+  document.addEventListener('keydown', e=>{ if(e.key==='Escape' && drawer.classList.contains('on') && !document.fullscreenElement){ e.preventDefault(); closeDrawer(); } });
+  // Move filters into drawer body
+  const filterEl = $('filters');
+  if (filterEl && $('drawerBody')) { $('drawerBody').appendChild(filterEl); $('drawerBody').appendChild($('rankCfg')); $('drawerBody').appendChild($('trendCfg')); $('trendCfg').removeAttribute('hidden'); }
+
+  // Sync header text size buttons
+  $('tsDown2').onclick = ()=>$('tsDown').click();
+  $('tsUp2').onclick = ()=>$('tsUp').click();
+  const syncTs = ()=>{ $('tsLbl2').textContent = $('tsLbl').textContent; };
+
   $('btnExport').onclick = exportExcel; $('btnSnap').onclick = saveSnapshot;
 
   const dz = $('drop');
