@@ -625,8 +625,7 @@ function agg(rows){
 function zeroN(rows){ return rows.filter(r=>!(r.d>0.0001)).length; }
 
 /* ================= data load ================= */
-
-let FCU=null, FCP='p1', FCV='w';
+let FCU=null, FCP='p1', FCV='w', FCDIM='mi';
 function loadData(){
   return Promise.all([
     fetch('dailysale_v9.json',{cache:'no-store'}).then(r=>{ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); }),
@@ -635,8 +634,98 @@ function loadData(){
     D = j; ALL = j.stores || [];
     FCU = f;
     initUI();
+  }).catch(e=>{ document.getElementById('main').innerHTML = '<div class="err">Không tải được dữ liệu báo cáo<br><span style="font-size:14px">'+e.message+'</span></div>'; });
+}
+
+function opts(sel, arr, keepAll){
+  const el = document.getElementById(sel);
+  const cur = FILT[sel.replace('f','').toLowerCase()] || '';
+  const key = {fMi:'mi',fVu:'vu',fTi:'ti',fGd:'gd',fQl:'ql',fGr:'gr'}[sel];
+  el.innerHTML = '<option value="">'+(keepAll||'Tất cả')+'</option>' +
+    arr.map(v=>`<option value="${String(v).replace(/"/g,'&quot;')}">${v}</option>`).join('');
+  el.value = FILT[key] || '';
+}
+function cascadeSource(dim){
+  // trả về rows sau khi áp các filter trừ dim đó
+  return ALL.filter(r=>{
+    if(dim!=='mi' && FILT.mi && r.mi!==FILT.mi) return false;
+    if(dim!=='vu' && FILT.vu && r.vu!==FILT.vu) return false;
+    if(dim!=='ti' && FILT.ti && r.ti!==FILT.ti) return false;
+    if(dim!=='gd' && FILT.gd && r.gd!==FILT.gd) return false;
+    if(dim!=='ql' && FILT.ql && r.ql!==FILT.ql) return false;
+    if(FILT.gr && r.gr!==FILT.gr) return false;
+    return true;
   });
 }
+const uniq = (rows,k)=>[...new Set(rows.map(r=>r[k]).filter(v=>v))].sort((a,b)=>String(a).localeCompare(String(b),'vi'));
+
+function refreshFilters(){
+  opts('fMi', uniq(cascadeSource('mi'),'mi'), 'Tất cả miền');
+  opts('fVu', uniq(cascadeSource('vu'),'vu'), 'Tất cả vùng');
+  opts('fTi', uniq(cascadeSource('ti'),'ti'), 'Tất cả tỉnh');
+  opts('fGd', uniq(cascadeSource('gd'),'gd'), 'Tất cả GĐV');
+  opts('fQl', uniq(cascadeSource('ql'),'ql'), 'Tất cả QLKV');
+  document.getElementById('fGr').value = FILT.gr || '';
+}
+
+function currentRows(){
+  const q = (FILT.q||'').trim().toLowerCase();
+  return ALL.filter(r=>{
+    if(FILT.mi && r.mi!==FILT.mi) return false;
+    if(FILT.vu && r.vu!==FILT.vu) return false;
+    if(FILT.ti && r.ti!==FILT.ti) return false;
+    if(FILT.gd && r.gd!==FILT.gd) return false;
+    if(FILT.ql && r.ql!==FILT.ql) return false;
+    if(FILT.gr && r.gr!==FILT.gr) return false;
+    if(FILT.tt==='HD' && !String(r.tt||'').startsWith('Đang hoạt động')) return false;
+    if(q && !((r.nm||'').toLowerCase().includes(q) || String(r.sap||'').toLowerCase().includes(q))) return false;
+    return true;
+  });
+}
+
+
+/* ---- thu gọn / mở section ---- */
+function initBlk(){
+  let st={}; try{ st=JSON.parse(localStorage.getItem('ds_blk')||'{}'); }catch(e){}
+  document.querySelectorAll('.blk').forEach(b=>{
+    const k=b.dataset.blk;
+    if(st[k]) b.classList.add('closed');
+    const h=b.querySelector('.sec-h');
+    if(!h) return;
+    h.addEventListener('click',e=>{
+      if(e.target.closest('.seg')||e.target.closest('button')) return;
+      b.classList.toggle('closed');
+      st[k]=b.classList.contains('closed');
+      try{ localStorage.setItem('ds_blk',JSON.stringify(st)); }catch(_){}
+    });
+  });
+}
+
+function initUI(){
+  initBlk();
+  const m = D.meta||{};
+  document.getElementById('pDate').innerHTML = 'Báo cáo ngày <b>'+F.dmy(m.reportDate)+'</b> · MTD <b>'+(m.mtdDays||0)+'/'+(m.daysInMonth||31)+' ngày</b>';
+  document.getElementById('pUpd').textContent = new Date().toLocaleString('vi-VN',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit',year:'numeric'});
+  document.getElementById('lg').src = LOGO;
+// ---- Text Size ----
+let TS=1; try{ const v=localStorage.getItem('ds_ts'); if(v) TS=parseFloat(v)||1; }catch(e){} TS=Math.max(1.0,Math.min(1.5,TS));
+function applyTS(){
+  document.body.style.zoom = TS;
+  document.getElementById('tsLbl').textContent=Math.round(TS*100)+'%';
+  try{ if(D) fitTables(); }catch(e){}
+}
+document.getElementById('tsMinus').onclick=()=>{ TS=Math.max(.7,TS-.05); applyTS(); try{localStorage.setItem('ds_ts',TS)}catch(e){} };
+document.getElementById('tsPlus').onclick=()=>{ TS=Math.min(1.5,TS+.05); applyTS(); try{localStorage.setItem('ds_ts',TS)}catch(e){} };
+applyTS();
+  refreshFilters();
+  initFC();
+  render();
+  document.getElementById('load').style.display='none';
+}
+
+
+/* ================= DỰ BÁO DOANH THU ================= */
+function fcTag(v){ return v>=100?['t-good','Vượt']:v>=97?['t-mid','Sát']:v>=93?['t-warn','Cần đẩy']:['t-bad','Cảnh báo']; }
 function initFC(){
   document.querySelectorAll('#fcPer button').forEach(b=>{ b.onclick=()=>{
     FCP=b.dataset.fp; document.querySelectorAll('#fcPer button').forEach(x=>x.classList.toggle('on',x===b));
@@ -649,6 +738,7 @@ function initFC(){
     renderFC();
   }});
 }
+
 function renderFC(){
   const body=document.getElementById('fcBody'), note=document.getElementById('fcNote');
   if(!FCU){ body.innerHTML='<div style="padding:20px;text-align:center;color:#94A3B8;">Chưa có dữ liệu dự báo</div>'; note.innerHTML=''; return; }
@@ -700,47 +790,7 @@ function renderFC(){
   body.innerHTML=kpi+tbl; note.innerHTML=riskNote;
 }
 
-function initBlk(){
-  let st={}; try{ st=JSON.parse(localStorage.getItem('ds_blk')||'{}'); }catch(e){}
-  document.querySelectorAll('.blk').forEach(b=>{
-    const k=b.dataset.blk;
-    if(st[k]) b.classList.add('closed');
-    const h=b.querySelector('.sec-h');
-    if(!h) return;
-    h.addEventListener('click',e=>{
-      if(e.target.closest('.seg')||e.target.closest('button')) return;
-      b.classList.toggle('closed');
-      st[k]=b.classList.contains('closed');
-      try{ localStorage.setItem('ds_blk',JSON.stringify(st)); }catch(_){}
-    });
-  });
-}
-function initUI(){
-  initBlk();
-  initBlk();
-  const m = D.meta||{};
-  document.getElementById('pDate').innerHTML = 'Báo cáo ngày <b>'+F.dmy(m.reportDate)+'</b> · MTD <b>'+(m.mtdDays||0)+'/'+(m.daysInMonth||31)+' ngày</b>';
-  document.getElementById('pUpd').textContent = new Date().toLocaleString('vi-VN',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit',year:'numeric'});
-  document.getElementById('lg').src = LOGO;
-// ---- Text Size ----
-let TS=1; try{ const v=localStorage.getItem('ds_ts'); if(v) TS=parseFloat(v)||1; }catch(e){} TS=Math.max(1.0,Math.min(1.5,TS));
-function applyTS(){
-  document.body.style.zoom = TS;
-  document.getElementById('tsLbl').textContent=Math.round(TS*100)+'%';
-  try{ if(D) fitTables(); }catch(e){}
-}
-document.getElementById('tsMinus').onclick=()=>{ TS=Math.max(.7,TS-.05); applyTS(); try{localStorage.setItem('ds_ts',TS)}catch(e){} };
-document.getElementById('tsPlus').onclick=()=>{ TS=Math.min(1.5,TS+.05); applyTS(); try{localStorage.setItem('ds_ts',TS)}catch(e){} };
-applyTS();
-  refreshFilters();
-  initFC();
-  render();
-  document.getElementById('load').style.display='none';
-}
 
-
-/* ================= DỰ BÁO DOANH THU ================= */
-function fcTag(v){ return v>=100?['t-good','Vượt']:v>=97?['t-mid','Sát']:v>=93?['t-warn','Cần đẩy']:['t-bad','Cảnh báo']; }
 
 /* ================= render ================= */
 const RVF=['d','dl','w','wl','m','md','mdl','y','yl','yd','ydl','bs','dbs','wbs','wbsl','mbs','mbsl','ybs','ybsl'];
