@@ -1,0 +1,1866 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Key Sale KM v4.5.3 — Win Rural</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+[hidden]{display:none!important}
+:root{
+  --red:#C8102E; --red2:#E31B36; --navy:#0F2A4A; --ink:#14213D; --ink2:#44546A;
+  --line:#E4E8EF; --bg:#F4F6FA; --card:#fff;
+  --good:#0E9F6E; --goodbg:#E6F7F1; --warn:#D97706; --warnbg:#FEF4E6;
+  --bad:#DC2626; --badbg:#FDECEC; --mid:#2563EB; --midbg:#EAF1FF;
+  --sh:0 1px 2px rgba(16,32,64,.06), 0 4px 14px rgba(16,32,64,.06);
+  --fs:13px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:"Be Vietnam Pro",Inter,"Segoe UI",system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink);font-size:var(--fs);-webkit-font-smoothing:antialiased}
+img{max-width:100%}
+button,select,input{font-family:inherit}
+a{color:inherit}
+
+/* ---------- header ---------- */
+.hd{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:60}
+.hd-in{max-width:1680px;margin:0 auto;display:flex;align-items:center;gap:14px;padding:10px 20px}
+.hd .lg{height:34px;width:auto;max-width:180px;display:block;flex:none;object-fit:contain;object-position:left center}
+.hd .tt{font-size:17px;font-weight:700;letter-spacing:-.2px;line-height:1.2}
+.hd .tt span{display:block;font-size:11.5px;font-weight:600;color:var(--ink2);letter-spacing:.4px;text-transform:uppercase}
+.hd .mt{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.pill{background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:5px 11px;font-size:12px;font-weight:600;color:var(--ink2);white-space:nowrap}
+.pill b{color:var(--ink)}
+.btn{border:1px solid var(--line);background:#fff;border-radius:9px;padding:7px 13px;font-size:13px;font-weight:600;color:var(--ink);cursor:pointer;white-space:nowrap;transition:.15s}
+.btn:hover{border-color:var(--navy);background:var(--bg)}
+.btn.pri{background:var(--red);border-color:var(--red);color:#fff}
+.btn.pri:hover{background:var(--red2)}
+
+main{max-width:1680px;margin:0 auto;padding:16px 20px 60px}
+
+/* ---------- drop zone ---------- */
+#drop{max-width:760px;margin:60px auto;background:#fff;border:2px dashed var(--line);border-radius:18px;padding:48px 32px;text-align:center;box-shadow:var(--sh)}
+#drop.over{border-color:var(--red);background:var(--badbg)}
+#drop h1{font-size:22px;margin:0 0 8px}
+#drop p{color:var(--ink2);margin:6px 0 20px}
+#drop .row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.staticNote{max-width:760px;margin:16px auto;background:var(--warnbg);border:1px solid #F3D9A6;border-radius:12px;padding:12px 16px;color:#8a5a00;font-size:12.5px}
+
+/* ---------- KPI ---------- */
+#kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:12px 0}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:12px;padding:11px 13px;box-shadow:var(--sh);display:flex;flex-direction:column;gap:2px}
+.kpi .lbl{font-size:11px;font-weight:600;color:var(--ink2);text-transform:uppercase;letter-spacing:.3px}
+.kpi .v{font-size:19px;font-weight:800;color:var(--ink);line-height:1.1}
+.kpi .s{font-size:11px;color:var(--ink2)}
+.kpi .s .up{color:var(--good);font-weight:700}
+.kpi .s .down{color:var(--bad);font-weight:700}
+
+
+/* ----- drawer ----- */
+#drawerBackdrop{position:fixed;inset:0;background:rgba(15,42,74,.45);z-index:200;opacity:0;pointer-events:none;transition:opacity .2s}
+#drawerBackdrop.on{opacity:1;pointer-events:auto}
+#drawer{position:fixed;top:0;left:0;width:min(380px,90vw);height:100vh;z-index:201;background:#fff;
+  box-shadow:4px 0 24px rgba(0,0,0,.15);overflow-y:auto;overflow-x:hidden;
+  transform:translateX(-100%);transition:transform .25s cubic-bezier(.4,0,.2,1);
+  padding:0 0 24px}
+#drawer.on{transform:translateX(0)}
+#drawer .dr-hd{position:sticky;top:0;z-index:5;background:#fff;border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:10px;padding:12px 16px}
+#drawer .dr-hd h3{font-size:15px;font-weight:700;margin:0;flex:1}
+#drawer .dr-hd button{width:32px;height:32px;border:0;border-radius:8px;background:var(--bg);font-size:16px;cursor:pointer}
+#drawer .dr-body{padding:12px 16px}
+#drawer .dr-body .filters{border:0;box-shadow:none;padding:0;margin:0}
+#drawer .dr-body .cfgBox{margin:12px 0;border-left:3px solid var(--red);border-radius:0 8px 8px 0}
+#drawer .dr-body .filters .grid{grid-template-columns:1fr}
+#drawer .dr-body .filters .frow{flex-wrap:wrap}
+
+
+.sec-view{position:absolute;right:6px;top:50%;transform:translateY(-50%);display:none;gap:3px}
+th:hover .sec-view,th:focus-within .sec-view{display:flex}
+.sec-view button{font-size:9.5px;font-weight:700;padding:2px 6px;border:1px solid var(--line);border-radius:4px;background:var(--bg);cursor:pointer;line-height:1.3}
+.sec-view button.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+
+/* ---------- toolbar ---------- */
+.toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:8px 0}
+.seg{display:inline-flex;background:#fff;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.seg button{border:0;background:transparent;padding:6px 11px;font-size:12.5px;font-weight:600;color:var(--ink2);cursor:pointer}
+.seg button[aria-pressed="true"],.seg button[aria-selected="true"]{background:var(--navy);color:#fff}
+.seg button+button{border-left:1px solid var(--line)}
+.ts{display:inline-flex;align-items:center;gap:4px;background:#fff;border:1px solid var(--line);border-radius:9px;padding:3px 6px}
+.ts button{width:26px;height:26px;border:0;background:transparent;border-radius:6px;font-weight:700;cursor:pointer;color:var(--ink2)}
+.ts button:hover{background:var(--bg)}
+.ts .lbl{font-size:11px;color:var(--ink2);min-width:30px;text-align:center}
+#tabs{display:flex;gap:4px;flex-wrap:wrap;margin:10px 0 6px}
+#tabs button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 14px;font-size:13px;font-weight:600;color:var(--ink2);cursor:pointer}
+#tabs button[aria-selected="true"]{background:var(--red);border-color:var(--red);color:#fff}
+
+/* ---------- filters drawer ---------- */
+.filters{display:none;background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;margin:8px 0;box-shadow:var(--sh)}
+.filters.open{display:block}
+.filters .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+.filters label.fl{display:flex;flex-direction:column;gap:3px;font-size:11.5px;font-weight:600;color:var(--ink2)}
+.filters select,.filters input[type=search],.filters input[type=text]{border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-size:13px;background:#fff;color:var(--ink);width:100%}
+.filters .frow{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center}
+.chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 11px;font-size:12px;font-weight:600;color:var(--ink2);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--midbg);border-color:var(--mid);color:var(--mid)}
+#chipCols,#chipCg{display:flex;gap:6px;flex-wrap:wrap}
+.cgBox{margin-top:10px}
+.cgBox h4,.cfgBox h4{margin:4px 0 6px;font-size:12px;color:var(--ink2);text-transform:uppercase;letter-spacing:.3px}
+
+/* multiselect dropdown */
+.ms{position:relative;display:inline-block}
+.ms-btn{border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-size:13px;background:#fff;color:var(--ink);cursor:pointer;min-width:150px;max-width:280px;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ms-panel{position:absolute;top:100%;left:0;z-index:40;margin-top:4px;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:var(--sh);padding:8px;min-width:200px;max-height:300px;overflow:auto}
+.ms-opt{display:flex;align-items:center;gap:7px;padding:5px 6px;border-radius:6px;font-size:13px;cursor:pointer}
+.ms-opt:hover{background:var(--bg)}
+.ms-act{display:flex;gap:6px;margin-top:6px;border-top:1px solid var(--line);padding-top:6px}
+.dim{opacity:.4;pointer-events:none}
+
+/* combobox (searchable select) */
+.cb-src{display:none}
+.cb{position:relative;display:inline-block;width:100%}
+.cb-btn{width:100%;border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-size:13px;background:#fff;color:var(--ink);cursor:pointer;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cb-btn.set{border-color:var(--mid);color:var(--mid);font-weight:600}
+.cb-panel{position:absolute;top:100%;left:0;z-index:50;margin-top:4px;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:var(--sh);padding:6px;min-width:220px;width:max-content;max-width:340px}
+.cb-q{width:100%;border:1px solid var(--line);border-radius:7px;padding:6px 8px;font-size:13px;margin-bottom:5px}
+.cb-list{max-height:260px;overflow:auto}
+.cb-opt{padding:5px 8px;border-radius:6px;font-size:13px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cb-opt:hover,.cb-opt.hi{background:var(--midbg)}
+.cb-opt.on{font-weight:700;color:var(--mid)}
+.cb-none{padding:6px 8px;color:var(--ink2);font-size:12px}
+
+/* logic panel */
+.logic{background:#fff;border:1px solid var(--line);border-radius:12px;margin:12px 0 0;box-shadow:var(--sh);overflow:hidden;order:999}
+.logic summary{cursor:pointer;padding:11px 14px;font-weight:700;font-size:13.5px;list-style:none;display:flex;align-items:center;gap:8px}
+.logic summary::-webkit-details-marker{display:none}
+.logic[open] summary{border-bottom:1px solid var(--line)}
+.logic .body{padding:12px 16px;font-size:12.5px;line-height:1.6;color:var(--ink2)}
+.logic .body h4{color:var(--ink);margin:10px 0 4px;font-size:12.5px}
+.logic .body code{background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-size:11.5px;color:var(--navy)}
+.logic .body ul{margin:4px 0;padding-left:18px}
+
+/* ---------- table ---------- */
+.scopeInfo{font-size:12.5px;color:var(--ink2);margin:4px 0}
+.scopeInfo b{color:var(--ink)}
+.tbl-card{background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:var(--sh);overflow:hidden;position:relative;min-width:0;max-width:100%}
+#app{overflow-x:hidden;display:flex;flex-direction:column;max-width:100vw}
+#tblWrap{overflow:auto;max-height:calc(100vh - 260px);position:relative;width:100%;max-width:100%}
+table#tbl{border-collapse:separate;border-spacing:0;font-size:var(--fs);width:max-content;min-width:100%}
+#tbl th,#tbl td{padding:6px 9px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line)}
+#tbl thead th{position:sticky;background:#fff;z-index:5;font-size:11.5px;font-weight:700;color:var(--ink2);text-transform:none}
+#tbl thead tr.g th{top:0;z-index:7;background:var(--navy);color:#fff;text-align:center;font-size:12px}
+#tbl thead tr.c th{z-index:6;cursor:pointer}
+#tbl thead tr.c th:hover{background:var(--midbg)}
+#tbl thead th.sorted{color:var(--red);box-shadow:inset 0 -2px 0 var(--red)}
+#tbl thead th.sorted.asc{box-shadow:inset 0 2px 0 var(--red)}
+#tbl th.sticky,#tbl td.sticky{position:sticky;left:0;z-index:4;text-align:left;background:#fff;border-right:2px solid var(--line);max-width:420px;overflow:hidden;text-overflow:ellipsis}
+#tbl thead th.sticky{z-index:8}
+#tbl td.gA{background:#fff}
+#tbl td.gB{background:#FAFBFD}
+#tbl td.gs{border-left:1px solid var(--line)}
+#tbl thead th.gs{border-left:1px solid rgba(255,255,255,.25)}
+#tbl tr.total td{font-weight:800;background:#FFF7E6;border-bottom:2px solid #F3D9A6}
+#tbl tr.total td.sticky{background:#FFF7E6}
+#tbl tbody tr:hover td{background:var(--midbg)}
+#tbl tbody tr:hover td.sticky{background:var(--midbg)}
+#tbl .lv1 td,#tbl .lv2 td,#tbl .lv3 td,#tbl .lv4 td,#tbl .lvb td{background:#F6F9FE}
+#tbl .lv1 td.sticky{padding-left:20px}
+#tbl .lv2 td.sticky{padding-left:34px}
+#tbl .lv3 td.sticky{padding-left:48px}
+#tbl .lv4 td.sticky{padding-left:62px}
+#tbl .lvb td.sticky{padding-left:28px}
+.lvl{display:inline-block;font-size:9.5px;font-weight:700;color:#fff;background:var(--ink2);border-radius:4px;padding:1px 5px;margin-right:6px;vertical-align:1px}
+.nm{display:flex;align-items:center;gap:6px;overflow:hidden}
+.nm .cd{font-weight:700;color:var(--navy)}
+.nm .code{color:var(--ink2);font-weight:500;font-size:11px}
+.tg{width:18px;height:18px;flex:none;border:1px solid var(--line);background:#fff;border-radius:5px;font-weight:700;cursor:pointer;line-height:1;color:var(--ink2);padding:0}
+.tg:hover{border-color:var(--navy)}
+.tipname,.nm .cd[data-tip]{cursor:help;border-bottom:1px dotted var(--ink2)}
+.rk{display:inline-block;font-weight:700;color:var(--ink2)}
+.rk.top{color:var(--good)}
+.rk.bot{color:var(--bad)}
+.rk small{color:var(--ink2);font-weight:500}
+.na{color:#B6BDCC}
+.cell-good{color:var(--good);font-weight:600}
+.cell-warn{color:var(--warn);font-weight:600}
+.cell-bad{color:var(--bad);font-weight:700}
+.pill.st-run,.pill.st-last,.pill.st-pre,.pill.st-end{color:#fff;font-size:10.5px;padding:1px 7px}
+.st-run{background:var(--good)}
+.st-last{background:var(--warn)}
+.st-pre{background:var(--mid)}
+.st-end{background:var(--ink2)}
+.timeleft{display:inline-block;font-size:10.5px;font-weight:700;border-radius:5px;padding:1px 6px}
+.tl-red{background:var(--badbg);color:var(--bad)}
+.tl-yellow{background:var(--warnbg);color:var(--warn)}
+.tl-ok{background:var(--goodbg);color:var(--good)}
+.vi{font-size:11px;color:var(--ink2);margin-top:2px;white-space:normal;max-width:400px;line-height:1.4}
+.vi b{color:var(--ink)}
+
+/* view level */
+body.lv-compact #tbl th,body.lv-compact #tbl td{padding:4px 7px}
+body.lv-lite #tbl th,body.lv-lite #tbl td{padding:3px 6px;font-size:12px}
+body.lv-lite .vi{display:none}
+
+#moreBox{text-align:center;padding:12px}
+.rowinfo{font-size:12px;color:var(--ink2);padding:8px 4px}
+#xscroll{overflow-x:auto;overflow-y:hidden;height:14px}
+#xscrollIn{height:1px}
+.warnBox{background:var(--warnbg);border:1px solid #F3D9A6;border-radius:10px;padding:10px 14px;color:#8a5a00;font-size:12.5px;margin:8px 0}
+.demoBanner{background:var(--midbg);border:1px solid #B9D1FF;border-radius:10px;padding:8px 14px;color:var(--mid);font-size:12.5px;font-weight:600;margin:8px 0}
+
+/* tooltip */
+#tip{position:fixed;z-index:200;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 10px 30px rgba(16,32,64,.18);padding:10px 12px;max-width:320px;font-size:12px;pointer-events:none}
+#tip .tt-h{font-weight:700;color:var(--ink);margin-bottom:4px}
+#tip .tt-s{color:var(--ink2);font-size:11px;margin-bottom:6px}
+#tip .tt-r{display:flex;justify-content:space-between;gap:12px;padding:2px 0;border-top:1px dashed var(--line)}
+#tip .tt-r span{color:var(--ink2)}
+#tip .tt-r b{color:var(--ink)}
+#tip s{color:#B6BDCC}
+
+/* overlay */
+#overlay{position:fixed;inset:0;background:rgba(15,42,74,.55);z-index:300;display:flex;align-items:center;justify-content:center}
+#overlay .box{background:#fff;border-radius:14px;padding:22px 28px;font-weight:600;color:var(--ink);box-shadow:0 20px 50px rgba(0,0,0,.3)}
+
+/* cfg box */
+.cfgBox{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:8px 0;box-shadow:var(--sh)}
+.cfgRow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:6px 0;font-size:12.5px}
+.cfgRow label{display:flex;align-items:center;gap:5px}
+.cfgRow input[type=range]{width:120px}
+.cfgRow input[type=number]{width:70px;border:1px solid var(--line);border-radius:6px;padding:4px 6px;font-size:12.5px}
+.wlbl{font-size:11px;color:var(--ink2);min-width:34px;text-align:right}
+
+/* ===== Trình chiếu ===== */
+#ink,#laser{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:90}
+#ink.on,#laser.on{pointer-events:auto;cursor:crosshair}
+#laser{z-index:91}
+.ptools{position:fixed;bottom:14px;left:50%;transform:translate(-50%,150%);display:flex;gap:4px;align-items:center;
+ background:rgba(11,27,77,.94);backdrop-filter:blur(6px);border-radius:14px;padding:6px 8px;z-index:95;
+ box-shadow:0 14px 34px rgba(0,0,0,.35);opacity:0;pointer-events:none;
+ transition:transform .2s cubic-bezier(.4,0,.2,1),opacity .2s}
+.ptools.show{transform:translate(-50%,0);opacity:1;pointer-events:auto}
+.pzone{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:min(520px,70vw);height:16px;z-index:94}
+.pzone:after{content:"";position:absolute;left:50%;bottom:3px;transform:translateX(-50%);width:64px;height:4px;border-radius:3px;
+ background:rgba(11,27,77,.18);opacity:0;transition:opacity .18s}
+.pzone:hover:after{opacity:1}
+.ptools button{width:36px;height:34px;border:0;border-radius:9px;background:rgba(255,255,255,.08);color:#fff;font-size:15px;
+ cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative}
+.ptools button:hover{background:rgba(255,255,255,.2)}
+.ptools button.on{background:#fff;color:#0B1B4D}
+.ptools .sep{width:1px;height:22px;background:rgba(255,255,255,.22);margin:0 3px}
+.ptools .tip{position:absolute;bottom:42px;left:50%;transform:translateX(-50%);background:#0B1B4D;color:#fff;
+ font-size:11px;padding:4px 7px;border-radius:6px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s}
+.ptools button:hover .tip{opacity:1}
+body.fullscreen .hd{display:none}
+body.fullscreen .ptools{opacity:.9}
+@media print{#ink,#laser,.ptools{display:none}}
+
+@media (max-width:640px){
+  .hd-in{padding:8px 12px;gap:9px} .hd .lg{height:30px;width:auto;object-fit:contain;object-position:left center} .hd .tt{font-size:14.5px} .hd .tt span{display:none}
+  main{padding:10px}
+  .kpi .v{font-size:16px}
+}
+</style>
+</head>
+<body>
+
+<header class="hd">
+  <div class="hd-in">
+    <img id="lg" class="lg" alt="WinMart+">
+    <div class="tt">Key Sale KM <span>v4.5.3 · Win Rural · Theo dõi CTKM</span></div>
+    <div class="mt">
+      <span class="pill" id="fileinfo">Chưa có dữ liệu</span>
+      <button class="btn" id="btnFilters" aria-expanded="false">⚙ Bộ lọc <span id="fCount"></span></button>
+      <span class="ts" title="Cỡ chữ" style="display:inline-flex;align-items:center;gap:2px;font-size:12px"><button id="tsDown2" style="border:1px solid var(--line);background:#fff;border-radius:4px;cursor:pointer;width:24px;height:24px;font-size:11px;line-height:1">A⁻</button><span id="tsLbl2" style="min-width:32px;text-align:center;font-size:11px">13px</span><button id="tsUp2" style="border:1px solid var(--line);background:#fff;border-radius:4px;cursor:pointer;width:24px;height:24px;font-size:12px;line-height:1">A⁺</button></span> <button class="btn" id="btnOpen">📂 Mở file</button>
+      <button class="btn" id="btnDemo">▶ Demo</button>
+      <button class="btn" id="btnExport" hidden>⬇ Excel</button>
+      <button class="btn pri" id="btnSnap" hidden>💾 Lưu bản xem</button>
+    </div>
+  </div>
+</header>
+
+
+<!-- Drawer -->
+<div id="drawerBackdrop"></div>
+<div id="drawer">
+  <div class="dr-hd">
+    <h3>🎛 Bộ lọc</h3>
+    <button id="drawerClose" title="Đóng (Esc)">✕</button>
+  </div>
+  <div class="dr-body" id="drawerBody">
+    <!-- filters will be moved here by JS -->
+  </div>
+</div>
+
+<input type="file" id="file" accept=".xlsx,.xls" hidden>
+
+<div id="drop">
+  <h1>📊 Key Sale KM v4</h1>
+  <p>Kéo-thả file Excel (có sheet <b>SALE</b>, <b>CTKM</b>, <b>FC</b>) vào đây, hoặc bấm mở file.<br>Số liệu được xử lý hoàn toàn trên máy bạn — không gửi đi đâu.</p>
+  <div class="row">
+    <button class="btn pri" id="btnOpen2">📂 Chọn file Excel</button>
+    <button class="btn" id="btnDemo2">▶ Xem với dữ liệu demo</button>
+  </div>
+</div>
+
+<div class="staticNote" id="staticNote" hidden>Đây là bản xem tĩnh. Mở bằng trình duyệt máy tính (Chrome/Edge) để tương tác đầy đủ.</div>
+
+<main id="app" hidden>
+  <div class="warnBox" id="warnBox" hidden></div>
+  <div class="demoBanner" id="demoBanner" hidden>⚠ Đang xem DỮ LIỆU DEMO — bấm "Mở file" để nạp số liệu thật.</div>
+
+  <!-- Filters drawer -->
+  <div class="filters" id="filters">
+    <div class="frow" style="margin-top:0">
+      <label class="fl" style="flex:1;min-width:200px">Tìm mã / tên hàng
+        <input type="search" id="q" placeholder="Nhập mã hàng hoặc tên…">
+      </label>
+      <label class="fl" style="min-width:150px">Mã cửa hàng
+        <input type="search" id="fStore" placeholder="Mã CH…">
+      </label>
+    </div>
+    <div class="grid" style="margin-top:10px">
+      <label class="fl">Phạm vi KM
+        <select id="fScope"><option value="km">Chỉ mã đang có CTKM</option><option value="all">Tất cả mã</option></select>
+      </label>
+      <label class="fl">Trạng thái KM
+        <div class="ms" id="msStatus"><button type="button" class="ms-btn" id="msStatusBtn" aria-expanded="false"></button><div class="ms-panel" id="msStatusPanel" hidden></div></div>
+      </label>
+      <label class="fl">Phân loại key
+        <div class="ms" id="msKey"><button type="button" class="ms-btn" id="msKeyBtn" aria-expanded="false"></button><div class="ms-panel" id="msKeyPanel" hidden></div></div>
+      </label>
+      <label class="fl">GROUP KM <select id="fGroup"></select></label>
+      <label class="fl">MCH3 <select id="fMch3"></select></label>
+      <label class="fl">Miền <select id="fRegion"></select></label>
+      <label class="fl">RM <select id="fRm"></select></label>
+      <label class="fl">RSM <select id="fRsm"></select></label>
+      <label class="fl">QLKV <select id="fAsm"></select></label>
+      <label class="fl">Loại CH <select id="fType"></select></label>
+    </div>
+    <div class="cgBox" id="cgBox" hidden>
+      <h4>Nhóm cùng tính chất theo</h4>
+      <div id="chipCg"></div>
+    </div>
+    <div class="frow">
+      <span style="font-size:11.5px;font-weight:600;color:var(--ink2)">Nhóm cột hiển thị:</span>
+      <div id="chipCols"></div>
+    </div>
+    <div class="frow">
+      <button class="btn" id="btnReset">↺ Xoá lọc</button>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div id="tabs" role="tablist"></div>
+
+<div class="secTog" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:6px 0">
+  <span style="font-size:11px;font-weight:600;color:var(--ink2);text-transform:uppercase">Section:</span>
+  <span id="secChips"></span>
+</div>
+
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="seg" id="segView" title="Mức hiển thị">
+      <button data-v="full" aria-pressed="true">Full</button><button data-v="compact" aria-pressed="false">Compact</button><button data-v="lite" aria-pressed="false">Lite</button>
+    </div>
+    <div class="ts" title="Cỡ chữ">
+      <button id="tsDown">A⁻</button><span class="ts-lbl lbl" id="tsLbl">13px</span><button id="tsUp">A⁺</button><button id="tsReset" style="font-size:11px">A</button>
+    </div>
+    <div class="seg" id="segTb" title="Tính trung bình chia cho">
+      <button data-v="ps" aria-pressed="true">TB CH phát sinh</button><button data-v="all" aria-pressed="false">TB mọi CH</button>
+    </div>
+    <div class="seg" id="segUnit" title="Đơn vị tiền">
+      <button data-v="1" aria-pressed="false">đ</button><button data-v="1000" aria-pressed="true">nghìn</button><button data-v="1000000" aria-pressed="false">triệu</button>
+    </div>
+    <button class="chip" id="btnViewInfo" aria-pressed="false" hidden>👁 View Info</button>
+  </div>
+
+  <!-- Ranking config -->
+  <div class="cfgBox" id="rankCfg">
+    <h4 style="margin:0 0 6px;font-size:12px;color:var(--ink2);text-transform:uppercase">⚖ Cấu hình xếp hạng</h4>
+    <div class="cfgRow" id="rankInds"></div>
+    <div class="cfgRow"><label><input type="checkbox" id="rankByNhom"> Xếp hạng theo <b>Nhóm DT</b> (N1→N8, mỗi nhóm 1 phiếu)</label></div>
+  </div>
+
+  <!-- Top trending config -->
+  <div class="cfgBox" id="trendCfg" hidden>
+    <h4 style="margin:0 0 6px;font-size:12px;color:var(--ink2);text-transform:uppercase">🔥 Cấu hình Top Trending</h4>
+    <div class="cfgRow">
+      <label>Ngưỡng %Δ tối thiểu <input type="number" id="trThr" value="0" step="5"> %</label>
+      <label>TOP N <input type="number" id="trTopN" value="50" min="5" step="5"></label>
+    </div>
+    <div class="cfgRow">
+      <span class="wlbl">Doanh thu</span><input type="range" id="wVal" min="0" max="100" value="40"><span class="wlbl" id="wValL">40%</span>
+      <span class="wlbl">Sản lượng</span><input type="range" id="wQty" min="0" max="100" value="30"><span class="wlbl" id="wQtyL">30%</span>
+      <span class="wlbl">Độ phủ</span><input type="range" id="wCov" min="0" max="100" value="30"><span class="wlbl" id="wCovL">30%</span>
+    </div>
+  </div>
+
+  <!-- Logic panel -->
+  <details class="logic" id="logicPanel">
+    <summary>📐 Logic &amp; công thức tính</summary>
+    <div class="body" id="logicBody"></div>
+  </details>
+
+  <div class="scopeInfo" id="scopeInfo"></div>
+  <div id="kpis"></div>
+
+  
+  <div id="recap" class="recap"></div>
+
+<div class="tbl-card">
+    <div id="tblWrap"><table id="tbl"><thead></thead><tbody></tbody></table></div>
+    <div id="xscroll"><div id="xscrollIn"></div></div>
+  </div>
+  <div class="rowinfo" id="rowinfo"></div>
+  <div id="moreBox" hidden><button class="btn" id="btnMore"></button></div>
+</main>
+
+<div id="tip" hidden></div>
+<div id="overlay" hidden><div class="box" id="overlayMsg">Đang xử lý…</div></div>
+
+<canvas id="ink"></canvas>
+<canvas id="laser"></canvas>
+<div class="pzone" id="pzone"></div>
+<div class="ptools" id="ptools">
+  <button id="tFull" title="Toàn màn hình"><span>⛶</span><span class="tip">Toàn màn hình (F)</span></button>
+  <span class="sep"></span>
+  <button id="tPen" title="Bút vẽ"><span>✏️</span><span class="tip">Bút (P)</span></button>
+  <button id="tHi" title="Highlight"><span>🖍</span><span class="tip">Highlight (H)</span></button>
+  <button id="tLaser" title="Bút chỉ"><span>🔴</span><span class="tip">Bút chỉ (L)</span></button>
+  <button id="tErase" title="Tẩy"><span>🧽</span><span class="tip">Tẩy (E)</span></button>
+  <span class="sep"></span>
+  <button id="tClear" title="Xoá nét vẽ"><span>🗑</span><span class="tip">Xoá hết (C)</span></button>
+  <button id="tHide" title="Ẩn thanh công cụ"><span>✕</span><span class="tip">Ẩn thanh công cụ</span></button>
+</div>
+
+<script>const LOGO="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAQDAwQDAwQEAwQFBAQFBgoHBgYGBg0JCggKDw0QEA8NDw4RExgUERIXEg4PFRwVFxkZGxsbEBQdHx0aHxgaGxr/2wBDAQQFBQYFBgwHBwwaEQ8RGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhoaGhr/wgARCACWAkoDASIAAhEBAxEB/8QAHAABAAEFAQEAAAAAAAAAAAAAAAEEBQYHCAMC/8QAGwEBAAIDAQEAAAAAAAAAAAAAAAEDAgQFBgf/2gAMAwEAAhADEAAAAcBHnftsoAkhJJEgAAAAAJBAJAABAAARJKUJgEkJEJEJEJAkhIhJMJk+X0ISImR8voQkgEhMeRMYglEkRIkIADJcqPa39QUXS8Lyj6VOytD1+L4t1rgW55rQNZQ711PQ6itO8tGzlN6snVGeny745vhFHXDDaJiQEwmAJCQhEkphJMSIBIITCUwiac5wjrjk/Z894InU9OAmARIIJAAB5TBhKJSAAAAudsos9HsicQy/u/ItH/eyOc9H1XWPw++h5LlzpjG7/rdrRmDetPyfpOadBYF9dX5zhFl2RYNXv6vmJ0PZkSRH1TTXvG3bAvPY+Y8nqyj4/wBQZLi++NjiXrnfrTljY41rmHP9vJCZARKFfb7vZodCaC6c5z3/ABvpt/nDMsNjofF8n582/NxhlbQ8f6jMGO2AAAAAB5yRCJIhIhIIlICnqPlXsHfvHnXPY+ZVXMHT+rZwvua8+dB56rWWzdD4beu/Tz2Fy/oG8dC725P3/HZ5SbisONurMw9Nyp0Ll2H34x3XnYPKtW/0VkmEX7o+J1rqbqfl3me++urdJbL2vP5Vyx1PyphsXHZFmxKrf2djWt+srubyXf7/AFmr6O52feWAbvk8OynGMHq6HVGG5jzds8T4xCp8uT9I6T55pPWzVTE0dlH0TCYiAJQJQJQJgT5hiIJBCQiQAEKHfuism3fJ9OUVa6vz7kXq7Ru3dT0OQ4Bn/hs8bkbozTHTGl6jXGhM8wLW7nTlhv1g6PirBt7UO3GPJt4tF45f0DqTmTpvmXoeM3Dgee86Y3diaF3N538nHcMuVlp6W9eVuqeVcdmdoZ7gcZRtDj7rW3n68tF4s9e5uXk/qvlPDci7Wq66voepedOi+dd/x+IScr6RMJmIkQAIJhIRIRIAB5TExiiSYSISIkAATFvuVFlo9VX7SW7e58ptN2Y/lRkDHMjnGxVN01bVvaYo6ml4n1bpyw0Fn6vzr325z/tCcefrxaPvm+7645l3XoHe8hvXnPc+n6Oxs7dXH9/s0frMNa5JT1em+VN8c57PD670vR7Ft5+iupNN0te1e7Pj9LVv9Fcp7y0bjtvr5otXv9i6px7YHV+daoxfPMD5n0MTX0YJIkABBKCJQJQTKCPhCMZCQAESITBIiZ8vSJx+utuN9i9LwXRGlrjqea8y39xrubKncfNeUaxo7D4+40PYePrKcfH0+iHl6k+f19D5+kxkRMzHj7mPx9ST4T7Jw+fn0RlHn7E/P1Esnz9Dw+vVNSYmLQkCCBKBKAAAAB8TExiRKQBAkISESITMPPz901/H2M/j59TFMRGf1AmUAkQJBBMCUCUCUCUCX17Rj4K+orrtC/1FVeLzl9RXVhDPqmqvXDZ1TXVqht+oqq0xG76iqvRPtvf7qr0bUbriqrTtRtyKqtWVOypqr13UZ2rqwyoyyKqsc9r6rr57mH0P34EwBMJCIk+z4VXvhXbl696q8fjKamrDDWc1FdWvmyKiuvV7bHvVVqBuj2qr0jO9veqvQ/vvWa6tI++5lVeo6raamrWPv9V/S06ao9mvh9VFvqq6q2pxa611Xyoxmr1cL57YxUYY35gV5zjJIwL1sxzmdZ3eWasP8a8s1m0Y/XObsHqLccwa0ulkZuw/5qnMlsxTGc/YlZLsdkMOp8Wczh/tjllTXvtdhnjA7bK03M7PtKqoONyfepNXXqKgqw9/cqrqPUrwAQQmSYAAACAESIASFg+zbr+fUzxtdQXYXH5NO3yuAeVMFb5B8wInxJmsoRFRAUdaWYz4leVdbCVd8kT7UxMffiSobyZ40dURlTfBMf/EAC8QAAEEAgAEBQQCAQUAAAAAAAQBAgMFAAYRExQ1EBIVITQWMUBQIDA2IyQzYHD/2gAIAQEAAQUC/wDIhNdPMjOqi67wYx0jvpmz5csT4X4MNKXKbWlV6+AdSWe2WJ8Mn5qasco352vjNMt8KGjLgMHcGTpQrJFzZqppgarwzTwuSBuUzWgYiOe4ARoQm1yNfb/mRr/uMn/5/wA2qM6C28N1C5c+jFo2TFRHJY17oLQaBow+1F9TaZqofV280rYIQqIm8y3pZql38ftmuUQzwtnpIh4fGjrfVTptdr5YJo1hl/pAgQs5lKAyK4EaDY63XRWZqa7WI7F1+ucuyVsNaZ+ZMnvrZ3X1OXoXX1lWYtdZIvmTCalJrswhBBZHrK93204Lp63cDOnq9bvQ1rtqthzGfxkyg7KTA0qAodwhGKvBNOC6euyy7h/TQ98zZ+9CGEV5EW32bpsk2u0bKUXMdL+ZKntpJ/JN8NjB6Gz1Y7ranw3EzliZDA4smGJsEW2FdVZ02qrZQXVE+oWoqn2xFlqXSi1erTms+ixeFrrM9eyXKDsubiB5X4OO4wqGJsEWWXcKynJtXRaaNG36TrpUsNQmgYvstRWOtSj9RiiFptYU6LYNdjrRaekrGNw2lrSibwQYM7zcuVNjrlGkd55PzXJ7DTuDKgmaRDm5g84PTDensPDcGSJZ5pgXPPLnQUYmZ0r9c7Juna9E91X7W22mOI1nZCDCnNRyXAyCHgyOi1erObYg2IbTw5GOifpgXNMHsOoustF4H69sogVfd3M1vMAdLWFMekjNtCQY3RfkqnFD9pDrJ9g2OCyC19OF5mzs43mOZxxrPL+gkT30s7qK7CoGlDu5taeMQ0ofNsC6iucvBNYC6Kp3AzlBS5rnY917Xon3IXgOvvmve17mz96E/wAU0qy5U+bgD0xlbG2i1/SpXT2GWfvYAVk9hINpbESan1wZYfJyt4+PonyJ38uB/wDqOyh77mzd6/RSJxTVj+ht/DdAOQbSiuCq8kjbLGyqc+8RPKmzmdXaSZrnY917Xon3J+NlB3zNn7yJ/isUrxZwDGHiWFfFYxbob5YdE+Zln3GqAbXBbfaSwY9vDK1OFfvHxtE+Qb8Pwoe+Zs3ev0a8WupzvUa7DgIrBnilbElpYFIEE5yudLmudj3Xteifcn42UHfM2fvIf+KyJmlWnke+RsTLc1bA3RPmZYP8lu1yPbuIr+qrq2W0LYiNbvHxtE+Qb8PwCI6SwRUcl9rxRthaURFU39FKmaMf7+Fyd6dW0dh6lW+G5GeQfJc1u/DZXbVcDmxarbw1hNlsYLA8CK6E9uzVborYvrjRr0NuuKnHERzHzWhxUbvtrlsypOm2etjiLes0tDtiBw/UtRIy12yFo9Rt7BRL679XdrduypNtdnC6PwkblFtvRw/VtVwvtgbaN/RPTilaYtcex6SMzeDOK6VY8gzwvzOts8VOOctPDlpiJw8FZxxG8MVOOInD+PLRcROHhy0xGImcM8qJ4ctMROHjw45y0xGIn6WRvBaTbH10Mu8QeUwmQ2drnwyB7zHyrDcXExf9B4+CpxzyYnt4K3jnkT9P98SJ640Mh2JVmLiUxy4lCauJrpS4mtTYmsriayzE1sfE18PEowUz0YH9b5VXEHldiAEriVJq4lIauJr5q4muFYmtS4ms4msx4mtjYmvhpiUYKYlSEmJXitxBoW4jWp4cf1CRPXEEndiVpa4lOcuJRGrn04Via2QuJrMmJrCYmtQ4muCpiUASY2mATEqw0xARm4kMbcY5iu/g1fMn9nDOH8uGcM4Zw/tRjlxBplxACVxKk1cSkNXE181cTXCsTWpcTWc+mo8TWxsTXw0xKMFMSpCTErhG40aFuIxqfzEsyYcnuX8xLuTiVZT9EPdPdGt4jWw2XkMlIlNgCtXyMs2yq+uKdMTVumcxzi4JwynWKCnkRihWz0ZZ2JUJsVy97y7NzBvVpRXTyypWDWk/PmvFWEa1lVx1iTEdDcyyKZYvZB6rLBLP55gGHShoGdPInqxDIrAh6E+tvgRlvO6S2JlEe6ymjnKPJgGju5Y2SbXPE+OnmkxuuTOxusOxNYbia2OmJromJQBJiUwTcSsETEEHbiRRpn2/HbTBtRagVWlVcc0Ile0cZ9G3nupYUZ6cPzZK0aWFakVXdKzyQgQQPGq4A3KHErhxGjP9NGWOOsGiySuGme6pEcjwoJB3VMEhEdfBE2atGmz0lqrHXQxtfXDySLUhua8SGSNakd00IUQ6KAOuNDhjySqFlQivGKctSGriads5PRRLE6thcQ0EdI0qA2q6kCe7/8QAPREAAQMDAgMEBQoEBwAAAAAAAQACAwQFERITMUFRBhQhQhUiMGFxEDRAcoGRocHR8CAjNbEkMjNDUFLh/9oACAEDAQE/Af8Ai6idtNEZXclH2kn3cvaNKra5lLT7/HoqLtC+SYMnAweiudeKCHXxPJWurfW0wleMFXa69waAwZcVSzGogbIRjI9tLJtN1Ky3KavMgl5e3rmbkBapGGN5aeSpya62mLm39j5K+tdXiJvPH4qmhFLTtj6BVrzX3DQPgqOurnV+zp9T4cvj8sjtDcoXOoirt1zvDPD3Jrg9uoK8Vpo6c6OJXZyolkfIx7s/w10zoYHObxwuz08r6pwc7Ph+iukNdPKXMdhvxVBT1U5Ipzj7cKkZLFA1kpy4e2kbqYQrxBtza+qtE+1UaDwd4forhBsVDgrJE2aubq5eKudR3amc5WCHVI+ody/uVS3WoNx0Z9UnGFcLzVQ1mIz6o5Kpqbtp3tWkdArXdJK2N0c3EKdh1Ofyyuz9XvU207i3+yvkxqKgsbwYuzR0ySH3KSW51lQ5kfqMHNVFXcLZIMyah71U3M+j+8RcSFDdrjLGYmHJ6809ldNQZncRjP2j3q0wS1E5bE/Scckad2wIycnqrZbGW/UQfE/QL1Ta4zj4oEtOQrpIyohjmHEqlnNNO2Ucl2gqxIGRs4HxVup+7W8DmfFUn9SH1lcfnzvsVzH+Hd8CrD/rv+r+YVJT94inb71QVTqCo1H4FbJ7hJUP4v8A1XZshskhPROulXX1GxSeqFdqaSn07jy4+9D+i/vquzDGkSk+781dPmzvgV2a+eO+r+Y+hVbNTMqrh2JnNTdUhDAntLHFpVHE6tqWRH9hT+Eao6ab0kDp4HKrqaaSv9Vuc4VxaXQEBWOnlZI97m4GFZoHhs2oYyVUWN9TUamnAPFXWnxSbUY4BWWmla2Rzm4Cpm1NsqtwM1K4R1lw/m6Me7mnUk0dq2iPW/8AV2cp5Yo3ueMZVazciwoWVttn1RNyrc+pkpw6pHrfQXDUMK7UL5DqYPEK0WmYy7sowArnb5HS64wrDbZIHGeYYPJEZQY1vBBjWnITmh3FaRjCAx8jmB3FaQBhbTOOFpCLQ7ih4Litpg5fQ3RtPFBaGnxx7QuARqIhxcPvRrKcecI3ClHnRulKPMjd6YdUbzDyaUb0zkxG9Hkz8UbzLyaEbxUHkEbrVHmjcao+ZGuqT5yu8znzn7/4soysHEo1MA84+9Guph5wvSNKPMjdKXqjd6foUbzFyaUbyOTPxRvLuTEbxNyaEbtUnovTdQRx/BG7VB869JTO/wBwrv0jh/mP3o1Bc3OU2TUhNk4whOFvtzhbzQjKAQt9ucLvDc4W80FOlDSt8LeaD4rdGMrfC32KepmZwKfX1P8A2Rrqk+co1M585+9GWQ8XLj7TbZ0WhutaG+PgtDei0t6LS3osDK0N6LQ3oi1p5LQ3ogxq0N6ItaeS0tWlvRaG9E1jclaWrQ3ov//EADYRAAEDAgMEBgkEAwAAAAAAAAEAAgMEEQUSIRMxQUIUIjBRkaEQICMyQFJx0fAzRGHhUIGx/9oACAECAQE/Af8AFtbmdZGkbbQqOMvdlUlKA27VFFtXWUzBG+wUEO13p4yuI7YC5VRE2O1u3jNnXQNxdO9nNfv9EUeyunOzuJUY2UV0+OMRZuPpGq2LTHb0QR7R+qq2AWI9WMZnAKqaAwKF0bRYqVzG+8nkFxI7Yb1Tuu2yqG3ZfuUTszFUuyxlRNzvsqp2gaE+FuyvxUVOx0eqY2C+VTQiMgtTTuCqo8r796pm5W371WbggIY23OpTGRTDdZMi9rkKdBEDmKBjbL1Qp3BrdRdZutdSymX4CnfZ3ogBa4tT252kKlZa5KldnlT/ANFQ/pKH3gqr3QnuyOaVKzatWb2oYOCq9wWxZE3M9QPDr2C/cKs4KL3wqv3PgmHVMdmbdaDVA3Uh2bCU3epHt2Kje0RaqLRyqXAgAKdwu2yZUhjbKF3tLlVDxpZPLJmWuojHF1brO0z5lVODiLJhsU4xzN1UmUO6vwUEgGhU87cuVqhlFrFVMwd1W9lc+rf4O/bZgEZohvcEaunHOPFHEKUc6OKUg5kcXpR3o41BwBRxuPgxHG+5nmjjUnBoRxmo7gji1UeKOJ1Z5ka+qPOul1B5z4+uZGDeUamAc48Ua2mHOEcRpRzo4rS96OMU38o4zD8pRxtvBnmjjbuDPNHGpeDQji9Sd1k52I5soI/PqicSuAXWv9E9mJXtm81LBVtcA55t9f4unU8wl2cjlLSujzXO63mn0LmNz5tPvb7p2GygG2tkcMn2YkHH+vz/AEm4fM4XH5bQqOjkka5zeCOHVAZmIRwuYMDxx/Pz6JuHzObcKKidM05TqE3DZXOLe5Nw6V7Q5qFDJtBGd5RwyQOAvv8A7+yGFVBOg81PUys3FSYhVDm/4un1R50auoPOfFbaU73FXJ7TpU/znxRqJTBlzcUaufq9ZdIm35inTyuGrlt5desdUJXlpbfRdIm3ZihUTDQOPio55WA2ctvLfNmN0+omOmb8shUTDc4+KZPKy+Vy20l75kJ5QbhxQqJmiwcfFPqJXNaC7cjNKbXcukz/ADnxX//EAEQQAAIBAgMDBwgGCAYDAAAAAAECAwARBBIhECIxEzJBUXGBsSMzQmFyc4KRFEBQkqHBBSA0YqLR4fAkMFJgdPFDU3D/2gAIAQEABj8C/wDkQkjiCoeGc2r/ABUWUHgw1GwKgLMdABWf6P3ZheikqlHHEHYI8Ohkc9AoDFxGO/A7S+FhLqOnhRSVSjrxB6Pr3LWS9r8nfe+vwRS6oN8jrtseGcZkcWNSwycY2tU+KYXZDkX1bGnQeXhF+0dWz6Sw35z/AA1FGdXeS49VtioguzGwqKBfQW3fUmT0VAbt+uxe2PHZL7Z+vYaY80Gzdh2x4peEgyt2isThT6QDjZY8KfBoNTJZO/hUcKc2NQopkHNgGX+exXPMgGfv6KeV+ailjUmMlkEKSsSCRe9LyhEkb81x+umJxcYmeXUZuAFDFYOPkwDaRRw7f1OSa4iUZnIoxrh0j6mXiKeNuKMVP+VBhybco4FcmMLEV9a61PBHzFO7TriNUjXNl66uMIlx6zsucKlzSDDaJIt8vV9egYnfQZH7tk0QG+BmTtFQT9CtvdnTVxqNmFx1tI0Obt6KlmbhGt6Z35zG52cs3PxBv3dFckvOnOXu6ahgmlWGWIZbObXqLD4VhLlbMzDh+vgfdCpIZOa62NSQyc5Gtt5dhv4g37ujZi/et4/5WC95sxPw+FCbCPkcVGrGKxYA+T2OoaOwYjzdGXFPnc/XpMIx3Zhde0f02zKo3G317DUWY+Ui8m3dtjwynWVrnsGyKCPnSMFpIo9FRQooxjmwDL39NfSJpeSjPNAFyaRg/KQvwNqMUbZVUXZuqnmw0xkKC5Vh0UJcQ3IRHhpqa8/NfuoyxNy8I4m2o2YH3Q2R4xBo26/5bIcOnGRgKSOMWVBYbMV71vGvICyDnO3AVfE4h267boryMsh9YcGi+Ck5cD0SLGrGuSVsqgXduoU74SSQyIt7N00MRi2aONuao4mvpOFZioNmVqwmJjbPPYMDynT2bHlxXnW4+VtRjwTZo8o9K9jSN/pN65cYlOF8l97stTN1m/1+KdOdGwYVHLHqjqGGxMSo3oTY9hp8M3NnGntDarPzDHubJMS3NhFh2mpZn4RqWp5G5znMawXu6j98PA1jvg/OtadP0ewhhU2BtcmvomPIdmG49rd1ENqDxrEQrzUc2qN4zZlwtwe6ocQnprqOo9NSwN6Y09RpkcWZTYipcWw3YhlXtNYnDIdyCIX9onZi/et40MPigyMhOqrfNRsSmHHMT+dJNASLHUdYpWHBhehNHos4ue2sb7C+Na8K+jCN5CujZOC19HwYezEFmYWrBe82Yk+z4fYjYdjvYc/wnZJDJzZFtV+EsEnhUc0fMkUMNnKrz4Dfu6dkWbny+UbvpcOp3pm17BswXu6j98PA1jvg/OpSP9B2YL3mzF+0PCl/4h8KfBSHdk3k7dgxCDcn4+1WeUbypyj+0eisfJIbu6gn57MX75vGsmEjzHpPQKvi8QzHqQVlxM4DdRn1/CkEXm8oy9lYQ/vt4VjfZX86kceipNF31ZtTswXvNmJ+Hw+xIgxtHN5Nvy/HamJQbs419oVhoJOcqa7GRxdWFjS/o9uiWzez/wBVYcKkA5kO4NmC9io/fDwNY74Pzqb2D4bMF7zZi/aHhS/8Q+FJLEbOjXFRYiPmyLfspY5+CuH+VRYRPT32rF+7HjsxQHEzN41HCg1tvHrNR4TDsUzrmdh1dWzCg/8ApXwrCe23hWN9lfzrEe7bw24L3mzE/D4fYlxoRUGI9Jl3u3p2RrOLhJA47v1Gx/8A5DHk/rU059Bb99Fm4nXZgvd1H74eBrHfB+dTewfDZgvebMX7Q8KT/iHw2PgZTo29H29Ipnc5VUXJqafoY7vZWL92PHZMx4LiCf4qDLqDrUeJA8mUyk9RpIogcl99uoUAvAcKwntnwrG+yv51P7tvDbh5jwSQE1ddQaM+EylXAzXa1jSPKVdG0uvQfsSfBOePlE/PbPP6QWy+10VDOTv2yv7W2LCg6yHM3YNsWGxUywSRab3SKjw+EflAGzMw4VKuKOWOYDe6iKl+jzpPIykKF2QYi2bk3BtXKfSl9m2tTYgCwkbQUIDL5cQmPJbW+wMhKsNQRXJ4rEySJ1E7GacHkZFysR0UXjxAlPQqjU08rcXYsaXDfpBWaNdEkHECt7FJbqKmmg/RCZc3GTLlt2UmHxsbuYxZWXpFIEQxwx8AeNM04PIyrlYjoqRMHLy0rrlFhw/UXDfpBWeNdFkXiBV/pB7OTNLFhkKwqb3bifsSDEL6Da+sdNBkN1YXB2Q4NTw8o/5U+DkO7NqvtbZnHMXcXu/2IMPi4zNCvMIOq1/hcNIzfv6CnmnN3eleMlXU3B6qAx8D8p/qj4GmjwMTRZtC7HX/AGLw+y9K0RvlW7BIfgr9mk+VeYPzrmKO1q1MY+KtZoxW9iB92t7EN92tZZD8q15Q/FXmie1q8wPmfs3ga3Y3Pw1ph5PuV+zvXmbdrCuag+OtXiHfWs6DurexPyStZ3+7Wskh+VcHPxV5o/fNfs61ph4vu1pDGPgrRR8vsrRGPdWkMh+A1ph5Pu1+ztXmwO1q58XzrWSMVvYhfu1vYg/crWaT5CtWlPfXNc/FXmQfiNfs0fyrTDxD4K0jQfDTKhGZOcB0fqgqQQekfYmgNaRP901ph5Pu1+zvXmbfEK4IPirV4h31rOg7q3sR/BWs7fdrWSU/KtQ5+KvNE/HX7OtaYeL7tbsMf3K0UfL9eOXENJKk2fcdQuWzAafOpMkD2w7MzWfioNjWVsLZicsflOLZgv51hsRAmR/pGV4+NwL3H4VGQnLqTvSZrWzMQvhQZobLkDc7pKkgfhWKaPD5nd1QC9tb24266wHIyPhDPJZsmttD/KollXM+ZEL9d76/hWF5HEywZ5RGQlump9CBKM8RJvoDlqflZmxCCSySMLX6+69T5MVLNkxEcao5Fjm16qm3ngLRpzW5vHhShnMxaEyvLLJbLrlsNKw8SYfyYyq7F9RdivC3qrGQxSstynJ+q2rVIsMLOzy2hztu9Pq9V6wmNW6RuGDJ68un4ivo8iCaRYwM2bi+nH51PIwEUyxMd1r2NqYSxOLqllc/uMb99qZeTyyFPRbhfLY/xVBG0G7uK7O29c39XqrEwpMwBmTJ6lHO8adYYCzSSeSzsQttfV+7WFxcRKpNEwy/vEbtHC8msrrlRGz85tBr/SnJYwSZM1424HtoWz4qQxKxMsn7pasSkg0yyPG+bXjauUlR1KpCwVn52hJOnXTHlpoY4ER7Rre9z0+qgBGJBkY6vrfX1UqHDxizhJd/hdrafKkMbkCVGiUfv9FCOPlXMfKBrm/WATp6q/Rs5PFC04HSMv8AZqNMizNyKnNn4tpx+dMjYKO6mx8r/StHjrzsY+da4gfcrexB7lremkNamQ/FXMY/HXmB860w0fyrdgjHwVoij4frEvkz5QEG7nTp06tajQobRknnnW5vr1604iVRIc1i97am58Kghls7RNn04X1/nWFOHEccEJGmt+N6WPDgJHyivJmu18vC1NJkOZnD842vx4UkDIciG62ci3f30rLHlZFyrYmwtw076hRt7krFT6xUjxJlMvO1/u1J9GDIqX0zk8aZiurOrnX0hwqQxgBGCgDsrk+T3cvJ8ei9/GrJH1HnHoN/E0zyRZmPE39X9KkBj84bnfP4dXdSwNGDCtsq9VuFTSyIGEgtbXj0/lUiKvk5Ey5b9H9mrSRX5vT1aCsSWyWljWOMW5oXhUe5vLl1v0r/AN0ZHiBc63v/AH1CnUw6M2Y7x4+rqpI3jBRCCo6rcKnaVAwl7dOv8akWMWRwBl6ha1ax+jl7rW8K3UtoV7jWWSK9gBxPAD+tI88Qcx8P76azmHW3WaikQoiKbkZNb3vxqCORc4hIKX6x01HLkXdzXHXf+zSR8nuRKVUHoBrMIQNOs/30UWaAXJudTX//xAAqEAACAQIEBgEFAQEAAAAAAAABEQAhMRBBUXFhgZGhsfDBIDBAUNHh8f/aAAgBAQABPyH9gvrX2X9lfrV9lRRRYqLBfSooovwruBFXsIdDKKoeeBD4oGSYDenNHC/9QaIwsp6BNQyZg8xjc9+wB6VhF4INEvoX3V9zaUbNuPDhCvT7Djwf0v7wKKgqyGpaBUpD53l0KGdeMSKV/AycLSMSBbvCECVJwHgtARcgQFnBBbh8TEPoRHXMesB1xts+gfknQLRZT2OuDj/LftC9AMBYpXBJ/wCZu0pEnlOhwMQsgiIasQdovgZQV2IAjZtXvfAu7edkHVW2ADh1rFBXkNJkegVXQjX6iRdAnYXVk6awdrsgvoCATgJNOcMFCKKtq54TICvtJQjJ0EDEQiolzvLfJLGwIBXeXcFAVeukAhRGD/pgaEiM1MANns2a/NZwqVVucv8AGFejuK/olZ4X3adkEAoJUHBai3iH/Zl3+/zC2Ms3E1hKKH+D0ivS6drDG+wIhqJopyNRIH6jphMNLO50u/48Ya+MemD1ev7JnY/Bw9jhhAlM0wRoQZz8tAcB/YxRkYepTNJDQfZWC/Ca0pFYmlEQ3qcZc5mnJ2x9sM3XC28TnA+JDwFI87+bQIFnm0jOOQwimIOhgKDzBp/ZYn1lhdKXHtvC2ymQFqi48AkDxH0J/KsebDtJ14xERR8BTD0+qFIGf6ipnKD3uQHY7Lgwds6wCYCInGc6f6Q/UlKQuwpKzshaevARENirvmJxi/0YwIzoXsujld4B6I4KVaeguCfUIdSUbT+o/Sovwl9IjI8brEPmyPA1w9zB3WPSvLAxrCCdF4YhfrblLuVOUNSzdw1nucThQKIQlklBat0862jwVGsMZlANAJBqJYTDblHHH0xBRPzoXJdZxT10D1hzRAjIie1SLpKjnf47LCkPcoWfYEDF9YIMz3vxTPztUzgZaPgc4O5iAabw231KAMAZTKaUgcGAh6iIgZCcg/Bw9kW4sFl/zhDFRVGVHUGF/wCB85Qnzxf5DTskbjCh76jwRTJfyHae3CXfB7XE4sOGuAJ6QErPQaHD2Gmeu1zwPqNxzGFCQNmi/UQQUJEc7HgIysL4k8AqPU5Scr9A8TAzMBYdTNby+EgQOggAwW0pAGwI9vrB70G8hCJYwSHMmJCdp8GCe5w/pE+QIl2LIAnozEO4S5wk1XfBy4xagwcZTDgq4AEIABARi32O/fD7fE4sIe/1TKdl8GCe40z32uJOUfiJafCasx1gRGPblbnGyqXJFhicRRsQOuA2KB6yYwVtIbgMBJegb0YAe31j0WrDKdt8HD2OGD9EQxFRWGDBOgUlyGmDnzixfRlg68/ghELVw45O8MgzEjxwe1xOJDnv9UM7L4ME9ZpnqNcpsShbd4BEyhRoBK76QTkNBjUC+ycoOamhGkHKSMDkE3lNqKdM+WT4DZgN6fWPTasDPEZ51gyRBgjOAQysQpDE+8ML+h/n1XFcaLoGIxZA55UgD46SvjlFG6HfEPkZyw5sGBpbVQgARLrGesv1guKNbqQqwx4KM6hAALTYuVQB4ck0sPEVgq2sEdIhDZhYIgzU5NId9ZcmekJDnBgeHFUZ8TueQEuBVDcdARL8iv49QgMgVA2NZTUws7jhWWjjInMyi6AGVqDKjVMwGzLxM3AZ8CmgIjvOGO+R3nbT9IL+kNRsB0g9ggDMHCwV/BFGjpr+jFmWXk/6wGNYARBQsgrMBSO2DvgrPpMAbYQ7wkhSEDAZSKEkBZiQuhd+iQY5SwTLWaQtOIhpDIzjtOM35lW2HCBbrCuQlM1FUnkG0QXWRnAD9Q/ySeDnRLzMRBeEspgC6AUAX6YA6ku/2OdnIpYexmW+4D5l82rhTDfFkz4rOfFAwH4JBoXmQz0r5/WiyJsJ2hzl7vNLD01M7QLhuAh3mJ+IX5oYfI9OM+Dggnng+Jft1OYW8LafdmWpcs7NAS2HaLWp+oJ2rOxweNcG2W+5Ah+u1Z/0P8nmGJmSOxT4K/1B77aHilj4lw3klEDBkTfM+XGnjoTt1BC/pALhtZXBQjM0gLDERgxRRRRRRRRYKLEUWCi+kFB9hYLSXFbCXN7Svd55ZB7hT5YhcN9JXaSPxD/NDD5PL/UHx8IB5gPjBi+dBS3H3JM/oLLOOSWA7BNqbR/R32jBXGvAwmMvhLwVKBboitSKRmyQjZkA0oKYSYGqGp7niqL5GTBnSGFl7+mlEaoSJF+DxHGE4lzIaUKjWHrYGKZNEqj7tAatQa0gXJzAmyUALLWGBREURauIo9LDfAhMjigLaGgXNVY4QFRcF8CNSgFFqAlEQ68EBBKXpUNwYD2JwMgs2XoHKmt6o5SU2ynulVKFeOLzskRlYxYWsFK0E43aczBHJG57IW0zUFHFEfTKNZXpFG6QwF9eKhroagd4Ih5fW87BEK0cRK6V1qdUqqWQZIg6RZ+vnN2HCJR3GIDQjJUUaoRCNCkLog4q3TlkibgobgiYVlAbFSFMB09RRsrGmEHBp97yuSoKBLULBtleeV+SZ5ODWXRj2NDrhDg/jRC9Dmf5Pj5BPj/6gcJ2cgBPjk/kuW8KZtbmZ54z4sk7DwCIWIbRx/ijQFrAoS13SheMceYALIakYZFJMGDbIuQ2jwBAWAHk4VQGtKIOk0FUQXnaGBB6IBMGNNNoFZgAVBNQsFamDdThGizoLzRUqUpAigapoCjS80chAyplYIHnUrmNoTSJwWAzMf1NTaJQbLpNhDcneNODn57ygII1qEqUb8SC6NljgPYIRyhqCiC82cnJHL5WBEx1awFjVfNdEWCFN1jddS1YzqmQxbkcCRGEIRDprq1L2gsIHMnAPUoewBJlypbC5ZxHqNBqYr5f0Cgv7JQIErk3mANFKZ1jYFKVcJQ3m2l1GOlscibjMFgACoVgBTgUo+nMk20KsesIACwHvUfEy8U3hlYbPnCCA1MtuBSAGmBrPfU6rwLgJLCUkRXhHTgAbSyfBD2ZxM6f/9oADAMBAAIAAwAAABAIPPAkEAEEEAEAAAEEEICQgEEQ0kERpY4LIMIAIAGAMMKUp5+A2kAAAsIAUDAEIMBXcoKKoYIIIUgEEAAIudgUwEcEGLkktQEQAlU1Ru9z3nHHHEAEEEgAOwUoV6UmBm4Nf4e/sjYl0gi1AfMMMNIAADBAAfNP4WyQ0YmlA69a9YyeDnIiEEVkkkEEEAACAAAcoImKe9OGPYLgVQ+6/s6kEAAAQ00w0EAABAAIQxsjEHJMOHMlALDOIBEMMFGwADHHDAEAAQAABOuFIcAAIAKIEsMEE0qUw0F8rQOJLPAAEES8AUUoAEccZBwLjBHpNra6gSolxvN7Hj02J/z+L8B6AAAAAKEABxyH6B7x36IF2OHyEL3yP//EACgRAQACAQIDCQEBAQAAAAAAAAEAESExQVGBkRAgYXGhsdHh8MEw8f/aAAgBAwEBPxCMO2uypUrsruayu9UqVKld2+2uyu2uy5c0DAvSDFpchdh4N5Tyz4ReNQU43pyh1z0Nil0u1s/7F4LcDa/HwNYONFMaNbn7aMHcRoBrpUunCU4Wdldldwz2adwFRdQqDQlFVd49Oyu/feN/Rw85qZpIpm8Z7/DlNGBHIA+Kx/L5ws6Ec93mzaBfQavvAyoVK0A0fRvnhDstOGKGIY2ayqq0008YcWxLHwY9KsR4XvyI+IAJatN1vx7lzQOKukecFuVcjlnzY7UDSxprg1uI7RV0uKtJWZmXi+e9adld2uypUrtsiIRMa/M+qlSmHq+2Oco0w5Of3cE1i1OKafPKDvtY89vWGJsNHqenvCDF3AYMhnW4xqU6DOBbavN7aRie43A8bM+OZkGOxqrNM7Wf2UdunO1hs23zadMnSafBb5tfRDW2HvH5doNTZvdeBQby+1thw1HfmM2nwN6bp6Nxjzt6KG5135EsRbM60aaPHlF6XG9VWY1OMK5IpWr4sHSaddguj1jMypRMTExMd/aYOyYctfS4YakyRvuMe/R95q6seW5zLI+Fh0bS9jdc9PSp6t7sN+d7CHZ+KnqEBf8AL4OalLMZD9waYbvV8ge7fKpoyg94DYe6azRuv8IJZC/8RWfNkGLbgPwbT1DtLlypUqVKlQ7K7hPL04C3Z5OkGZs0HiwccjTHNsUPIZfSAUNIqwpU1ist3pFF1tKMaBr4TWeRPSN6CtomVMZ8oIvobKvXSUSfgTz94mzgDyr4jzkAyJec1fCA0gswNI+INMqGyYOE6rp4YhrPW1vurzqM7CKspxd45y82usZ3FJdKI+XlKDDvwxtZsyu7j/MlW8F2sCcT6mCUNXqvlwPepknvU3vjLdAUN63f4c4Qp0mINSuFMDoXA6zEAUdmDNwoBiZ4LtpNOXACiICmCLB2vcqV2neRrEBrLEbEFFRVbKCBUu+xO26ly5csmrIc5oI5JqvUJqg9X+TiDk/E0K3L5YHUdPmbg6n3PwX8myXX6mhByfmaIDkf259NPian1q9o5j1HzCX3EGs0N6k1XoPmal1Lj9a/EFueTAaJyPmfQX3PzX8mzOv1FaDr8zTKcvlY2GPJ8MEUWPAP5ElvUf5BZWfNxqJLnn8y0Fa36TiBEoOLmatv37zi6n9cLHeCwLSNI0DAAmHf6iIPGLBhL2dCCi1p9So+oJp8j4g9PSfE1P2Paaj1HzNRHmy3U/4nb4CAWraHPJsUgS1BiaYlYazNykVbR0lZcYKpCN1+uKZR0lJYmIKi2ERRtEAgawJcazZpP//EACgRAQACAgECBQUBAQEAAAAAAAEAESExQVGBEHGRodEgYbHB8EAw4f/aAAgBAgEBPxCoR/11KlSvC/8AhUYjzMalzhfrHStnWNkUcxU1kFKqCCS3T9Fw+o8cBBevLl+FSpUqV9dHBEOYauP8fAE3V+0ZXlhWvOZ49XPl4i1Rr5mveNjTCA0IGSn6RQ1caArMOhmCib7XAxo/7KrTyZMM3lKpiUucSsijmv1D4sC7lgGXmaRb1ZryYFclTBdflANbgX58M5TiKauOkHpRgfAdOJRARrs/aDnc5lLEo6RQE143MzMzMzP18yi9IglMVWiGjzHe1qXjwY9Ju8po7xesT3H6Z5ZQaTzJThPhCpnWG92YtBH+9okSff8AU94TX5/plf4aIqocqgASCD/LMpsC9lTMlVcQCxaLbjLF0Swi01N75jUq2WNSc4ffiFUcf+Q6V1KllFdQvNf8JhuG8DMwWsPdqFiWcwairuKpUFNRW7l34CmpfPgWwU142/xi8Les3434am/Aly47DNKO5Nr6CbAe7+J1F2fiaRXb5qB2ux8wGz1P/Yr/AC/EXpd1+IjRdn5mkB2+bnRPY+JsX+PxFFvrPn6bihuaRO5Nj6D5m39a5wz0fiB03s/EBoXY+YLXsfM5D/PJnAf55RPyvkjGA7fLC3YzkoLGq0d4194stZQ3W6Xi+jnQwbuavQPax6UJeYGMqyrDkwK4pLrNQLWW8qpjPFufKXAMcHKu1NVhvF3h6MqMONpeNGHOujhIn1srYHPVG7MG29Q1IgHdUIs3XV9UHiLnFhVnZjDXZPvFYHOyzitdd7P2RUQ7nrv062dZVUgHdUIObrVt+aAjHeLqqabvGH2bjCFlV+71XeCJLpyZtrH76czIyvGqxe2jVafODoSysjrPF8ZJQNd6z0F7mHmRcG9h3yxrX2PiKIe34R3V7H4mx9ZFNI7sd5vwPpPB8bUXZe26r8Y8oESrL2ed8sTm9L5oqL1bzbeczIZRrLiisdsQsM1q1xLwLUpy5oQvyMHSNRqDF9Er0mBwlvbvrAwINZYrXMtiLvl5S+7RbNd95bf9g9ILZVj7aBx9ghNCDWXGuYVYL6L1H1s3L1ZbV5c4rPpKNT1thEYOBfMfJQx6vO4KEwYy9X5ezUob9x8z/8QAKRABAAIBAgQHAQEBAQEAAAAAAQARITFBEFFxgSBhkaGxwfAwQFDh0f/aAAgBAQABPxDwYjMR/wCCNf4yuAnhMP7q/wCDUrxKlSpUrwhUriVKTHCmU+EKZTM+M/gFcbOR56kA2qyE8gx1hImLUtACUawq7nJYvM93mPDL9PZjVdgJnTWw19QROKelToYKLYgzr0DZH+Kv4iP8tUIzc1KYqXy9yI0CjjTKJjhf+cAGGJXaBd4AACN1AjU5DkGkeZH/AL5WA47iD81gsqL1JUK+PyTOb5JYsLuusyLQ7tsDuLzPlAcKTQju1BCdpa63WbMHESqam1eieE68a8ef7B14b6IEfsc8PEVxx/ktuxL53zwgVR34VdFqHYtV5/GM4eYF/wDvOBjGkaI6kHKZm5rQHekHkj6gif6Kfq4WRt58bX77QhTB80viLWAm5VoJQYRPSJBGqNPCqGWo1z4+Yqm5VBySDwHQOuvXwMKFrlWg+alGptfsOZ3mBbqgy/kioh9UczLlg81F6om7WFicp8ocdz2KQCAmUzgTge6BHOvePGzO6yQLs8blzMqVKlSpUqVKlcCX/OoYL1q60x70eFPWslOgO56kVKAE3w3qg3BBZEcjwv4gF5wH29uZx15zQw7uIsbnlJZltLyqnNuv/ce8uqBui/wHrKAdiCbGdYdGdy0sOcy3xuuLlZ+dylMpr5CrhzUq86cPROBIxaM1R0v+zxTDjfErhG0KwJcacJPXAIzYXHjQHObTlsw0QgjaEwA0AwBKlTEuXL/zlFOkMy8v7+HGrzFvUrtaUrenZd3vX04hXFS31PenpwsnfLC1L2IYHkwDT4hVioxRfJ8HaGU8CCqcqAuCAxSvLplnBTBbQBupfzsa8xPdA1HCb/ubXWK08mfjULqex8+5PB+Fy4Y6BxO3P09ox3aMrsXPYQTXLdMHxxfFZ4WBvnyCW3gWiTvaPHkwz2lIPqKoeTHsjgn0iUjBpm62qrBupfPdRItCi0I29KObrCm+qDNAwG8IITXeKVa304VQqAdAAwG0MYI1LWvz95ydH50RTk7Dp91A2h/lY1L41xKlfwr+KvCsiX9lkb2tO5PMIkA0+eB3/dd//KvrKJ9UmCz2L4pjT67Ca+sVTI75d0/a/rFlDzhpYd3EsZDea2mv6pKmnot/bkgAWI3pUaEwpFVdKB5TGuC6laOGlxKYEliFIwfk6tcwmvnEKH2jtADtHHZtAXC0c0c9qk1Az+KpJk0s7vrenzjkIUGjc9NHBXRyLuHkS2NM4wD6wjtauPJAr8mW4k9pM8CfMIyAigen3EYjtkE4xURyJMfC30Hnq05TMUKGlhb5hRBtDWjILuZvgErwX/huXwPCZ6b4yZuP28BOvyvpQ9nMr7Ok/wDzsAoILlZXbhdbU7Wx9HtLmUsQvN5Pasp+LANTM+tJoPBEGiglOLkjhxXqb09ZbcWKzFpdfssXRvtwO1geRg9pA/YjCC/cmxznLsPAwQiVAb6hHga3kL3p9ohHDJU6pKnewggY74lganYU4fveWsV+oinMuUWrKUnCho4QhMcTx5/zJUyMuxvbYPxKesNOHLFDppPsQlDrHVr7GnARTl6ApPRi2Cgb5/fByVA0AwEWuQBteT7zt8Ewf7pIn14UNHBDRnizuTelkYEEN86L9LETVQU5h6BY9ZXqYieV63xPxOfg2oT+agQendu5mgawFV2gPnmHdgt0aPOX6XJxpRj6IwqnG3gxX47l8M8M+I1/hnxX5LtABaiZGU2BDyM9TggKn/nKfJMPgBNWWuMXepHYmmqa7mD3QTzNfkm1mg8OS2MTR24QNHDDlGLxArXTe7Trr2lYKgwi1WIH0UAz8fn4ewZvYwoouiKLGHp4ixQHZF0rW41pfggYAVGgCifs8nH9WNDpNEB2nRaYNaJnAORIIFpAiZeeJlS4DVF0f8Q0NMFK3wL2eLB0Wmv2jBEIQ5YfW578cfSuwh3+PAaQylyzeBoesVb/AHUIXPLGt3oEIQk2bRwBjs0FGgTdLlLFMk5CCyGnPpbuOZJrAQB86gjyI7CCwSkPWFYBkRNEglOppKfJUC6o7JQjAcGWm2vdgZA7oIl9UEoNzwPKN+HOLtb/AGZSiJ5SNwu/BU4JqGgUZgoQYWpqtIgAS0BYcSQp6WaVBzlRhKyGjgpNudqHOYEpyexqVlmcAyitgv8AncuXLly5cuX/ACfFYR6LJuH3DY24jLBWPB8VKQbti+8CoSX6B/npwZS/jbRxL3twpUO3NJHWuC1wP3wsJAtRXHUjFzHQZoR2WiC1UtgiEqJ3AK4iKEfGWqFeHEvxXLly5cuXL/sdeCXCoiY+BDdV49KPypkGfOygOL9FDYDYGCKkA+krEhkOkxnrHugiJQ1V0g+sVf63/iK8Vy/6Kf7Kb4DuRZBjAl6AKhwaeI/pAwD+dSv8F+PPC/MjlBflPd9nACPzV+6aD+PZ4CJ/PffgnsuRP0HXfLD6npPlZ8TcPlbX4JpnXn+Io8ZrwfHfgdf534vfMWe5JfgnwLMY98fkz4an74Asof17afbIm+/T7guq6Se3XA+Cs+CfP2z8ZTzZ8xB8z2g79QWukpC5LbrL/wAZ/jG6Cp7y8ntuQ179UfM0H8Kyw0eZ8Ls/Ny6Rnu1hNV0j5j2RNP2TPKHvVWbijKO5GlfnbymlHsyv6lGuwhRZTzJXOzLvw0CgAtXYgcUsgHMSXl5eXloOXi5eUkvLy0scF5XCTaWlv5CpaVMoZp3k7PfPH1PhzI/6BfJml9ifc9pX+r4azPZ7m/RXrBtX0nCfD3i6fBPn7Z+Uq5s+aw+U9mMfqYPp6hj/AMEvzZcvhdZp8mplINB0QQtrRveDlUdt3Si2MJhl6TyMackpgnRvgFNxCZxasLB1wM0QbyOtMu6llFz+aJ031DNiLTNfN8LCSLnXlG1Y6do2yNemRb2xrMlQzFSxfhYdqiICtUtJ2haJYmzpAAYC2exat62JC+P3NVHGKHkp4KeZJsg09OLEYme8wTKiXGSFaUKBDtndKiGoQRxXTW7agiZmxqCu/ksiC6dvRg6pRYaA1kOJG6OcPzeFVDoXdWKRNvZX5KBBReFEizVGKEv1vIQO3RJpmapG0kjnSwlredCKlaJZDrGdylkKRCpCRHolerBAD6EKMIaoZjAsxrTehWqzPNSCrLAEY7wqw5a+5cOpuDk2WjmZC42VU14JZbLSVe7GBd9WZWIpi0uLWZ0KiEAQVKI+ohmQ85s52yfU0f8AWfmNZ3RPl4QbE93D4h+PTivyrLPswT2xp/lauRKlHoKl+bxXB/pfiGNMVaGvqZQGkNWrIizLQRU9Gd8MMEjeyZ+VDATRVQEXGqg0S3ZnGyuyExDHrLpiwPZW4BTayDAZYm6bibsAyhjT6WUSAQqWXHzzEvmtWZN+F4SBWgqJuiASRAXdagDSBn1UADswg+cZRJbDecJYOQ0mgpANiZGqU45nKoKpVERkUsAqjScWSZIeuHQs3FBZA3KhDSuSTBKRgJnKGWUCMOqsuCo2SrkoowYCp0oWhoU5kAqCaFM+QK7GCieq5btdd1Hwf+xAv62hvEwAoWiFhyklvqlSOwOUoXkXuBDigUUYBS0RC1XU1Y8KgOcDq5KA6zyrp+XdlyteW5dQ1UTeUjxLsEoEFC6h7MUrEb5C3Wi6yOT6mvQnIlNomcaFSV1o5YVCuNrhhdJEByJXJtNjhmGQk6rAArBpczWnIATa682f/9k="</script>
+<script>
+/* ===== KeySaleKM v4 — Core data logic ===== */
+/* Changelog v4:
+   - store.nhomDt field from STORELIST
+   - ranking × Nhóm DT (N1→N8 each 1 vote, N1=kém nhất)
+   - trendingScore() for Top Trending tab
+   - nosaleLoss in metrics()
+   - tqD/trD/tqD1/trD1 (SL/DT TBCH for Sale D & D-1)
+   - Float32Array for fv (save ~50% memory)
+*/
+const F = {qLK:0,rLK:1,cLK:2,qD:3,rD:4,qD1:5,rD1:6,sQ:7,sV:8,cogs:9,poQ:10,poV:11,fcQ:12,fcV:13,vQ:14,vV:15,ndQ:16,ndV:17};
+const NF = 18;
+const norm = s => String(s ?? '').normalize('NFC').trim().toLowerCase();
+const isEmpty = v => v === null || v === undefined || v === '';
+const num = v => { if (typeof v === 'number') return v; if (isEmpty(v)) return 0; const n = Number(String(v).replace(/,/g,'')); return isFinite(n) ? n : 0; };
+const code = v => { if (isEmpty(v)) return ''; if (typeof v === 'number') return String(Math.round(v)); return String(v).trim(); };
+const isJunk = s => { const n = norm(s); return !n || n.includes('result') || n.startsWith('tổng') || n === 'total' || n === '#'; };
+function xlDate(v){ if (typeof v === 'number' && v > 20000 && v < 80000) return new Date(Math.round((v - 25569) * 864e5)); if (v instanceof Date) return v; return null; }
+
+/* sheet = {n: rowCount, get(r,c)} */
+function findBlocks(sh){
+  const want = {lk:['sale lũy kế','sale luy ke'], tk:['tồn kho','ton kho'], d:['sale d'], d1:['sale d-1'], sl:['storelist'], po:['po']};
+  const def = {lk:0,tk:11,d:20,d1:25,sl:31,po:40};
+  const out = {...def}; const found = {};
+  for (let c = 0; c < 80; c++){
+    const t = norm(sh.get(0,c)); if (!t) continue;
+    for (const k in want) if (!found[k] && want[k].includes(t)) { out[k] = c; found[k] = true; }
+  }
+  return out;
+}
+function headerRow(sh, c, span){
+  for (let r = 0; r < 6; r++) for (let k = 0; k < span; k++){ const t = norm(sh.get(r,c+k)); if (t === 'store' || t === 'mã ch') return r; }
+  return 1;
+}
+function findCols(sh, row, spec){
+  const res = {};
+  const heads = []; for (let c = 0; c < 60; c++) heads.push(norm(sh.get(row,c)));
+  for (const k in spec){ const [names, def] = spec[k]; let idx = -1;
+    for (const nm of names){ idx = heads.indexOf(norm(nm)); if (idx >= 0) break; }
+    res[k] = idx >= 0 ? idx : def; }
+  return res;
+}
+const ST_ORDER = {'chạy km':0,'ngày km cuối':1,'chưa km':2,'hết km':3};
+
+function brandOf(name){
+  let t = String(name || '').trim().replace(/^DEMO\s+/i, '').split(/\s+/)[0] || '';
+  t = t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g,'d').replace(/Đ/g,'D').replace(/[^A-Za-z0-9&+'-]/g, '').toUpperCase();
+  return t || '(Không rõ)';
+}
+function sizeOf(name){
+  const src = String(name || ''), low = src.toLowerCase();
+  const re = /(\d+\s*[x×*]\s*)?\d+(?:[.,]\d+)?\s*(kg|gr|g|ml|lít|lit|l|cc|cuộn|cây|cái|gói|viên|tờ|miếng|túi|hộp|pcs|cm|t|p|m|c)/g;
+  let best = null, m;
+  while ((m = re.exec(low))){ const nx = src.charAt(m.index + m[0].length); if (/[a-zà-ỹđ]/.test(nx)) continue; best = m[0]; }
+  if (!best) return '(Không rõ size)';
+  return best.replace(/\s+/g,'').replace(',', '.').replace('×','x').replace('*','x').replace(/gr$/,'g').replace(/lít$|lit$/,'l');
+}
+function buildModel(sale, ctkm, fc){
+  const warn = [];
+  const stores = [], storeIdx = new Map();
+  const arts = [], artIdx = new Map();
+  const getStore = (c, name) => { let i = storeIdx.get(c); if (i === undefined){ i = stores.length; storeIdx.set(c,i); stores.push({code:c,name:name||'',status:'',type:'',province:'',region:'(Không có trong STORELIST)',rm:'(Trống)',rsm:'(Trống)',asm:'(Trống)',nhomDt:'NSO',active:false,inList:false}); } else if (name && !stores[i].name) stores[i].name = name; return i; };
+  const getArt = (c, name) => { let i = artIdx.get(c); if (i === undefined){ i = arts.length; artIdx.set(c,i); arts.push({code:c,name:name||'',mch2:'',mch3:'',kms:[],km:null,minTB:0,bum:'',maQuyDoi:''}); } else if (name && !arts[i].name) arts[i].name = name; return i; };
+  let cap = 1 << 16, n = 0;
+  let fs = new Int32Array(cap), fa = new Int32Array(cap), fv = new Float32Array(cap * NF);
+  const fmap = new Map();
+  const fact = (si, ai) => { const key = si * 1048576 + ai; let i = fmap.get(key); if (i !== undefined) return i;
+    if (n === cap){ cap *= 2; const a=new Int32Array(cap), b=new Int32Array(cap), v=new Float32Array(cap*NF); a.set(fs); b.set(fa); v.set(fv); fs=a; fa=b; fv=v; }
+    fs[n]=si; fa[n]=ai; fmap.set(key,n); return n++; };
+  const add = (si, ai, f, v) => { const i = fact(si, ai); fv[i*NF+f] += v; };
+
+  const B = findBlocks(sale);
+  // Sale lũy kế
+  { const c = B.lk, h = headerRow(sale, c, 4); let m2='', m3='', st='', stn='';
+    for (let r = h+1; r < sale.n; r++){
+      const a = code(sale.get(r,c+4)); const v2 = sale.get(r,c), v3 = sale.get(r,c+1), vs = code(sale.get(r,c+2)), vsn = sale.get(r,c+3);
+      if (!isEmpty(v2)) m2 = String(v2).trim(); if (!isEmpty(v3)) m3 = String(v3).trim(); if (vs){ st = vs; stn = isEmpty(vsn)?'':String(vsn); }
+      if (!a || isJunk(a) || !st || isJunk(st)) continue;
+      const si = getStore(st, stn), ai = getArt(a, isEmpty(sale.get(r,c+5))?'':String(sale.get(r,c+5)));
+      if (m2 && !arts[ai].mch2) arts[ai].mch2 = m2; if (m3 && !arts[ai].mch3) arts[ai].mch3 = m3;
+      add(si,ai,F.qLK,num(sale.get(r,c+6))); add(si,ai,F.rLK,num(sale.get(r,c+7))); add(si,ai,F.cLK,num(sale.get(r,c+8)));
+    } }
+  // Tồn kho
+  { const c = B.tk, h = headerRow(sale, c, 2); let st='', stn='';
+    for (let r = h+1; r < sale.n; r++){
+      const vs = code(sale.get(r,c)); if (vs){ st = vs; stn = isEmpty(sale.get(r,c+1))?'':String(sale.get(r,c+1)); }
+      const a = code(sale.get(r,c+2)); if (!a || isJunk(a) || !st || isJunk(st)) continue;
+      const si = getStore(st, stn), ai = getArt(a, isEmpty(sale.get(r,c+3))?'':String(sale.get(r,c+3)));
+      add(si,ai,F.cogs,num(sale.get(r,c+4))); add(si,ai,F.sV,num(sale.get(r,c+6))); add(si,ai,F.sQ,num(sale.get(r,c+7)));
+    } }
+  // Sale D, D-1
+  for (const [bk, fq, fr] of [[B.d,F.qD,F.rD],[B.d1,F.qD1,F.rD1]]){
+    const c = bk, h = headerRow(sale, c, 2); let st='';
+    for (let r = h+1; r < sale.n; r++){
+      const vs = code(sale.get(r,c)); if (vs) st = vs;
+      const a = code(sale.get(r,c+1)); if (!a || isJunk(a) || !st || isJunk(st)) continue;
+      const si = getStore(st), ai = getArt(a);
+      add(si,ai,fq,num(sale.get(r,c+2))); add(si,ai,fr,num(sale.get(r,c+3)));
+    } }
+  // PO
+  { const c = B.po, h = headerRow(sale, c, 2); let st='', stn='';
+    for (let r = h+1; r < sale.n; r++){
+      const vs = code(sale.get(r,c)); if (vs){ st = vs; stn = isEmpty(sale.get(r,c+1))?'':String(sale.get(r,c+1)); }
+      const a = code(sale.get(r,c+3)); if (!a || isJunk(a) || !st || isJunk(st)) continue;
+      const si = getStore(st, stn), ai = getArt(a, isEmpty(sale.get(r,c+4))?'':String(sale.get(r,c+4)));
+      add(si,ai,F.poQ,num(sale.get(r,c+5))); add(si,ai,F.poV,num(sale.get(r,c+6))); add(si,ai,F.ndQ,num(sale.get(r,c+9))); add(si,ai,F.ndV,num(sale.get(r,c+10)));
+    } }
+  // STORELIST (v4: thêm cột "Nhóm DT")
+  { const c = B.sl, h = headerRow(sale, c, 1); let cnt = 0;
+    const hd = {}; for (let k = 0; k < 15; k++){ const t = norm(sale.get(h, c+k)); if (t && !(t in hd)) hd[t] = c+k; }
+    const col = (names, def) => { for (const nm of names) if (hd[nm] !== undefined) return hd[nm]; return def; };
+    const cSt = col(['store status'], c+1), cTy = col(['store type'], c+2), cPv = col(['province/city'], c+3), cRg = col(['region'], c+4),
+          cRm = col(['region manager','rm'], c+5), cRsm = col(['rsm'], -1), cAsm = col(['asm','qlkv'], -1),
+          cNd = col(['nhóm dt','nhom dt','phân nhóm dt','phan nhom dt','nhóm doanh thu','nhom doanh thu'], -1);
+    const txt = (r, cc) => cc < 0 ? '' : String(sale.get(r, cc) ?? '').trim();
+    for (let r = h+1; r < sale.n; r++){
+      const s = code(sale.get(r,c)); if (!s || isJunk(s)) continue;
+      const i = getStore(s); const o = stores[i]; cnt++;
+      o.inList = true; o.status = txt(r,cSt); o.type = txt(r,cTy) || '(Trống)';
+      o.province = txt(r,cPv); o.region = txt(r,cRg) || '(Trống)';
+      o.rm = txt(r,cRm) || '(Trống)'; o.rsm = txt(r,cRsm) || '(Trống)'; o.asm = txt(r,cAsm) || '(Trống)';
+      o.nhomDt = cNd >= 0 ? (txt(r,cNd) || 'NSO') : 'NSO';
+      o.active = norm(o.status) === 'hoạt động';
+    }
+    if (!cnt) warn.push('Không tìm thấy dữ liệu STORELIST trong sheet SALE.'); }
+  // FC
+  if (fc){ const h = (() => { for (let r=0;r<5;r++) for (let c=0;c<10;c++) if (norm(fc.get(r,c))==='mã hàng') return r; return 0; })();
+    const C = findCols(fc, h, {st:[['Mã CH'],0], stn:[['Tên Ch','Tên CH'],1], a:[['Mã hàng'],2], nm:[['Tên sản phẩm'],3], fq:[['SL FC'],5], fv:[['GT FC'],6], vq:[['SL Validate'],7], vv:[['GT Validate'],8]});
+    for (let r = h+1; r < fc.n; r++){
+      const s = code(fc.get(r,C.st)), a = code(fc.get(r,C.a)); if (!s || !a || isJunk(s) || isJunk(a)) continue;
+      const si = getStore(s, isEmpty(fc.get(r,C.stn))?'':String(fc.get(r,C.stn))), ai = getArt(a, isEmpty(fc.get(r,C.nm))?'':String(fc.get(r,C.nm)));
+      add(si,ai,F.fcQ,num(fc.get(r,C.fq))); add(si,ai,F.fcV,num(fc.get(r,C.fv))); add(si,ai,F.vQ,num(fc.get(r,C.vq))); add(si,ai,F.vV,num(fc.get(r,C.vv)));
+    } } else warn.push('Không có sheet FC: các cột FC/Validate sẽ bằng 0.');
+  // CTKM (v4: thêm cột "Mã hàng quy đổi")
+  if (ctkm){ const C = findCols(ctkm, 0, {area:[['STT'],0], status:[['Trạng thái'],1], sp:[['Mã SP'],2], nm:[['Tên SP'],3], bum:[['BUM'],4], mech:[['CTKM'],5], p0:[['giá bán thường'],6], p1:[['Giá KM'],7], d0:[['Ngày bắt đầu'],8], d1:[['Ngày kết thúc'],9], grp:[['GROUP KM'],10], pct:[['%KM'],11], minTB:[['Min Trưng bày'],13], key:[['Phân loại key','Phân loại Key','Phân loại'],18], pos:[['Quy hoạch vị trí trưng bày'],19], mqd:[['mã hàng quy đổi','ma hang quy doi'],20]});
+    for (let r = 1; r < ctkm.n; r++){
+      const a = code(ctkm.get(r,C.sp)); if (!a || isJunk(a)) continue;
+      const ai = getArt(a); const A = arts[ai]; const nm = ctkm.get(r,C.nm); if (!isEmpty(nm)) A.name = String(nm);
+      const km = { area:String(ctkm.get(r,C.area) ?? '').trim(), status:String(ctkm.get(r,C.status) ?? '').trim(), bum:String(ctkm.get(r,C.bum) ?? '').trim(),
+        mech:String(ctkm.get(r,C.mech) ?? '').trim(), p0:num(ctkm.get(r,C.p0)), p1:num(ctkm.get(r,C.p1)), d0:xlDate(ctkm.get(r,C.d0)), d1:xlDate(ctkm.get(r,C.d1)),
+        group:String(ctkm.get(r,C.grp) ?? '').trim() || '(Trống)', pct:ctkm.get(r,C.pct), minTB:num(ctkm.get(r,C.minTB)), key:(() => { const v = ctkm.get(r,C.key); return isEmpty(v) || typeof v === 'number' && v > 20000 ? '(Trống)' : String(v).trim() || '(Trống)'; })() };
+      km.rank = ST_ORDER[norm(km.status)] ?? 4; A.kms.push(km);
+      if (C.mqd >= 0){ const qd = ctkm.get(r,C.mqd); if (!isEmpty(qd)) A.maQuyDoi = String(qd).trim(); }
+    }
+    for (const A of arts){ if (!A.kms.length) continue;
+      A.kms.sort((x,y) => x.rank - y.rank || ((y.d0?+y.d0:0) - (x.d0?+x.d0:0)));
+      A.km = A.kms[0]; A.bum = A.km.bum; A.minTB = Math.max(0, ...A.kms.filter(k => k.rank <= 1).map(k => k.minTB), A.km.minTB);
+    } } else warn.push('Không có sheet CTKM.');
+  for (const A of arts) if (!A.mch2) A.mch2 = '(Chưa rõ)';
+  for (const A of arts) if (!A.mch3) A.mch3 = '(Chưa rõ)';
+  for (const A of arts){ A.brand = brandOf(A.name); A.size = sizeOf(A.name); }
+  const aOff = new Int32Array(arts.length + 1); for (let i = 0; i < n; i++) aOff[fa[i]+1]++;
+  for (let i = 0; i < arts.length; i++) aOff[i+1] += aOff[i];
+  const aIdx = new Int32Array(n), pos = aOff.slice(0, arts.length); for (let i = 0; i < n; i++) aIdx[pos[fa[i]]++] = i;
+  return { stores, arts, n, fs: fs.subarray(0,n), fa: fa.subarray(0,n), fv: fv.subarray(0,n*NF), aOff, aIdx, warn };
+}
+
+/* ---- aggregate ---- */
+const STORE_DIMS = {region:1, rm:1, rsm:1, asm:1, code:1};
+function newG(key){ return {key, f:new Float64Array(NF), cDR:0, dSale:0, dStock:0, dNo:0, dND:0, nArt:0, nAct:0, nosaleCH:0, st:null}; }
+function finishStores(g){ if (!g.st) return; for (const v of g.st.values()){ if (v[0] > 0) g.dSale++; if (v[1] > 0){ g.dStock++; if (v[2] <= 0) g.dNo++; } } g.st = null; }
+function aggregate(M, flt, dim){
+  const {stores, arts} = M;
+  const artKey = ai => dim==='sku' ? arts[ai].code : dim==='group' ? (flt.kmOf[ai]?.group || '(Không có KM)') : dim==='bg' ? (flt.kmOf[ai]?.group || '(Không có KM)') + ' | ' + arts[ai].brand : dim==='cg' ? flt.cgKey(ai) : dim==='trend' ? 'trend' : null;
+  const storeKey = si => stores[si][dim];
+  const isStoreDim = !!STORE_DIMS[dim], perFact = dim === 'sku' || dim === 'trend';
+  const groups = new Map();
+  const mk = key => { let g = groups.get(key); if (!g){ g = newG(key); if (!perFact) g.st = new Map(); groups.set(key,g); } return g; };
+  const total = newG('__total'); const tS = new Float64Array(stores.length * 5);
+  let nAct = 0, nArtSel = 0;
+  const actByKey = new Map();
+  for (let si = 0; si < stores.length; si++) if (flt.storeOK[si] && stores[si].active){ nAct++; if (isStoreDim){ const k = storeKey(si); actByKey.set(k,(actByKey.get(k)||0)+1); } }
+  const artCount = new Map();
+  for (let ai = 0; ai < arts.length; ai++) if (flt.artOK[ai]){ nArtSel++; if (!isStoreDim){ const k = artKey(ai); artCount.set(k,(artCount.get(k)||0)+1); mk(k); } }
+  if (isStoreDim) for (const [k] of actByKey) mk(k);
+  const thr = new Float64Array(arts.length); for (let ai = 0; ai < arts.length; ai++) thr[ai] = arts[ai].minTB > 0 ? arts[ai].minTB : 1;
+  const {fs, fa, fv} = M;
+  for (let i = 0; i < M.n; i++){
+    const si = fs[i], ai = fa[i]; if (!flt.storeOK[si] || !flt.artOK[ai]) continue;
+    const g = mk(isStoreDim ? storeKey(si) : artKey(ai)); const o = i*NF;
+    for (let k = 0; k < NF; k++){ const v = fv[o+k]; if (v){ g.f[k] += v; total.f[k] += v; } }
+    const qLK = fv[o+F.qLK], sQ = fv[o+F.sQ], qDD = fv[o+F.qD];
+    if (sQ >= thr[ai]){ g.cDR++; total.cDR++; }
+    tS[si*5] += qLK; tS[si*5+1] += sQ; tS[si*5+2] += qDD; tS[si*5+3] += fv[o+F.ndQ]; tS[si*5+4] += fv[o+F.qD];
+    if (perFact){ if (qLK > 0) g.dSale++; if (sQ > 0){ g.dStock++; if (qDD <= 0) g.dNo++; if (qDD <= 0) g.nosaleCH++; } }
+    else { let v = g.st.get(si); if (!v){ v = [0,0,0]; g.st.set(si, v); } v[0] += qLK; v[1] += sQ; v[2] += qDD; }
+  }
+  for (let si = 0; si < stores.length; si++){ if (tS[si*5] > 0) total.dSale++; if (tS[si*5+1] > 0){ total.dStock++; if (tS[si*5+2] <= 0) total.dNo++; } if (tS[si*5+3] > 0) total.dND++; tS[si*5+4] > 0 ? total.nosaleCH++ : 0; }
+  for (const g of groups.values()){
+    finishStores(g);
+    if (isStoreDim){ g.nAct = actByKey.get(g.key) || 0; g.nArt = nArtSel; } else { g.nAct = nAct; g.nArt = artCount.get(g.key) || 0; }
+  }
+  total.nAct = nAct; total.nArt = nArtSel;
+  return { rows: [...groups.values()], total, nAct, nArtSel, storeSales: tS };
+}
+/* Drill-down */
+const DRILL_KEYS = ['rm','rsm','asm','code'];
+function drillRows(M, flt, ai, path){
+  const {stores, fv} = M; const thr = M.arts[ai].minTB > 0 ? M.arts[ai].minTB : 1; const level = path.length, last = level === DRILL_KEYS.length - 1;
+  const keyOf = si => stores[si][DRILL_KEYS[level]];
+  const inScope = si => { if (!flt.storeOK[si]) return false; for (let k = 0; k < level; k++) if (stores[si][DRILL_KEYS[k]] !== path[k]) return false; return true; };
+  const groups = new Map();
+  const mk = (key, si) => { let g = groups.get(key); if (!g){ g = newG(key); g.nArt = 1; g.label = last ? stores[si].code + ' · ' + (stores[si].name || '') : key; groups.set(key,g); } return g; };
+  if (!last) for (let si = 0; si < stores.length; si++) if (stores[si].active && inScope(si)) mk(keyOf(si), si).nAct++;
+  for (let p = M.aOff[ai]; p < M.aOff[ai+1]; p++){
+    const i = M.aIdx[p], si = M.fs[i]; if (!inScope(si)) continue;
+    const g = mk(keyOf(si), si); const o = i*NF;
+    if (last) g.nAct = stores[si].active ? 1 : 0;
+    for (let k = 0; k < NF; k++) g.f[k] += fv[o+k];
+    const sQ = fv[o+F.sQ];
+    if (fv[o+F.qLK] > 0) g.dSale++;
+    if (sQ > 0){ g.dStock++; if (fv[o+F.qD] <= 0) g.dNo++; }
+    if (sQ >= thr) g.cDR++;
+  }
+  return [...groups.values()];
+}
+function metrics(g, tbMode){
+  const f = g.f, pairs = g.nAct * g.nArt;
+  const dS = tbMode === 'ps' ? g.dSale : g.nAct, dT = tbMode === 'ps' ? g.dStock : g.nAct;
+  const div = (a,b) => b ? a/b : null;
+  return {
+    qLK:f[F.qLK], rLK:f[F.rLK], tqLK:div(f[F.qLK],dS), trLK:div(f[F.rLK],dS), nSale:g.dSale,
+    qD:f[F.qD], rD:f[F.rD], qD1:f[F.qD1], rD1:f[F.rD1],
+    tqD:div(f[F.qD],g.dSale||dS), trD:div(f[F.rD],g.dSale||dS),
+    tqD1:div(f[F.qD1],g.dSale||dS), trD1:div(f[F.rD1],g.dSale||dS),
+    sQ:f[F.sQ], sV:f[F.sV], tsQ:div(f[F.sQ],dT), tsV:div(f[F.sV],dT), nStock:g.dStock,
+    dio: f[F.cogs] > 0 ? f[F.sV] / (f[F.cogs]/30) : null,
+    bqQ:div(div(f[F.qLK],dS), g.nArt), bqV:div(div(f[F.rLK],dS), g.nArt), stR:f[F.sQ] > 0 ? f[F.qLK] / f[F.sQ] : (f[F.qLK] > 0 ? Infinity : null),
+    nDR:g.nArt ? g.cDR / g.nArt : 0, dr:div(g.cDR,pairs), nNo:g.dNo, noSale:div(g.dNo,g.dStock), nAct:g.nAct, nArt:g.nArt,
+    fcQ:f[F.fcQ], fcV:f[F.fcV], poQ:f[F.poQ], poV:f[F.poV], ndQ:f[F.ndQ], ndV:f[F.ndV], nND:g.dND, tndQ:div(f[F.ndQ], tbMode === 'ps' ? g.dND : g.nAct), tndV:div(f[F.ndV], tbMode === 'ps' ? g.dND : g.nAct), vQ:f[F.vQ], vV:f[F.vV], pairs,
+    nosaleLoss:null, nosaleCH:g.nosaleCH||0
+  };
+}
+
+/* ---- v4: Ranking theo Nhóm DT (N1=kém nhất, N8=lớn nhất, mỗi nhóm 1 vote) ---- */
+const NHOM_DT_ORDER = ['N1','N2','N3','N4','N5','N6','N7','N8'];
+const RANK_KEYS = ['trLK','bqV','stR'];
+function rankRows(list){
+  const n = list.length; if (!n) return;
+  const sc = new Float64Array(n);
+  for (const k of RANK_KEYS){
+    const val = r => { const v = r[k]; return v == null || Number.isNaN(v) ? -Infinity : v; };
+    const idx = list.map((r,i) => i).sort((a,b) => { const x = val(list[a]), y = val(list[b]); return x === y ? 0 : (y > x ? 1 : -1); });
+    let rk = 0, prev; idx.forEach((i,pos) => { const v = val(list[i]); if (pos === 0 || v !== prev){ rk = pos + 1; prev = v; } sc[i] += rk; });
+  }
+  list.forEach((r,i) => { r.score = sc[i] / RANK_KEYS.length; });
+  const ord = list.slice().sort((a,b) => a.score - b.score || (b.trLK ?? -1) - (a.trLK ?? -1));
+  ord.forEach((r,i) => { r.rank = i + 1; r.rankN = n; });
+}
+/* v4: Rank × Nhóm DT: tính rank riêng từng nhóm N1→N8, tổng = BQ rank các nhóm */
+function rankByNhomDt(M, flt, artIdxList){
+  if (!artIdxList || !artIdxList.length) return;
+  const {stores, arts} = M;
+  const nhomMap = new Map();
+  for (const si of [...Array(stores.length).keys()]){
+    if (!flt.storeOK[si] || !stores[si].active) continue;
+    const nd = stores[si].nhomDt || 'NSO';
+    if (!nhomMap.has(nd)) nhomMap.set(nd, []);
+    nhomMap.get(nd).push(si);
+  }
+  const nhomNames = [...nhomMap.keys()].sort((a,b) => {
+    const ia = NHOM_DT_ORDER.indexOf(a), ib = NHOM_DT_ORDER.indexOf(b);
+    return (ia>=0?ia:99) - (ib>=0?ib:99) || a.localeCompare(b);
+  });
+  if (!nhomNames.length) return;
+
+  const nArt = artIdxList.length;
+  const rankMatrix = new Float64Array(nArt * nhomNames.length).fill(-1);
+
+  for (let gi = 0; gi < nhomNames.length; gi++){
+    const nm = nhomNames[gi], storeList = nhomMap.get(nm);
+    const nMask = new Uint8Array(stores.length);
+    for (const si of storeList) nMask[si] = 1;
+    const nFlt = {...flt, storeOK:nMask};
+    // Aggregate per SKU within this nhom
+    const res = aggregate(M, nFlt, 'sku');
+    const rows = res.rows.map(g => {
+      const m = metrics(g, 'ps'); m.key = g.key;
+      const ai = artIdxList.find(i => arts[i].code === g.key) ?? -1;
+      return m;
+    }).filter(r => r.key && (r.trLK ?? -1) >= 0);
+    rankRows(rows);
+    const rankMap = new Map(); rows.forEach(r => rankMap.set(r.key, r.rank));
+    for (let ai = 0; ai < nArt; ai++){
+      const code = arts[artIdxList[ai]].code;
+      const rk = rankMap.get(code);
+      if (rk != null) rankMatrix[ai * nhomNames.length + gi] = rk;
+    }
+  }
+
+  // Final rank: average of non-null ranks across groups
+  for (let ai = 0; ai < nArt; ai++){
+    let sum = 0, cnt = 0;
+    for (let gi = 0; gi < nhomNames.length; gi++){
+      const rk = rankMatrix[ai * nhomNames.length + gi];
+      if (rk >= 0){ sum += rk; cnt++; }
+    }
+    // Also store distribution info
+    const dist = [];
+    for (let gi = 0; gi < nhomNames.length; gi++){
+      const rk = rankMatrix[ai * nhomNames.length + gi];
+      dist.push({nhom:nhomNames[gi], rank:rk >= 0 ? rk : null});
+    }
+    artIdxList[ai]._nhomRankAvg = cnt ? sum / cnt : null;
+    artIdxList[ai]._nhomDist = dist;
+    artIdxList[ai]._nhomCnt = cnt;
+  }
+}
+
+/* ---- v4: Top Trending Score (0-100) ---- */
+function trendingScore(m){
+  /* Volume: %Δ Qty D vs D-1 */
+  const vQty = m.qD1 > 0 ? ((m.qD - m.qD1) / m.qD1) * 100 : (m.qD > 0 ? 100 : 0);
+  /* Value: %Δ Revenue D vs D-1 */
+  const vVal = m.rD1 > 0 ? ((m.rD - m.rD1) / m.rD1) * 100 : (m.rD > 0 ? 100 : 0);
+  /* Coverage: using nSale (CH count — proxy for coverage) */
+  const covD = m.nAct > 0 ? (m.dSale || 0) / m.nAct * 100 : 0;
+  const covD1 = m.nAct > 0 ? Math.max(0, (m.dSale||0) - (m.nNo||0)) / m.nAct * 100 : 0;
+  const vCov = covD1 > 0 ? ((covD - covD1) / covD1) * 100 : (covD > 0 ? 100 : 0);
+  /* Composite score scaled to 0-100 */
+  const clip = v => Math.max(-100, Math.min(100, v));
+  const raw = clip(vVal) * 0.4 + clip(vQty) * 0.3 + clip(vCov) * 0.3;
+  const score = Math.round(Math.max(0, Math.min(100, (raw + 100) / 2)));
+  let label = '🔴 Sụt giảm';
+  if (score >= 70) label = '🟢 Bùng nổ';
+  else if (score >= 40) label = '🟡 Tăng trưởng';
+  else if (score >= 10) label = '⚪ Ổn định';
+  return {score, vQty:clip(vQty), vVal:clip(vVal), vCov:clip(vCov), label};
+}
+
+/* ---- v4: NoSale Revenue Loss ---- */
+function computeNosaleLoss(M, flt, rows){
+  const {stores} = M;
+  /* Compute avg revenue per Nhóm DT for CH that had sales on D */
+  const nhomStats = {};
+  for (let si = 0; si < stores.length; si++){
+    if (!flt.storeOK[si] || !stores[si].active) continue;
+    const nd = stores[si].nhomDt || 'NSO';
+    if (!nhomStats[nd]) nhomStats[nd] = {totalR:0, cnt:0};
+  }
+  /* Use store-level D revenue from aggregate total */
+  // We'll compute per SKU: nosaleLoss = avgDT_per_nhom × nosaleCH_count
+  // Simplified: per row, use the overall avg CH revenue per nhom
+  return rows; // loss computed elsewhere with store-level data
+}
+
+
+</script>
+<script>
+/* ===== KeySaleKM v4 — UI (single-file) ===== */
+const $ = id => document.getElementById(id);
+const ST_LIST = ['Chạy KM','Ngày KM cuối','Chưa KM','Hết KM'];
+const ST_CLS = {'chạy km':'st-run','ngày km cuối':'st-last','chưa km':'st-pre','hết km':'st-end'};
+const TABS = [['overall','📊 Tổng quan CTKM'],['hottrend','🔥 Hot Trend'],['downtrend','📉 Down Trend'],['sku','📦 SKUs'],['rsmasm','RSM×ASM']];
+const CG_ATTRS = [['brand','Thương hiệu'],['size','Size'],['price','Giá KM'],['group','GROUP KM'],['mech','Cơ chế CTKM'],['mch3','MCH3']];
+const RANK_INDS = [['trLK','DT BQ/CH'],['bqV','DT BQ/mã key/CH'],['stR','Tỷ lệ Sale/Tồn']];
+
+
+// Map new 5-tab dims to existing render logic
+const _DM = {overall:'bg', hottrend:'trend', downtrend:'trend', sku:'sku', rsmasm:'rsmasm'};
+const _EFF = d => _DM[d] || d;
+
+const COLGROUPS = [
+  ['hq','Hiệu quả / Xếp hạng',[['rank','Hạng','rank'],['score','Điểm TB','t2'],['trLK','DT BQ/CH','tv'],['bqV','DT BQ/mã/CH','tv'],['stR','Sale/Tồn','sr']]],
+  ['lk','Sale lũy kế',[['qLK','SL','q'],['rLK','Doanh thu','v'],['tqLK','SL TBCH','t'],['trLK','DT TBCH','tv']]],
+  ['ns','No sale',[['nNo','CH no sale','q'],['noSale','% No sale','nspct']]],
+  ['d','Sale D',[['qD','SL','q'],['rD','DT','v'],['tqD','SL TBCH','t'],['trD','DT TBCH','tv']]],
+  ['d1','Sale D-1',[['qD1','SL','q'],['rD1','DT','v'],['tqD1','SL TBCH','t'],['trD1','DT TBCH','tv']]],
+  ['tk','Tồn kho',[['sQ','SL tồn','q'],['sV','GT tồn','v'],['tsQ','SL tồn TBCH','t'],['tsV','GT tồn TBCH','tv'],['dio','DIO (ngày)','dio']]],
+  ['dr','Độ phủ',[['nDR','CH đạt Min TB','t1'],['dr','DR','pct']]],
+  ['fc','FC',[['fcQ','SL FC','q'],['fcV','GT FC','v']]],
+  ['po','PO',[['poQ','SL PO','q'],['poV','GT PO','v'],['ndQ','SL chờ giao','q'],['ndV','GT chờ giao','v']]],
+  ['val','Validate',[['vQ','SL Validate','q'],['vV','GT Validate','v']]],
+];
+const COLS_VIEW = {
+"trend": {
+"trendScore": {
+"F": true,
+"C": true,
+"L": false
+},
+"trendLabel": {
+"F": true,
+"C": true,
+"L": true
+},
+"vVal": {
+"F": true,
+"C": true,
+"L": true
+},
+"vQty": {
+"F": true,
+"C": false,
+"L": false
+},
+"vCov": {
+"F": true,
+"C": false,
+"L": false
+}
+},
+"hq": {
+"rank": {
+"F": true,
+"C": true,
+"L": true
+},
+"score": {
+"F": true,
+"C": true,
+"L": false
+},
+"trLK": {
+"F": true,
+"C": true,
+"L": true
+},
+"bqV": {
+"F": true,
+"C": false,
+"L": false
+},
+"stR": {
+"F": true,
+"C": false,
+"L": false
+}
+},
+"lk": {
+"qLK": {
+"F": true,
+"C": false,
+"L": false
+},
+"rLK": {
+"F": true,
+"C": true,
+"L": true
+},
+"tqLK": {
+"F": true,
+"C": false,
+"L": false
+},
+"trLK": {
+"F": true,
+"C": true,
+"L": false
+}
+},
+"ns": {
+"nNo": {
+"F": true,
+"C": false,
+"L": false
+},
+"noSale": {
+"F": true,
+"C": true,
+"L": true
+}
+},
+"d": {
+"qD": {
+"F": true,
+"C": false,
+"L": false
+},
+"rD": {
+"F": true,
+"C": true,
+"L": true
+},
+"tqD": {
+"F": true,
+"C": false,
+"L": false
+},
+"trD": {
+"F": true,
+"C": true,
+"L": false
+}
+},
+"d1": {
+"qD1": {
+"F": true,
+"C": false,
+"L": false
+},
+"rD1": {
+"F": true,
+"C": true,
+"L": true
+},
+"tqD1": {
+"F": true,
+"C": true,
+"L": false
+},
+"trD1": {
+"F": true,
+"C": false,
+"L": false
+}
+},
+"tk": {
+"sQ": {
+"F": true,
+"C": false,
+"L": false
+},
+"sV": {
+"F": true,
+"C": true,
+"L": true
+},
+"tsQ": {
+"F": true,
+"C": false,
+"L": false
+},
+"tsV": {
+"F": true,
+"C": true,
+"L": false
+},
+"dio": {
+"F": true,
+"C": true,
+"L": true
+}
+},
+"dr": {
+"nDR": {
+"F": true,
+"C": false,
+"L": false
+},
+"dr": {
+"F": true,
+"C": true,
+"L": true
+}
+},
+"fc": {
+"fcQ": {
+"F": true,
+"C": false,
+"L": false
+},
+"fcV": {
+"F": true,
+"C": true,
+"L": true
+}
+},
+"po": {
+"poQ": {
+"F": true,
+"C": false,
+"L": false
+},
+"poV": {
+"F": true,
+"C": true,
+"L": true
+},
+"ndQ": {
+"F": true,
+"C": false,
+"L": false
+},
+"ndV": {
+"F": true,
+"C": true,
+"L": true
+}
+},
+"val": {
+"vQ": {
+"F": true,
+"C": false,
+"L": false
+},
+"vV": {
+"F": true,
+"C": true,
+"L": true
+}
+}
+};
+const TREND_GROUP = ['tr','🔥 Trending',[['trendScore','Điểm','trs'],['trendLabel','Xu hướng','trl'],['vVal','%Δ DT','trp'],['vQty','%Δ SL','trp'],['vCov','%Δ Phủ','trp']]];
+
+const S = {
+  M:null, dim:'sku', scope:'km', tb:'ps', unit:1000,
+  status:new Set(['Chạy KM','Ngày KM cuối']),
+  cols:new Set(COLGROUPS.map(g=>g[0])),
+  sort:{k:'rLK',asc:false}, page:200,
+  cg:new Set(['brand','size','price','group']),
+  open:new Set(), rows:[], fileName:'', tips:{},
+  view:'full', fs:13, viewInfo:false,
+  rankInds:new Set(['trLK','bqV','stR']), rankByNhom:false, grpSku:false,
+  trThr:0, trTopN:50, wVal:40, wQty:30, wCov:30,
+};
+try {
+  const sv = JSON.parse(localStorage.getItem('kskv4_prefs')||'{}');
+  if (sv.cols) S.cols = new Set(sv.cols);
+  if (sv.unit) S.unit = sv.unit;
+  if (sv.tb) S.tb = sv.tb;
+  if (sv.view) S.view = sv.view;
+  if (sv.fs) S.fs = sv.fs;
+  if (sv.grpSku !== undefined) S.grpSku = sv.grpSku;
+} catch(e){}
+const savePrefs = () => { try { localStorage.setItem('kskv4_prefs', JSON.stringify({cols:[...S.cols], unit:S.unit, tb:S.tb, view:S.view, fs:S.fs, grpSku:S.grpSku})); } catch(e){} };
+
+const nf0 = new Intl.NumberFormat('vi-VN',{maximumFractionDigits:0});
+const nf1 = new Intl.NumberFormat('vi-VN',{maximumFractionDigits:1, minimumFractionDigits:1});
+const nf2 = new Intl.NumberFormat('vi-VN',{maximumFractionDigits:2, minimumFractionDigits:2});
+const fmtQ = v => v === null ? '—' : (v === 0 ? '0' : nf0.format(v));
+const fmtV = v => { if (v === null) return '—'; const x = v / S.unit; return S.unit === 1 ? nf0.format(x) : (Math.abs(x) < 100 && x !== 0 ? nf1.format(x) : nf0.format(x)); };
+const fmtPct = v => v === null ? '—' : nf1.format(v*100) + '%';
+const unitLbl = () => S.unit === 1 ? 'đ' : S.unit === 1000 ? 'nghìn đ' : 'triệu đ';
+const fmtDate = d => d ? String(d.getUTCDate()).padStart(2,'0') + '/' + String(d.getUTCMonth()+1).padStart(2,'0') + '/' + String(d.getUTCFullYear()).slice(2) : '?';
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function daysLeft(d1){ if (!d1) return null; const now = new Date(); const t = Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),now.getUTCDate()); return Math.round((+d1 - t) / 864e5); }
+
+function fmtCell(type, v){
+  switch(type){
+    case 'q': return [fmtQ(v), v===0?'na':''];
+    case 'v': return [fmtV(v), v===0?'na':''];
+    case 't1': return [v===null?'—':(Number.isInteger(v)?nf0.format(v):nf1.format(v)), v===0?'na':''];
+    case 't': return [v===null?'—':nf1.format(v), ''];
+    case 'tv': return [fmtV(v), ''];
+    case 'dio': return [v===null?'—':nf0.format(v), v===null?'na': v>60?'cell-bad': v>30?'cell-warn':''];
+    case 'pct': return [fmtPct(v), v===null?'na': v<0.5?'cell-bad': v<0.8?'cell-warn':'cell-good'];
+    case 'rank': { const N = S.curRankN ?? S.rankN; return [v==null?'—':'<span class="rk' + (v<=3?' top':'') + (N > 6 && v > N - 3 ? ' bot':'') + '">#' + v + (S.curRankN ? '<small>/' + N + '</small>' : '') + '</span>', '']; }
+    case 't2': return [v===null?'—':(Math.abs(v) < 10 ? nf2.format(v) : nf1.format(v)), ''];
+    case 'sr': if (v === Infinity) return ['<span title="Có bán nhưng SL tồn = 0">Hết tồn</span>', 'cell-bad']; return [fmtPct(v), v===null?'na': v<0.3?'cell-bad': v<0.7?'cell-warn':'cell-good'];
+    case 'nspct': return [fmtPct(v), v===null?'na': v>0.3?'cell-bad': v>0.1?'cell-warn':''];
+    case 'trs': return [v==null?'—':'<b>'+Math.round(v)+'</b>', v>=70?'cell-good': v<40?'cell-bad':''];
+    case 'trl': return [v==null?'—':esc(v), ''];
+    case 'trp': { if (v==null) return ['—','']; const s = (v>=0?'+':'')+nf1.format(v)+'%'; return [s, v>0?'cell-good': v<0?'cell-bad':'']; }
+  }
+}
+
+/* ---- sheets ---- */
+function wrapSheet(ws){
+  if (!ws) return null;
+  const data = ws['!data'] || (Array.isArray(ws) ? ws : null);
+  if (data) return { n: data.length, get:(r,c) => { const row = data[r]; if (!row) return null; const cell = row[c]; return cell ? cell.v : null; } };
+  const aoa = XLSX.utils.sheet_to_json(ws, {header:1, raw:true, defval:null, blankrows:true});
+  return { n: aoa.length, get:(r,c) => (aoa[r] ? aoa[r][c] : null) };
+}
+function findSheet(wb, name){ const k = wb.SheetNames.find(s => s.trim().toLowerCase() === name.toLowerCase()); return k ? wb.Sheets[k] : null; }
+function showOverlay(msg){ $('overlayMsg').textContent = msg; $('overlay').hidden = false; }
+function hideOverlay(){ $('overlay').hidden = true; }
+
+async function loadFile(file){
+  if (typeof XLSX === 'undefined'){ alertBox('Không tải được thư viện đọc Excel (SheetJS). Kiểm tra kết nối mạng rồi mở lại trang.'); return; }
+  showOverlay('Đang đọc ' + file.name + '…');
+  await new Promise(r => setTimeout(r, 30));
+  try {
+    const buf = await file.arrayBuffer();
+    await new Promise(r => setTimeout(r, 0));
+    const wb = XLSX.read(buf, {type:'array', dense:true, cellFormula:false, cellHTML:false, cellText:false, cellStyles:false});
+    showOverlay('Đang tính toán…'); await new Promise(r => setTimeout(r, 20));
+    const sale = findSheet(wb,'SALE');
+    if (!sale){ hideOverlay(); alertBox('File không có sheet SALE. Kiểm tra lại file nguồn.'); return; }
+    const M = buildModel(wrapSheet(sale), wrapSheet(findSheet(wb,'CTKM')), wrapSheet(findSheet(wb,'FC')));
+    S.fileName = file.name + ' · ' + new Date(file.lastModified).toLocaleString('vi-VN');
+    start(M, false);
+  } catch(e){ console.error(e); alertBox('Không đọc được file: ' + e.message); }
+  hideOverlay();
+}
+function alertBox(msg){ const b = $('warnBox'); b.textContent = msg; b.hidden = false; $('app').hidden = false; }
+
+/* ---- cascade filters ---- */
+function cascade(){
+  if (!S.M) return; let st = S.M.stores;
+  const reg = $('fRegion').value; if (reg) st = st.filter(x => x.region === reg);
+  fillSelect($('fRm'), uniq(st.map(x => x.rm)), 'Tất cả'); const rm = $('fRm').value; if (rm) st = st.filter(x => x.rm === rm);
+  fillSelect($('fRsm'), uniq(st.map(x => x.rsm)), 'Tất cả'); const rsm = $('fRsm').value; if (rsm) st = st.filter(x => x.rsm === rsm);
+  fillSelect($('fAsm'), uniq(st.map(x => x.asm)), 'Tất cả');
+  cbSyncAll();
+}
+const vnFold = t => String(t).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d').replace(/Đ/g,'D').toLowerCase();
+function cbMake(sel){
+  if (sel.dataset.cb) return; sel.dataset.cb = '1'; sel.classList.add('cb-src');
+  const w = document.createElement('div'); w.className = 'cb';
+  w.innerHTML = '<button type="button" class="cb-btn" aria-haspopup="listbox" aria-expanded="false"></button><div class="cb-panel" hidden><input type="search" class="cb-q" placeholder="Gõ để tìm…" aria-label="Tìm"><div class="cb-list" role="listbox"></div></div>';
+  sel.after(w);
+  const btn = w.querySelector('.cb-btn'), pan = w.querySelector('.cb-panel'), q = w.querySelector('.cb-q'), list = w.querySelector('.cb-list');
+  const draw = () => { const f = vnFold(q.value.trim()); const opts = [...sel.options].filter(o => !f || vnFold(o.text).includes(f));
+    list.innerHTML = opts.slice(0, 400).map((o,i) => '<div class="cb-opt' + (o.value === sel.value ? ' on' : '') + (i===0 && f ? ' hi' : '') + '" role="option" data-v="' + esc(o.value) + '">' + esc(o.text) + '</div>').join('') || '<div class="cb-none">Không có kết quả</div>'; };
+  const close = () => { pan.hidden = true; btn.setAttribute('aria-expanded','false'); };
+  const pick = v => { close(); if (sel.value !== v){ sel.value = v; sel.dispatchEvent(new Event('change')); } cbSync(sel); };
+  btn.onclick = e => { e.stopPropagation(); const open = pan.hidden; document.querySelectorAll('.cb-panel').forEach(p => p.hidden = true); document.querySelectorAll('.ms-panel').forEach(p => p.hidden = true);
+    if (open){ pan.hidden = false; btn.setAttribute('aria-expanded','true'); q.value = ''; draw(); q.focus({preventScroll:true}); } };
+  pan.addEventListener('click', e => { e.stopPropagation(); const o = e.target.closest('.cb-opt'); if (o) pick(o.dataset.v); });
+  q.addEventListener('input', draw);
+  q.addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); const o = list.querySelector('.cb-opt.hi') || list.querySelector('.cb-opt'); if (o) pick(o.dataset.v); } else if (e.key === 'Escape'){ close(); btn.focus(); } });
+  document.addEventListener('click', close);
+  sel.addEventListener('change', () => cbSync(sel));
+  cbSync(sel);
+}
+function cbSync(sel){ const w = sel.nextElementSibling; if (!w || !w.classList.contains('cb')) return; const o = sel.options[sel.selectedIndex]; w.querySelector('.cb-btn').textContent = o ? o.text : ''; w.querySelector('.cb-btn').classList.toggle('set', !!sel.value); }
+function cbSyncAll(){ document.querySelectorAll('select.cb-src').forEach(cbSync); }
+function fillSelect(el, values, allLabel){
+  const cur = el.value;
+  el.innerHTML = '<option value="">' + allLabel + '</option>' + values.map(v => '<option>' + esc(v) + '</option>').join('');
+  if (values.includes(cur)) el.value = cur;
+  cbSync(el);
+}
+const uniq = arr => [...new Set(arr.filter(v => v !== undefined && v !== null && v !== ''))].sort((a,b) => String(a).localeCompare(String(b),'vi'));
+
+function applyView(){ document.body.classList.remove('lv-full','lv-compact','lv-lite'); document.body.classList.add('lv-' + S.view); }
+function applyFs(){ document.documentElement.style.setProperty('--fs', S.fs + 'px'); $('tsLbl').textContent = S.fs + 'px'; }
+
+function start(M, demo){
+  S.M = M; $('staticNote').hidden = true;
+  $('drop').hidden = true; $('app').hidden = false; $('btnExport').hidden = false; $('btnSnap').hidden = !!demo;
+  $('demoBanner').hidden = !demo;
+  $('fileinfo').textContent = demo ? 'Dữ liệu demo' : S.fileName;
+  const w = $('warnBox'); w.hidden = !M.warn.length; w.textContent = M.warn.join(' ');
+  const kmArts = M.arts.filter(a => a.kms.length);
+  fillSelect($('fGroup'), uniq(kmArts.flatMap(a => a.kms.map(k => k.group))), 'Tất cả');
+  { const vals = uniq(kmArts.flatMap(a => a.kms.map(k => k.key))); S.keyVals = vals; if (S.keySel) S.keySel = new Set([...S.keySel].filter(v => vals.includes(v))); if (S.keySel && !S.keySel.size) S.keySel = null;
+    $('msKeyPanel').innerHTML = vals.map((v,i) => '<label class="ms-opt"><input type="checkbox" value="' + esc(v) + '"' + (!S.keySel || S.keySel.has(v) ? ' checked' : '') + '> ' + esc(v) + '</label>').join('') + '<div class="ms-act"><button type="button" class="chip" data-all="1">Chọn tất cả</button><button type="button" class="chip" data-all="0">Bỏ chọn</button></div>';
+    keyLabel(); }
+  fillSelect($('fMch3'), uniq(M.arts.map(a => a.mch3)), 'Tất cả');
+  fillSelect($('fRegion'), uniq(M.stores.map(s => s.region)), 'Tất cả');
+  fillSelect($('fRm'), uniq(M.stores.map(s => s.rm)), 'Tất cả');
+  fillSelect($('fRsm'), uniq(M.stores.map(s => s.rsm)), 'Tất cả');
+  fillSelect($('fAsm'), uniq(M.stores.map(s => s.asm)), 'Tất cả');
+  cascade();
+  fillSelect($('fType'), uniq(M.stores.map(s => s.type)), 'Tất cả');
+  render();
+}
+
+function countFilters(){ return ['q','fStore','fGroup','fMch3','fRegion','fRm','fRsm','fAsm','fType'].filter(id => $(id).value.trim()).length; }
+function keyLabel(){ const vals = S.keyVals || []; $('msKeyBtn').textContent = !S.keySel ? 'Tất cả' : S.keySel.size ? vals.filter(v => S.keySel.has(v)).join(', ') : '(Chưa chọn)'; }
+
+function buildFilter(){
+  { const n = countFilters(); $('fCount').textContent = n ? '(' + n + ')' : ''; }
+  const M = S.M;
+  const q = $('q').value.trim().toLowerCase(), g = $('fGroup').value, m3 = $('fMch3').value;
+  const reg = $('fRegion').value, rm = $('fRm').value, rsm = $('fRsm').value, asm = $('fAsm').value, ty = $('fType').value, sq = $('fStore').value.trim().toLowerCase();
+  const storeOK = new Uint8Array(M.stores.length), artOK = new Uint8Array(M.arts.length), kmOf = new Array(M.arts.length).fill(null);
+  M.stores.forEach((s,i) => { storeOK[i] = (!reg || s.region===reg) && (!rm || s.rm===rm) && (!rsm || s.rsm===rsm) && (!asm || s.asm===asm) && (!ty || s.type===ty) && (!sq || s.code.toLowerCase().includes(sq)) ? 1 : 0; });
+  M.arts.forEach((a,i) => {
+    let km = null;
+    if (a.kms.length){
+      const cand = a.kms.filter(k => (S.scope==='all' || S.status.has(k.status)) && (!g || k.group===g) && (!S.keySel || S.keySel.has(k.key)));
+      km = cand[0] || null;
+    }
+    if (S.scope === 'km' && !km) return;
+    if (S.scope === 'all' && (g || S.keySel) && !km) return;
+    if (m3 && a.mch3 !== m3) return;
+    if (q && !(a.code.toLowerCase().includes(q) || a.name.toLowerCase().includes(q))) return;
+    artOK[i] = 1; kmOf[i] = km || a.km;
+  });
+  const cgParts = CG_ATTRS.filter(([k]) => S.cg.has(k));
+  const cgKey = ai => { const a = M.arts[ai], k = kmOf[ai];
+    return cgParts.map(([key]) => key==='brand' ? a.brand : key==='size' ? a.size : key==='price' ? (k?.p1 ? nf0.format(k.p1) + 'đ' : '(Không giá)') : key==='group' ? (k?.group || '(Không có KM)') : key==='mech' ? (k?.mech || '(Trống)') : a.mch3).join(' · ') || 'Tất cả'; };
+  return {storeOK, artOK, kmOf, cgKey};
+}
+
+/* local ranking using configurable indicators */
+function rankRowsCfg(list){
+  const keys = [...S.rankInds]; if (!keys.length){ list.forEach((r,i)=>{r.score=null;r.rank=null;}); return; }
+  const n = list.length; if (!n) return;
+  const sc = new Float64Array(n);
+  for (const k of keys){
+    const val = r => { const v = r[k]; return v == null || Number.isNaN(v) ? -Infinity : (v===Infinity ? 1e18 : v); };
+    const idx = list.map((r,i) => i).sort((a,b) => { const x = val(list[a]), y = val(list[b]); return x === y ? 0 : (y > x ? 1 : -1); });
+    let rk = 0, prev; idx.forEach((i,pos) => { const v = val(list[i]); if (pos === 0 || v !== prev){ rk = pos + 1; prev = v; } sc[i] += rk; });
+  }
+  list.forEach((r,i) => { r.score = sc[i] / keys.length; });
+  const ord = list.slice().sort((a,b) => a.score - b.score || (b.trLK ?? -1) - (a.trLK ?? -1));
+  ord.forEach((r,i) => { r.rank = i + 1; r.rankN = n; });
+}
+
+function computeTrend(list){
+  const wv = S.wVal, wq = S.wQty, wc = S.wCov, tot = (wv+wq+wc)||1;
+  const clip = v => Math.max(-100, Math.min(100, v));
+  for (const m of list){
+    const t = trendingScore(m);
+    m.vQty = t.vQty; m.vVal = t.vVal; m.vCov = t.vCov;
+    const raw = clip(t.vVal)*(wv/tot) + clip(t.vQty)*(wq/tot) + clip(t.vCov)*(wc/tot);
+    m.trendScore = Math.round(Math.max(0, Math.min(100, (raw + 100) / 2)));
+    let label = '🔴 Sụt giảm';
+    if (m.trendScore >= 70) label = '🟢 Bùng nổ';
+    else if (m.trendScore >= 40) label = '🟡 Tăng trưởng';
+    else if (m.trendScore >= 10) label = '⚪ Ổn định';
+    m.trendLabel = label;
+  }
+}
+
+
+function renderRecap(){
+  if (!S.rows || !S.rows.length){ $('recap').innerHTML = ''; return; }
+  let total = {rLK:0, rD:0, sV:0, dio:0, nDR:0, nNo:0, ct:0};
+  S.rows.forEach(r => {
+    total.rLK += (r.rLK||0); total.rD += (r.rD||0); total.sV += (r.sV||0);
+    total.dio += (r.dio||0);
+    if (r.dr != null){ total.nDR += (r.nDR||0); }
+    else { total.nNo += (r.nNo||0); }
+    total.ct++;
+  });
+  const n = total.ct || 1;
+  $('recap').innerHTML = [
+    ['Lũy kế', fmtV(total.rLK), ''],
+    ['Hôm nay', fmtV(total.rD), ''],
+    ['Tồn kho', fmtV(total.sV), ''],
+    ['DIO', nf0.format(total.dio/n), 'ngày'],
+    ['Độ phủ', nf1.format((total.nDR/n)*100)+'%', nf0.format(total.nDR)+' CH'],
+    ['NoSale', nf1.format((total.nNo/n)*100)+'%', nf0.format(total.nNo)+' CH'],
+    ['FC', '—', ''],
+    ['PO', '—', ''],
+  ].map(([l,v,s]) => '<div class="rc"><div class="rc-l">'+esc(l)+'</div><div class="rc-v">'+v+'</div>'+(s?'<div class="rc-s">'+s+'</div>':'')+'</div>').join('');
+}
+
+function render(){
+  renderRecap();
+  if (!S.M) return;
+  // Map new tab dims to existing logic
+  const effDim = _DM[S.dim] || S.dim;
+  // For rsmasm: compute cross-tab using RSM×ASM grouping
+  if (S.dim === 'rsmasm'){
+    S._rsmAsmMap = new Map();
+    S.M.stores.forEach((st, i) => {
+      const key = (st.rsm || '?') + ' | ' + (st.asm || '?');
+      if (!S._rsmAsmMap.has(key)) S._rsmAsmMap.set(key, new Set());
+      S._rsmAsmMap.get(key).add(i);
+    });
+  }
+  const flt = buildFilter(); S.flt = flt;
+  const artByCode = new Map(S.M.arts.map((a,i) => [a.code, i]));
+
+  if (effDim === 'trend'){
+    const sk = aggregate(S.M, flt, 'sku');
+    S.rows = sk.rows.map(g => { const m = metrics(g, S.tb); m.key = g.key; const ai = artByCode.get(g.key); m.ai = ai; m.art = S.M.arts[ai]; m.km = flt.kmOf[ai]; return m; });
+    computeTrend(S.rows);
+    const thr = Number(S.trThr) || 0;
+    S.rows = S.rows.filter(r => r.vVal >= thr || r.vQty >= thr || r.vCov >= thr);
+    S.rows.sort((a,b) => b.trendScore - a.trendScore);
+    S.rows = S.rows.slice(0, Math.max(5, Number(S.trTopN) || 50));
+    S.rows.forEach((r,i)=>{ r.rank = i+1; });
+    S.totalRow = metrics(aggregate(S.M, flt, 'sku').total, S.tb); computeTrend([S.totalRow]); S.totalRow.rank = null;
+    S.ctx = {nArtSel: S.rows.length, nAct: sk.nAct}; S.rankN = S.rows.length;
+    sortRows(); renderKpis({total:S.totalRow, nArtSel:sk.nArtSel, nAct:sk.nAct}); renderTable();
+    return;
+  }
+
+  if (S.dim === 'rsmasm'){
+    // Aggregate by RSM×ASM
+    const groups = {};
+    for (const art of S.M.arts){ if (!flt.artOK[art._i]) continue;
+      S.M.stores.forEach((st, i) => { if (!flt.storeOK[i]) return;
+        const key = (st.rsm || '?') + ' | ' + (st.asm || '?');
+        groups[key] = groups[key] || [];
+        const f = S.M.facts[art._i];
+        if (!f || !f[i]) return;
+        groups[key].push({storeIdx: i, f: f[i]});
+      });
+    }
+    S.rows = Object.entries(groups).map(([key, items]) => {
+      const m = {}; m.key = key; let ct = 0, rLK=0, rD=0, sV=0, dio=0, nDR=0;
+      items.forEach(({storeIdx, f}) => { ct++;
+        rLK += (f.tqLK*f.sV*1000)||(f.tqLK*f.cogs*1000)||0; rD += f.rD||0; sV += f.sV||0;
+        dio += (f.dio||0);
+        if (f.dr != null) nDR++;
+      });
+      m.rLK = rLK; m.rD = rD; m.sV = sV; m.dio = dio/ct; m.nDR = nDR;
+      m.tqLK = rLK/ct/1000; m.trLK = 0; m.bqV = 0; m.stR = 0;
+      m.nNo = items.length - nDR; m.noSale = (items.length-nDR)/items.length||0;
+      m.fcV = 0; m.poV = 0; m.ndV = 0; m.vV = 0;
+      m.rank = null; m.score = null; return m;
+    });
+    S.totalRow = metrics({total: S.rows, nArtSel: S.rows.length, nAct: S.rows.length}, 'all');
+    S.ctx = {nArtSel: S.rows.length, nAct: S.rows.length};
+    sortRows(); renderKpis(S.ctx); renderTable(); return;
+  }
+  const res = aggregate(S.M, flt, effDim);
+  S.rows = res.rows.map(g => { const m = metrics(g, S.tb); m.key = g.key; if (effDim==='sku'){ const ai = artByCode.get(g.key); m.ai = ai; m.art = S.M.arts[ai]; m.km = flt.kmOf[ai]; } return m; });
+  S.totalRow = metrics(res.total, S.tb);
+  S.ctx = res;  S.bgKids = null;
+
+  if (effDim === 'sku' && S.rankByNhom){
+    const artIdxList = S.rows.map(r => r.ai).filter(i => i != null);
+    rankByNhomDt(S.M, flt, artIdxList);
+    const avgMap = new Map(); artIdxList.forEach(i => avgMap.set(S.M.arts[i].code, S.M.arts[i]._nhomRankAvg));
+    const valid = S.rows.filter(r => avgMap.get(r.key) != null).sort((a,b)=> avgMap.get(a.key) - avgMap.get(b.key));
+    valid.forEach((r,i)=>{ r.rank = i+1; r.score = avgMap.get(r.key); });
+    S.rows.filter(r => avgMap.get(r.key) == null).forEach(r=>{ r.rank = null; r.score = null; });
+    S.rankN = valid.length;
+  } else {
+    rankRowsCfg(S.rows); S.rows.forEach(r => delete r.rankN); S.rankN = S.rows.length;
+  }
+  S.totalRow.rank = null; S.totalRow.score = null;
+
+  if (effDim === 'code'){ const byCode = new Map(S.M.stores.map(st => [st.code, st])); S.rows.forEach(r => { const st = byCode.get(r.key); r.label = r.key + ' · ' + (st?.name || ''); }); }
+  if (effDim === 'bg' || effDim === 'cg' || S.dim === 'overall'){
+    const sk = aggregate(S.M, flt, 'sku'); S.bgKids = new Map();
+    for (const g of sk.rows){ const m = metrics(g, S.tb); const ai = artByCode.get(g.key); m.key = g.key; m.ai = ai; m.art = S.M.arts[ai]; m.km = flt.kmOf[ai];
+      const bk = S.dim === 'cg' ? flt.cgKey(ai) : (m.km?.group || '(Không có KM)') + ' | ' + m.art.brand; if (!S.bgKids.has(bk)) S.bgKids.set(bk, []); S.bgKids.get(bk).push(m); }
+    for (const list of S.bgKids.values()){ list.sort((a,b) => (b.tqLK ?? -1) - (a.tqLK ?? -1) || b.rLK - a.rLK); rankRowsCfg(list); }
+  }
+  sortRows(); renderKpis(res); renderTable();
+}
+function sortRows(){
+  const {k, asc} = S.sort;
+  const effDim = _DM[S.dim] || S.dim;
+  const get = r => k === 'key' ? (effDim==='sku' ? (r.art?.name||r.key) : r.key) : r[k];
+  S.rows.sort((a,b) => { const x = get(a), y = get(b);
+    if (typeof x === 'string' || typeof y === 'string') return (asc?1:-1) * String(x??'').localeCompare(String(y??''),'vi');
+    if (x === null && y === null) return 0; if (x === null) return 1; if (y === null) return -1;
+    if (x === Infinity) return asc ? 1 : -1; if (y === Infinity) return asc ? -1 : 1;
+    return asc ? x - y : y - x; });
+}
+
+function renderKpis(res){
+  const t = S.totalRow; const dd = t.rD1 ? (t.rD - t.rD1) / t.rD1 : null;
+  const tiles = [
+    ['Doanh thu lũy kế', fmtV(t.rLK), 'TBCH: SL ' + (t.tqLK===null?'—':nf1.format(t.tqLK)) + ' · DT ' + fmtV(t.trLK) + ' · ' + fmtQ(t.nSale) + ' CH bán'],
+    ['Doanh thu D', fmtV(t.rD), dd===null ? 'D-1: ' + fmtV(t.rD1) : '<span class="' + (dd>=0?'up':'down') + '">' + (dd>=0?'▲':'▼') + nf1.format(Math.abs(dd)*100) + '%</span> vs D-1 ' + fmtV(t.rD1)],
+    ['Giá trị tồn', fmtV(t.sV), 'TBCH: SL ' + (t.tsQ===null?'—':nf1.format(t.tsQ)) + ' · GT ' + fmtV(t.tsV) + ' · ' + fmtQ(t.nStock) + ' CH tồn'],
+    ['DIO', t.dio===null ? '—' : nf0.format(t.dio) + ' ngày', ''],
+    ['Độ phủ (DR)', fmtPct(t.dr), 'BQ ' + fmtQ(t.nDR) + '/' + fmtQ(t.nAct) + ' CH đạt Min TB'],
+    ['% No sale', fmtPct(t.noSale), fmtQ(t.nNo) + '/' + fmtQ(t.nStock) + ' CH tồn không bán ngày D'],
+    ['FC / Validate', fmtV(t.fcV) + ' / ' + fmtV(t.vV), 'SL ' + fmtQ(t.fcQ) + ' / ' + fmtQ(t.vQ)],
+    ['GT PO chờ giao', fmtV(t.ndV), 'TBCH: SL ' + (t.tndQ===null?'—':nf1.format(t.tndQ)) + ' · GT ' + fmtV(t.tndV)],
+  ];
+  const _ed = _DM[S.dim] || S.dim;
+  $('scopeInfo').innerHTML = '<b>' + fmtQ(res.nArtSel) + '</b> mã · <b>' + fmtQ(res.nAct) + '</b> CH hoạt động' + (_ed==='trend'?' · 🔥 Top '+S.rows.length+' theo xu hướng':'');
+  $('kpis').innerHTML = tiles.map(([l,v,s]) => '<div class="kpi" title="' + (l + ': ' + v + ' — ' + String(s)).replace(/<[^>]+>/g,'') + '"><span class="lbl">' + l + '</span><span class="v">' + v + '</span><span class="s">' + s + '</span></div>').join('');
+}
+
+function visibleGroups(){ const base = COLGROUPS.filter(g => S.cols.has(g[0])); if ((_DM[S.dim]||S.dim)==='trend') return [TREND_GROUP, ...base]; return base; }
+function kmTip(a, k){
+  let h = '<div class="tt-h">' + esc(a.code) + ' - ' + esc(a.name) + '</div><div class="tt-s">' + esc(a.mch3) + (a.maQuyDoi?' · Quy đổi: '+esc(a.maQuyDoi):'') + '</div>';
+  if (!k) return h + '<div class="tt-r">Không có trong CTKM</div>';
+  const cls = ST_CLS[k.status.toLowerCase()] || 'st-end';
+  const row = (l, v) => v ? '<div class="tt-r"><span>' + l + '</span><b>' + v + '</b></div>' : '';
+  const price = k.p1 ? nf0.format(k.p1) + (k.p0 && k.p0 !== k.p1 ? ' <s>' + nf0.format(k.p0) + '</s>' : '') : '';
+  const dl = daysLeft(k.d1); const tl = dl==null?'':(dl<0?'Đã hết':dl+' ngày');
+  return h + '<div class="tt-r"><span class="pill ' + cls + '">' + esc(k.status || '?') + '</span></div>' + row('GROUP KM', esc(k.group)) + row('Cơ chế', esc(k.mech)) + row('Giá KM', price) +
+    row('Thời gian', fmtDate(k.d0) + ' – ' + fmtDate(k.d1)) + row('Còn lại', tl) + row('Min TB', a.minTB ? String(a.minTB) : '') + row('Phân loại key', k.key && k.key !== '(Trống)' ? esc(k.key) : '') + row('Vùng', esc(k.area)) + (a.kms.length > 1 ? row('Số dòng CTKM', String(a.kms.length)) : '');
+}
+function viewInfoHtml(a, k){
+  if (!k) return '<div class="vi">Không có trong CTKM</div>';
+  const dl = daysLeft(k.d1);
+  let tl = '';
+  if (dl != null){ const cls = dl < 2 ? 'tl-red' : dl < 3 ? 'tl-yellow' : 'tl-ok'; const em = dl < 2 ? '🔴 ' : dl < 3 ? '🟡 ' : ''; tl = '<span class="timeleft ' + cls + '">' + em + (dl < 0 ? 'Hết KM' : 'Còn ' + dl + ' ngày') + '</span>'; }
+  const price = k.p1 ? nf0.format(k.p1) + 'đ' + (k.p0 && k.p0 !== k.p1 ? ' <s>' + nf0.format(k.p0) + 'đ</s>' : '') : '—';
+  return '<div class="vi"><b>Group:</b> ' + esc(k.group) + ' · <b>Giá KM:</b> ' + price + ' · <b>ĐK AD:</b> ' + esc(k.mech || '—') + '<br><b>TG AD:</b> ' + fmtDate(k.d0) + '–' + fmtDate(k.d1) + ' · ' + tl + '</div>';
+}
+function firstCell(r, isTotal, asSku){
+  if (isTotal) return '<td class="sticky">Tổng cộng <span class="code">(' + fmtQ(S.ctx.nArtSel) + ' mã)</span></td>';
+  const _ed2 = _DM[S.dim] || S.dim;
+  if (!asSku && (_ed2 === 'bg' || S.dim === 'overall')){ const [grp, br] = r.key.split(' | '); const pid = 'bg:' + r.key, op = S.open.has(pid);
+    return '<td class="sticky"><div class="nm"><button class="tg" data-p="' + esc(pid) + '" aria-expanded="' + op + '">' + (op ? '−' : '+') + '</button><span class="cd">' + esc(br) + '</span> · ' + esc(grp) + ' <span class="code">(' + fmtQ(r.nArt) + ' mã)</span></div></td>'; }
+  if (!asSku && _ed2 === 'cg'){ const pid = 'cg:' + r.key, op = S.open.has(pid);
+    return '<td class="sticky"><div class="nm" title="' + esc(r.key) + '"><button class="tg" data-p="' + esc(pid) + '" aria-expanded="' + op + '">' + (op ? '−' : '+') + '</button>' + esc(r.key) + ' <span class="code">(' + fmtQ(r.nArt) + ' mã)</span></div></td>'; }
+  if (!asSku && SD_CHAIN[S.dim] && !(_ed2 === 'bg' || _ed2 === 'cg')){ const pid = 'sd:' + JSON.stringify([r.key]), op = S.open.has(pid);
+    return '<td class="sticky"><div class="nm"><button class="tg" data-p="' + esc(pid) + '" aria-expanded="' + op + '">' + (op ? '−' : '+') + '</button>' + esc(r.key) + '</div></td>'; }
+  if (!asSku) return '<td class="sticky"><div class="nm">' + esc(r.key) + '</div></td>';
+  const a = r.art, k = r.km;
+  S.tips[r.ai] = kmTip(a, k);
+  const vi = (S.viewInfo && (_ed2 === 'sku')) ? viewInfoHtml(a, k) : '';
+  const canExpand = _ed2 === 'sku';
+  const tg = canExpand ? '<button class="tg" data-p="' + esc(String(r.ai)) + '" aria-expanded="' + S.open.has(String(r.ai)) + '" title="Xem RM → RSM → QLKV → CH">' + (S.open.has(String(r.ai)) ? '−' : '+') + '</button>' : '';
+  return '<td class="sticky"><div class="nm">' + tg + '<span class="cd" data-tip="' + r.ai + '">' + esc(a.code) + '</span> - <span class="tipname" data-tip="' + r.ai + '">' + esc(a.name || '(Không tên)') + '</span></div>' + vi + '</td>';
+}
+const LV_NAME = ['RM','RSM','QLKV','CH'];
+const HEAT = {q:1, v:1, t:1, tv:1, t1:1};
+function heatScale(rows){ const mx = {}; for (const [, , cols] of visibleGroups()) for (const [k, , t] of cols) if (HEAT[t]){ let m = 0; for (const r of rows){ const v = r[k]; if (v > m) m = v; } mx[k] = m; } return mx; }
+function bandOf(gk){ return visibleGroups().findIndex(g => g[0]===gk) % 2 ? 'gB' : 'gA'; }
+function cellsHtml(m, mx){
+  let h = ''; S.curRankN = m.rankN;
+  for (const [gk, , cols] of visibleGroups()) cols.forEach(([k, , t], i) => {
+    const [txt, cls] = fmtCell(t, m[k]);
+    h += '<td class="' + bandOf(gk) + (i===0?' gs ':' ') + cls + '">' + txt + '</td>';
+  });
+  return h;
+}
+function childHtml(ai, path){
+  path = path || []; const level = path.length, leaf = level === DRILL_KEYS.length - 1;
+  const kids = drillRows(S.M, S.flt, ai, path).map(g => { const m = metrics(g, S.tb); m.key = g.key; m.label = g.label; return m; });
+  kids.sort((a,b) => (b.tqLK ?? -1) - (a.tqLK ?? -1) || b.qLK - a.qLK || (b.sQ - a.sQ));
+  rankRowsCfg(kids);
+  let h = ''; const mx = heatScale(kids);
+  for (const m of kids){
+    const np = path.concat([m.key]); const pid = JSON.stringify([ai].concat(np)); const open = !leaf && S.open.has(pid);
+    let fc = '<td class="sticky">' + (!leaf ? '<button class="tg" data-p="' + esc(pid) + '" aria-expanded="' + open + '">' + (open ? '−' : '+') + '</button>' : '') + '<span class="lvl">' + LV_NAME[level] + '</span>' + esc(m.label) + '</td>';
+    h += '<tr class="lv' + (level+1) + '">' + fc + cellsHtml(m, mx) + '</tr>';
+    if (open) h += childHtml(ai, np);
+  }
+  return h;
+}
+const SD_CHAIN = {rm:['rm','rsm','asm'], rsm:['rsm','asm','code'], asm:['asm','code'], rsmasm:['rsmasm','code']};
+const SD_NAME = {rm:'RM', rsm:'RSM', asm:'QLKV', code:'CH'};
+function sdChildHtml(path){
+  const chain = SD_CHAIN[S.dim], lvl = path.length, dim = chain[lvl], leaf = lvl === chain.length - 1;
+  const st = S.M.stores, mask = new Uint8Array(st.length);
+  for (let si = 0; si < st.length; si++){ if (!S.flt.storeOK[si]) continue; let ok = 1; for (let k = 0; k < lvl; k++) if (st[si][chain[k]] !== path[k]){ ok = 0; break; } mask[si] = ok; }
+  const res = aggregate(S.M, {...S.flt, storeOK:mask}, dim);
+  const byCode = dim === 'code' ? new Map(st.map(x => [x.code, x])) : null;
+  const kids = res.rows.map(g => { const m = metrics(g, S.tb); m.key = g.key; m.label = byCode ? g.key + ' · ' + (byCode.get(g.key)?.name || '') : g.key; return m; });
+  rankRowsCfg(kids); kids.sort((a,b) => (a.rank??1e9) - (b.rank??1e9));
+  let h = '';
+  for (const m of kids){
+    const np = path.concat([m.key]), pid = 'sd:' + JSON.stringify(np), open = !leaf && S.open.has(pid);
+    h += '<tr class="lv' + Math.min(lvl+1, 4) + '"><td class="sticky">' + (!leaf ? '<button class="tg" data-p="' + esc(pid) + '" aria-expanded="' + open + '">' + (open ? '−' : '+') + '</button>' : '') + '<span class="lvl">' + SD_NAME[dim] + '</span>' + esc(m.label) + '</td>' + cellsHtml(m, null) + '</tr>';
+    if (open) h += sdChildHtml(np);
+  }
+  return h;
+}
+function rowHtml(r, isTotal, mx, asSku, trCls){
+  asSku = asSku ?? (_ed2 === 'sku' || _ed2 === 'trend');
+  let h = '<tr' + (isTotal ? ' class="total"' : trCls ? ' class="' + trCls + '"' : '') + '>' + firstCell(r, isTotal, asSku) + cellsHtml(r, isTotal ? null : mx) + '</tr>';
+  if (!isTotal && S.dim === 'sku' && S.open.has(String(r.ai))) h += childHtml(r.ai, []);
+  if (!isTotal && !asSku && SD_CHAIN[S.dim] && S.open.has('sd:' + JSON.stringify([r.key]))) h += sdChildHtml([r.key]);
+  if (!isTotal && !asSku && (_ed2 === 'bg' || _ed2 === 'cg') && S.open.has(S.dim + ':' + r.key)) for (const k of (S.bgKids?.get(r.key) || [])) h += rowHtml(k, false, null, true, 'lvb');
+  return h;
+}
+function syncX(){ const w = $('tblWrap'), x = $('xscroll'); $('xscrollIn').style.width = $('tbl').scrollWidth + 'px'; x.hidden = $('tbl').scrollWidth <= w.clientWidth + 1; x.scrollLeft = w.scrollLeft; }
+function renderTable(){
+  const gs = visibleGroups();
+  const dimLbl = TABS.find(t => t[0]===S.dim)[1];
+  const firstLbl = (_ed2==='sku'||_ed2==='trend') ? 'Mã hàng / CTKM' : esc(dimLbl);
+  let g = '<tr class="g"><th rowspan="2" data-k="key" class="sticky' + (S.sort.k==='key' ? ' sorted' + (S.sort.asc?' asc':'') : '') + '">' + firstLbl + '</th>';
+  let c = '<tr class="c">';
+  for (const [gk, label, cols] of gs){ g += '<th colspan="' + cols.length + '" class="' + bandOf(gk) + ' gs">' + label + '</th>';
+    cols.forEach(([k, l], i) => { c += '<th data-k="' + k + '" class="' + bandOf(gk) + (i===0?' gs ':' ') + (S.sort.k===k ? 'sorted' + (S.sort.asc?' asc':'') : '') + '">' + l + '</th>'; }); }
+  $('tbl').tHead.innerHTML = g + '</tr>' + c + '</tr>';
+  const shown = S.rows.slice(0, S.page);
+  const mx = heatScale(S.rows);
+  $('tbl').tBodies[0].innerHTML = rowHtml(S.totalRow, true) + shown.map(r => rowHtml(r, false, mx)).join('') +
+    (S.rows.length ? '' : '<tr><td class="sticky na" colspan="99">Không có dòng nào khớp bộ lọc.</td></tr>');
+  $('moreBox').hidden = S.rows.length <= S.page;
+  $('btnMore').textContent = 'Xem thêm (' + nf0.format(Math.max(0,S.rows.length - S.page)) + ' dòng còn lại)';
+  $('rowinfo').textContent = nf0.format(S.rows.length) + ' dòng · ' + dimLbl + ' · giá trị tính bằng ' + unitLbl();
+  const hdr = $('tbl').tHead.rows; requestAnimationFrame(() => { const h1 = hdr[0].getBoundingClientRect().height; for (const th of hdr[1].cells) th.style.top = h1 + 'px'; syncX(); });
+}
+
+/* ---- export ---- */
+function exportExcel(){
+  if (typeof XLSX === 'undefined') return;
+  const gs = visibleGroups(); const dimLbl = TABS.find(t => t[0]===S.dim)[1];
+  const asSku = S.dim==='sku' || S.dim==='trend';
+  const head = asSku ? ['Mã hàng','Tên hàng','MCH3','Trạng thái KM','GROUP KM','Phân loại key','CTKM','Giá thường','Giá KM','Từ ngày','Đến ngày','Min TB'] : [dimLbl];
+  const cols = gs.flatMap(([, gl, cs]) => cs.map(([k,l,t]) => [k, gl + ' - ' + l + ((t==='v'||t==='tv') ? ' (' + unitLbl() + ')' : ''), t]));
+  const val = (t, v) => v == null ? null : v === Infinity ? 'Hết tồn' : (t==='v'||t==='tv') ? Math.round(v / S.unit * 100)/100 : (t==='pct'||t==='nspct') ? Math.round(v*10000)/10000 : (t==='trl') ? v : Math.round(v*100)/100;
+  const aoa = [head.concat(cols.map(c => c[1]))];
+  const d = x => x ? fmtDate(x) : '';
+  const lead = r => !asSku ? [r.key] : [r.art.code, r.art.name, r.art.mch3, r.km?.status||'', r.km?.group||'', r.km?.key||'', r.km?.mech||'', r.km?.p0||null, r.km?.p1||null, d(r.km?.d0), d(r.km?.d1), r.art.minTB||null];
+  const tl = asSku ? ['TỔNG CỘNG'].concat(Array(head.length-1).fill('')) : ['TỔNG CỘNG'];
+  aoa.push(tl.concat(cols.map(([k,,t]) => val(t, S.totalRow[k]))));
+  for (const r of S.rows) aoa.push(lead(r).concat(cols.map(([k,,t]) => val(t, r[k]))));
+  const ws = XLSX.utils.aoa_to_sheet(aoa); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Key Sale KM');
+  XLSX.writeFile(wb, 'KeySaleKM_' + S.dim + '_' + new Date().toISOString().slice(0,10) + '.xlsx');
+}
+
+/* ---- demo ---- */
+function demoModel(){
+  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const regions = [['Miền Bắc','Bắc - RM A'],['Miền Trung','Trung - RM B'],['Miền Nam','Nam - RM C']];
+  const nhoms = ['N1','N2','N3','N4','N5','N6','N7','N8'];
+  const sale = [], ctkm = [['STT','Trạng thái','Mã SP','Tên SP','BUM','CTKM','giá bán thường','Giá KM','Ngày bắt đầu','Ngày kết thúc','GROUP KM','%KM','Tên SP+KM','Min Trưng bày','','','','','Phân loại key','QH vị trí','Mã hàng quy đổi']], fc = [['Mã CH','Tên Ch','Mã hàng','Tên sản phẩm','ĐVT','SL FC','GT FC','SL Validate','GT Validate']];
+  const R = (r) => (sale[r] = sale[r] || []);
+  R(0)[0]='Sale lũy kế'; R(0)[11]='Tồn kho'; R(0)[20]='Sale D'; R(0)[25]='Sale D-1'; R(0)[31]='STORELIST'; R(0)[40]='PO ';
+  ['MCH2','MCH3','Store','Store','Article','Article','Qty','Rev','COGS'].forEach((h,i)=>R(1)[i]=h); R(1)[11]='Store'; R(1)[20]='Store'; R(1)[25]='Store'; R(1)[40]='Store'; R(2)[31]='Store';
+  const keys = ['Key chủ lực','Key hỗ trợ','Key mới'];
+  const stores = []; for (let i = 0; i < 90; i++){ const [rg, rm] = regions[i%3]; stores.push(['D' + (1000+i), 'Demo CH ' + (i+1), 'Hoạt động', i%7===0?'NSO':'LFL', 'Tỉnh ' + (i%9+1), rg, rm, 'RSM ' + rg.split(' ')[1] + ' ' + (i%2+1), 'ASM ' + (i%6+1), nhoms[i%8]]); }
+  const items = ['Mì gói vị bò 80g','Sữa tiệt trùng 180ml','Nước khoáng 500ml','Dầu gội thảo dược 300g','Nước giặt 3.4kg','Bánh quy bơ 200g','Xúc xích 250g','Giấy vệ sinh 10 cuộn','Nước xả vải 3.5L','Cà phê hòa tan 16 gói','Dầu ăn 1L','Nước mắm 500ml','Kem đánh răng 180g','Snack khoai tây 52g','Trà xanh chai 455ml','Sữa chua uống 4x110ml','Nước tương 500ml','Bột giặt 2.25kg','Kẹo trái cây 150g','Mì ly hải sản 65g'];
+  const mchs = [['Thực phẩm khô','Mì - Phở'],['Sữa','Sữa nước'],['Đồ uống','Nước suối'],['Hoá mỹ phẩm','Chăm sóc tóc'],['Hoá mỹ phẩm','Hóa phẩm']];
+  const groups = ['17-GIẢI TỒN','1-ON POST','10-ADHOC','17-EDLP','2-STAR'], sts = ['Chạy KM','Chạy KM','Ngày KM cuối','Chạy KM','Chưa KM'];
+  const today = new Date(); const base = Math.round((Date.UTC(today.getUTCFullYear(),today.getUTCMonth(),today.getUTCDate()) / 864e5) + 25569);
+  let r = 2, rt = 2, rd = 2, rd1 = 2, rp = 2;
+  stores.forEach((s,i) => { const row = R(3+i); [s[0], s[2], s[3], s[4], s[5], s[6], s[8], s[7], s[9]].forEach((v,k) => row[31+k] = v); if (i===0) ['Store','Store Status','Store Type','Province/City','Region','Region Manager','ASM','RSM','Nhóm DT'].forEach((v,k) => R(2)[31+k] = v); });
+  items.forEach((nm, j) => { const code = String(10900000 + j*37); const price = 10000 + Math.round(rnd()*150)*1000; const mc = mchs[j%5];
+    ctkm.push(['1-TOÀN QUỐC', sts[j%5], code, 'DEMO ' + nm, 'G1', 'Giảm giá trực tiếp', price, Math.round(price*0.85), base - 3 + (j%6), base + (j%5), groups[j%5], 0.15, '', 2 + (j%4), '','','','', keys[j%3], '', code+'-QD']);
+    stores.forEach((s, i) => { if (rnd() < 0.25) return; const q = Math.round(rnd()*40*(1+(j%3))); const rv = q*price*0.85;
+      const a = R(r++); if (q){ a[0]=mc[0]; a[1]=mc[1]; a[2]=s[0]; a[3]=s[1]; a[4]=code; a[5]='DEMO ' + nm; a[6]=q; a[7]=rv; a[8]=rv*0.8; } else r--;
+      const sq = Math.round(rnd()*30); if (sq){ const b = R(rt++); b[11]=s[0]; b[12]=s[1]; b[13]=code; b[14]='DEMO ' + nm; b[15]=price*0.8*q || price*0.8; b[17]=sq*price*0.8; b[18]=sq; }
+      if (rnd() < 0.55){ const qd = Math.ceil(rnd()*4); const c = R(rd++); c[20]=s[0]; c[21]=code; c[22]=qd; c[23]=qd*price*0.85; }
+      if (rnd() < 0.55){ const qd = Math.ceil(rnd()*4); const c = R(rd1++); c[25]=s[0]; c[26]=code; c[27]=qd; c[28]=qd*price*0.85; }
+      if (rnd() < 0.3){ const pq = Math.ceil(rnd()*24); const p = R(rp++); p[40]=s[0]; p[41]=s[1]; p[42]='Normal PO'; p[43]=code; p[44]='DEMO ' + nm; p[45]=pq; p[46]=pq*price*0.8; p[49]=Math.round(pq*rnd()); p[50]=p[49]*price*0.8; }
+      if (rnd() < 0.5){ const fq = 10 + Math.round(rnd()*30); fc.push([s[0], s[1], code, 'DEMO ' + nm, 'G1', fq, fq*price*0.85, Math.round(fq*0.7), Math.round(fq*0.7)*price*0.85]); }
+    }); });
+  const arr = a => ({n:a.length, get:(rr,c) => (a[rr] ? (a[rr][c] ?? null) : null)});
+  return buildModel(arr(sale), arr(ctkm), arr(fc));
+}
+
+/* ---- logic panel ---- */
+function renderLogic(){
+  $('logicBody').innerHTML = `
+  <h4>Chỉ số TBCH (trung bình/cửa hàng)</h4>
+  <ul>
+    <li><b>TB CH phát sinh:</b> tổng ÷ số CH thực sự có số liệu (SL lũy kế &gt; 0 với Sale; Tồn &gt; 0 với Tồn kho).</li>
+    <li><b>TB mọi CH:</b> tổng ÷ số CH hoạt động trong phạm vi lọc.</li>
+    <li><code>SL TBCH</code>, <code>DT TBCH</code> áp dụng cho Sale lũy kế, Sale D, Sale D-1.</li>
+  </ul>
+  <h4>Độ phủ (DR) &amp; No sale</h4>
+  <ul>
+    <li><b>DR</b> = số (CH × mã) đạt Min trưng bày ÷ tổng cặp (CH × mã) trong phạm vi.</li>
+    <li><b>CH đạt Min TB</b>: SL tồn ≥ Min TB (của CTKM), nếu không khai báo thì ngưỡng = 1.</li>
+    <li><b>% No sale</b> = số CH có tồn nhưng không bán ngày D ÷ số CH có tồn.</li>
+  </ul>
+  <h4>Xếp hạng (Hạng &amp; Điểm TB)</h4>
+  <ul>
+    <li>Mỗi chỉ số được chọn ở "Cấu hình xếp hạng" cho 1 lượt xếp (cao nhất = hạng 1). <b>Điểm TB</b> = trung bình thứ hạng các chỉ số. Điểm thấp = tốt hơn.</li>
+    <li><b>Xếp hạng theo Nhóm DT:</b> tính hạng riêng cho từng nhóm N1→N8 (N1 nhỏ nhất, N8 lớn nhất — mỗi nhóm 1 phiếu), hạng cuối = trung bình hạng qua các nhóm. Dùng để so sánh công bằng giữa các quy mô cửa hàng.</li>
+    <li><b>Sale/Tồn</b>: "Hết tồn" (có bán nhưng tồn = 0) xếp đầu; dòng không có số liệu xếp cuối.</li>
+  </ul>
+  <h4>🔥 Top Trending (xu hướng)</h4>
+  <ul>
+    <li>So sánh ngày D với D-1 theo 3 chiều: <b>%Δ Doanh thu</b>, <b>%Δ Sản lượng</b>, <b>%Δ Độ phủ</b> (mỗi chiều kẹp trong [-100%, +100%]).</li>
+    <li><b>Điểm</b> = (Σ chiều × trọng số + 100) ÷ 2, quy về thang 0–100. Trọng số đặt ở "Cấu hình Top Trending".</li>
+    <li>Nhãn: 🟢 Bùng nổ (≥70) · 🟡 Tăng trưởng (40–69) · ⚪ Ổn định (10–39) · 🔴 Sụt giảm (&lt;10).</li>
+  </ul>
+  <h4>DIO &amp; Sale/Tồn</h4>
+  <ul>
+    <li><b>DIO</b> = GT tồn ÷ (COGS ÷ 30) — số ngày tồn kho ước tính.</li>
+    <li><b>Sale/Tồn</b> = SL lũy kế ÷ SL tồn (tốc độ bán so với tồn hiện có).</li>
+  </ul>
+  <h4>Đơn vị &amp; định dạng</h4>
+  <ul><li>Giá trị tiền đổi theo nút đ / nghìn / triệu. Cột SL luôn là số lượng tuyệt đối.</li></ul>`;
+}
+
+/* ---- snapshot ---- */
+const PAGE_CLONE = document.documentElement.cloneNode(true);
+function bytesToB64(u8){ let s = ''; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s); }
+function b64ToBytes(b){ const s = atob(b), u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return u; }
+async function gz(u8, inflate){ const cs = inflate ? new DecompressionStream('gzip') : new CompressionStream('gzip'); return new Uint8Array(await new Response(new Blob([u8]).stream().pipeThrough(cs)).arrayBuffer()); }
+async function saveSnapshot(){
+  const M = S.M; if (!M) return;
+  showOverlay('Đang tạo bản xem…'); await new Promise(r => setTimeout(r, 30));
+  try {
+    const savedAt = new Date().toLocaleString('vi-VN');
+    const meta = { v:4, n:M.n, warn:M.warn, stores:M.stores, label:(S.fileName || '') + ' · bản xem lưu lúc ' + savedAt,
+      arts: M.arts.map(a => ({...a, km:null, kms:a.kms.map(k => ({...k, d0:k.d0 ? +k.d0 : null, d1:k.d1 ? +k.d1 : null}))})),
+      kmIdx: M.arts.map(a => a.km ? a.kms.indexOf(a.km) : -1) };
+    const js = new TextEncoder().encode(JSON.stringify(meta));
+    const n = M.n, buf = new Uint8Array(4 + js.length + n*8 + n*NF*4);
+    new DataView(buf.buffer).setUint32(0, js.length, true); buf.set(js, 4);
+    let o = 4 + js.length;
+    buf.set(new Uint8Array(M.fs.slice().buffer), o); o += n*4;
+    buf.set(new Uint8Array(M.fa.slice().buffer), o); o += n*4;
+    buf.set(new Uint8Array(M.fv.slice().buffer), o);
+    const b64 = bytesToB64(await gz(buf));
+    const doc = PAGE_CLONE.cloneNode(true);
+    doc.querySelector('#snapshot')?.remove();
+    const sc = document.createElement('script'); sc.id = 'snapshot'; sc.type = 'application/octet-stream'; sc.textContent = b64;
+    doc.querySelector('body').prepend(sc);
+    doc.classList.add('static');
+    doc.querySelector('#drop').setAttribute('hidden', '');
+    doc.querySelector('#app').removeAttribute('hidden');
+    doc.querySelector('#fileinfo').textContent = $('fileinfo').textContent + ' · bản xem lưu lúc ' + savedAt;
+    doc.querySelector('#kpis').innerHTML = $('kpis').innerHTML;
+    doc.querySelector('#rowinfo').textContent = $('rowinfo').textContent;
+    doc.querySelector('#tbl thead').innerHTML = $('tbl').tHead.innerHTML.replace(/ style="top:[^"]*"/g, '');
+    doc.querySelector('#tbl tbody').innerHTML = rowHtml(S.totalRow, true) + S.rows.map(r => rowHtml(r, false, null)).join('');
+    doc.querySelector('#staticNote').removeAttribute('hidden');
+    const html = '<!doctype html>\n' + doc.outerHTML;
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([html], {type:'text/html'}));
+    a.download = 'KeySaleKM_banxem_' + new Date().toISOString().slice(0,10) + '.html'; document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
+  } catch(e){ console.error(e); alertBox('Không tạo được bản xem: ' + e.message); }
+  hideOverlay();
+}
+async function loadSnapshot(el){
+  showOverlay('Đang mở bản xem…');
+  try {
+    const buf = await gz(b64ToBytes(el.textContent.trim()), true);
+    const jl = new DataView(buf.buffer).getUint32(0, true);
+    const meta = JSON.parse(new TextDecoder().decode(buf.subarray(4, 4 + jl)));
+    const n = meta.n; let o = 4 + jl;
+    const take = (Ctor, len, bytes) => { const c = new Uint8Array(bytes); c.set(buf.subarray(o, o + bytes)); o += bytes; return new Ctor(c.buffer, 0, len); };
+    const fs = take(Int32Array, n, n*4), fa = take(Int32Array, n, n*4), fv = take(Float32Array, n*NF, n*NF*4);
+    const arts = meta.arts.map((a, i) => { a.kms.forEach(k => { k.d0 = k.d0 ? new Date(k.d0) : null; k.d1 = k.d1 ? new Date(k.d1) : null; }); a.km = meta.kmIdx[i] >= 0 ? a.kms[meta.kmIdx[i]] : null; return a; });
+    const aOff = new Int32Array(arts.length + 1); for (let i = 0; i < n; i++) aOff[fa[i]+1]++;
+    for (let i = 0; i < arts.length; i++) aOff[i+1] += aOff[i];
+    const aIdx = new Int32Array(n), pos = aOff.slice(0, arts.length); for (let i = 0; i < n; i++) aIdx[pos[fa[i]]++] = i;
+    S.fileName = meta.label;
+    start({ stores:meta.stores, arts, n, fs, fa, fv, aOff, aIdx, warn:meta.warn || [] }, false);
+  } catch(e){ console.error(e); alertBox('Không mở được số liệu trong bản xem: ' + e.message); }
+  hideOverlay();
+}
+
+/* ---- events ---- */
+function seg(id, cb){ const el = $(id); el.onclick = e => { const b = e.target.closest('button'); if (!b) return; el.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x===b))); cb(b.dataset.v); }; }
+function initUI(){
+  $('lg').src = (typeof LOGO !== 'undefined') ? LOGO : '';
+  renderLogic();
+  applyView(); applyFs();
+  $('segView').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v===S.view)));
+  $('segTb').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v===S.tb)));
+  $('segUnit').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(String(S.unit)===b.dataset.v)));
+
+  $('tabs').innerHTML = TABS.map(([k,l]) => '<button role="tab" data-k="' + k + '" aria-selected="' + (k===S.dim) + '">' + l + '</button>').join('');
+  $('tabs').onclick = e => { const b = e.target.closest('button'); if (!b) return; S.dim = b.dataset.k; S.page = 200; S.open = new Set([...S.open].filter(x => !x.startsWith('sd:')));
+    const _ed3 = _DM[S.dim] || S.dim;
+    $('cgBox').hidden = S.dim !== 'cg';
+    $('trendCfg').hidden = _ed3 !== 'trend';
+    $('rankCfg').style.display = (_ed3==='trend') ? 'none' : '';
+    $('btnViewInfo').hidden = (_DM[S.dim]||S.dim) !== 'sku';
+    $('tabs').querySelectorAll('button').forEach(x => x.setAttribute('aria-selected', String(x===b)));
+    if (S.dim==='trend') S.sort = {k:'trendScore',asc:false};
+    else if (S.sort.k==='key'||S.sort.k==='trendScore') S.sort = {k:'rLK',asc:false};
+    render(); };
+
+  // multiselect status
+  const msLabel = () => { const sel = ST_LIST.filter(x => S.status.has(x)); $('msStatusBtn').textContent = sel.length === ST_LIST.length ? 'Tất cả' : sel.length ? sel.join(', ') : '(Chưa chọn)'; };
+  $('msStatusPanel').innerHTML = ST_LIST.map((x) => '<label class="ms-opt"><input type="checkbox" value="' + x + '"' + (S.status.has(x) ? ' checked' : '') + '> ' + x + '</label>').join('') + '<div class="ms-act"><button type="button" class="chip" data-all="1">Chọn tất cả</button><button type="button" class="chip" data-all="0">Bỏ chọn</button></div>';
+  msLabel();
+  $('msStatusBtn').onclick = e => { e.stopPropagation(); const p = $('msStatusPanel'); p.hidden = !p.hidden; $('msStatusBtn').setAttribute('aria-expanded', String(!p.hidden)); };
+  $('msStatusPanel').addEventListener('click', e => e.stopPropagation());
+  $('msStatusPanel').addEventListener('change', e => { const x = e.target.value; e.target.checked ? S.status.add(x) : S.status.delete(x); msLabel(); render(); });
+  $('msStatusPanel').querySelectorAll('[data-all]').forEach(b => b.onclick = () => { const on = b.dataset.all === '1'; ST_LIST.forEach((x) => { on ? S.status.add(x) : S.status.delete(x); }); $('msStatusPanel').querySelectorAll('input').forEach(i=>i.checked=on); msLabel(); render(); });
+  document.addEventListener('click', () => { if (!$('msStatusPanel').hidden){ $('msStatusPanel').hidden = true; $('msStatusBtn').setAttribute('aria-expanded','false'); } });
+
+  $('msKeyBtn').onclick = e => { e.stopPropagation(); $('msStatusPanel').hidden = true; const p = $('msKeyPanel'); p.hidden = !p.hidden; $('msKeyBtn').setAttribute('aria-expanded', String(!p.hidden)); };
+  $('msKeyPanel').addEventListener('click', e => e.stopPropagation());
+  $('msKeyPanel').addEventListener('change', () => { const on = [...$('msKeyPanel').querySelectorAll('input:checked')].map(x => x.value); S.keySel = on.length === (S.keyVals||[]).length ? null : new Set(on); keyLabel(); render(); });
+  $('msKeyPanel').addEventListener('click', e => { const b = e.target.closest('[data-all]'); if (!b) return; const all = b.dataset.all === '1'; $('msKeyPanel').querySelectorAll('input').forEach(x => x.checked = all); S.keySel = all ? null : new Set(); keyLabel(); render(); });
+  document.addEventListener('click', () => { $('msKeyPanel').hidden = true; });
+
+  $('fScope').addEventListener('change', () => { S.scope = $('fScope').value; $('msStatus').classList.toggle('dim', S.scope === 'all'); render(); });
+
+  $('chipCols').innerHTML = COLGROUPS.map(([k,l]) => '<button class="chip" data-c="' + k + '" aria-pressed="' + S.cols.has(k) + '">' + l + '</button>').join('');
+  $('secChips').innerHTML = COLGROUPS.map(([k,l]) => '<button class="chip" data-c="' + k + '" aria-pressed="' + S.cols.has(k) + '" style="padding:3px 8px;font-size:11px">' + l + '</button>').join('');
+  const _secChipClick = e => { if(!e.target.classList.contains('chip')) return; const c = e.target.dataset.c; if(S.cols.has(c)) S.cols.delete(c); else S.cols.add(c); e.target.setAttribute('aria-pressed', S.cols.has(c)); savePrefs(); render(); };
+  $('secChips').addEventListener('click', _secChipClick);
+  $('chipCols').onclick = e => { const b = e.target.closest('button'); if (!b) return; const c = b.dataset.c; S.cols.has(c) ? S.cols.delete(c) : S.cols.add(c); b.setAttribute('aria-pressed', String(S.cols.has(c))); savePrefs(); renderTable(); };
+
+  $('chipCg').innerHTML = CG_ATTRS.map(([k,l]) => '<button class="chip" data-g="' + k + '" aria-pressed="' + S.cg.has(k) + '">' + l + '</button>').join('');
+  $('chipCg').onclick = e => { const b = e.target.closest('button'); if (!b) return; const g = b.dataset.g; S.cg.has(g) ? S.cg.delete(g) : S.cg.add(g); b.setAttribute('aria-pressed', String(S.cg.has(g))); S.open = new Set([...S.open].filter(x => !x.startsWith('cg:'))); render(); };
+
+  // ranking indicators
+  $('rankInds').innerHTML = RANK_INDS.map(([k,l]) => '<label><input type="checkbox" data-rk="' + k + '"' + (S.rankInds.has(k)?' checked':'') + '> ' + l + '</label>').join('');
+  $('rankInds').addEventListener('change', e => { const k = e.target.dataset.rk; if (!k) return; e.target.checked ? S.rankInds.add(k) : S.rankInds.delete(k); render(); });
+  $('rankByNhom').addEventListener('change', () => { S.rankByNhom = $('rankByNhom').checked; render(); });
+
+  // trend config
+  const trW = () => { $('wValL').textContent = $('wVal').value + '%'; $('wQtyL').textContent = $('wQty').value + '%'; $('wCovL').textContent = $('wCov').value + '%'; S.wVal = +$('wVal').value; S.wQty = +$('wQty').value; S.wCov = +$('wCov').value; };
+  ['wVal','wQty','wCov'].forEach(id => $(id).addEventListener('input', () => { trW(); if (S.dim==='trend') render(); }));
+  $('trThr').addEventListener('change', () => { S.trThr = +$('trThr').value; if (S.dim==='trend') render(); });
+  $('trTopN').addEventListener('change', () => { S.trTopN = +$('trTopN').value; if (S.dim==='trend') render(); });
+  trW();
+
+  // view level + font size
+  seg('segView', v => { S.view = v; applyView(); savePrefs(); });
+  seg('segTb', v => { S.tb = v; savePrefs(); render(); });
+  seg('segUnit', v => { S.unit = Number(v); savePrefs(); renderKpis(S.ctx || {total:S.totalRow,nArtSel:0,nAct:0}); renderTable(); });
+  $('tsDown').onclick = () => { S.fs = Math.max(10, S.fs - 1); applyFs(); savePrefs(); };
+  $('tsUp').onclick = () => { S.fs = Math.min(18, S.fs + 1); applyFs(); savePrefs(); };
+  $('tsReset').onclick = () => { S.fs = 13; applyFs(); savePrefs(); };
+
+  $('btnViewInfo').onclick = () => { S.viewInfo = !S.viewInfo; $('btnViewInfo').setAttribute('aria-pressed', String(S.viewInfo)); renderTable(); };
+
+  let tmr; const deb = () => { clearTimeout(tmr); tmr = setTimeout(() => { S.page = 200; render(); }, 220); };
+  ['q','fStore'].forEach(id => $(id).addEventListener('input', deb));
+  ['fGroup','fMch3','fRegion','fRm','fRsm','fAsm','fType'].forEach(id => $(id).addEventListener('change', () => { S.page = 200; if (id==='fRegion' || id==='fRm' || id==='fRsm') cascade(); render(); }));
+  document.querySelectorAll('.filters select').forEach(cbMake);
+
+  $('btnReset').onclick = () => { S.keySel = null; $('msKeyPanel').querySelectorAll('input').forEach(x => x.checked = true); keyLabel(); ['q','fStore','fGroup','fMch3','fRegion','fRm','fRsm','fAsm','fType'].forEach(id => $(id).value = ''); cascade(); render(); };
+
+  $('tbl').tHead.onclick = e => { const th = e.target.closest('th[data-k]'); if (!th) return; const k = th.dataset.k; S.sort = {k, asc: S.sort.k===k ? !S.sort.asc : (k==='key' || k==='rank' || k==='score')}; sortRows(); renderTable(); };
+  $('tbl').tBodies[0].onclick = e => { const b = e.target.closest('button.tg'); if (!b) return; const p = b.dataset.p; S.open.has(p) ? S.open.delete(p) : S.open.add(p); renderTable(); };
+
+  $('xscroll').addEventListener('scroll', () => { if ($('tblWrap').scrollLeft !== $('xscroll').scrollLeft) $('tblWrap').scrollLeft = $('xscroll').scrollLeft; });
+  $('tblWrap').addEventListener('scroll', () => { if ($('xscroll').scrollLeft !== $('tblWrap').scrollLeft) $('xscroll').scrollLeft = $('tblWrap').scrollLeft; });
+
+  const tip = $('tip'); let tipOn = null;
+  const showTip = (el) => { const id = el.dataset.tip; if (!S.tips[id]) return; tip.innerHTML = S.tips[id]; tip.hidden = false; tipOn = el;
+    const r = el.getBoundingClientRect(), w = tip.offsetWidth, h = tip.offsetHeight; let x = r.left, y = r.bottom + 6;
+    if (x + w > innerWidth - 8) x = innerWidth - w - 8; if (y + h > innerHeight - 8) y = r.top - h - 6; tip.style.left = Math.max(8, x) + 'px'; tip.style.top = Math.max(8, y) + 'px'; };
+  const hideTip = () => { tip.hidden = true; tipOn = null; };
+  $('tblWrap').addEventListener('mouseover', e => { const el = e.target.closest('[data-tip]'); if (el) showTip(el); });
+  $('tblWrap').addEventListener('mouseout', e => { if (e.target.closest('[data-tip]') && !e.relatedTarget?.closest?.('[data-tip]')) hideTip(); });
+  $('tblWrap').addEventListener('click', e => { const el = e.target.closest('[data-tip]'); if (el){ tipOn === el ? hideTip() : showTip(el); } });
+  $('tblWrap').addEventListener('scroll', hideTip);
+
+  $('btnFilters').onclick = () => { const f = $('filters'), o = !f.classList.contains('open'); f.classList.toggle('open', o); $('btnFilters').setAttribute('aria-expanded', String(o)); };
+  $('tblWrap').addEventListener('wheel', e => { const dx = e.shiftKey && !e.deltaX ? e.deltaY : e.deltaX; if (dx){ $('xscroll').scrollLeft += dx; e.preventDefault(); } }, {passive:false});
+  window.addEventListener('resize', () => { if (S.M) syncX(); });
+
+  $('btnMore').onclick = () => { S.page += 500; renderTable(); };
+  const pick = () => $('file').click();
+  $('btnOpen').onclick = pick; $('btnOpen2').onclick = pick;
+  $('file').onchange = e => { const f = e.target.files[0]; if (f) loadFile(f); e.target.value = ''; };
+  $('btnDemo').onclick = () => start(demoModel(), true);
+  $('btnDemo2').onclick = () => start(demoModel(), true);
+
+  // Drawer toggle
+  const drawer = $('drawer'), backdrop = $('drawerBackdrop');
+  const openDrawer = ()=>{ drawer.classList.add('on'); backdrop.classList.add('on'); $('btnFilters').setAttribute('aria-expanded','true'); };
+  const closeDrawer = ()=>{ drawer.classList.remove('on'); backdrop.classList.remove('on'); $('btnFilters').setAttribute('aria-expanded','false'); };
+  $('btnFilters').onclick = ()=> drawer.classList.contains('on') ? closeDrawer() : openDrawer();
+  $('drawerClose').onclick = closeDrawer;
+  backdrop.addEventListener('click', closeDrawer);
+  document.addEventListener('keydown', e=>{ if(e.key==='Escape' && drawer.classList.contains('on') && !document.fullscreenElement){ e.preventDefault(); closeDrawer(); } });
+  // Move filters into drawer body
+  const filterEl = $('filters');
+  if (filterEl && $('drawerBody')) { $('drawerBody').appendChild(filterEl); $('drawerBody').appendChild($('rankCfg')); $('drawerBody').appendChild($('trendCfg')); $('trendCfg').removeAttribute('hidden');
+  // Add Group SKUs toggle
+  const grpDiv = document.createElement('div'); grpDiv.id='grpSkuCfg'; grpDiv.className='cfgBox';
+  grpDiv.innerHTML = '<h4 style="margin:0 0 6px;font-size:12px;color:var(--ink2);text-transform:uppercase">🔗 Nhóm SKUs</h4><label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="grpSku" '+(S.grpSku?'checked':'')+'> Gộp SKU cùng tính chất</label>';
+  $('drawerBody').appendChild(grpDiv);
+  $('grpSku').addEventListener('change', function(){ S.grpSku = this.checked; savePrefs(); render(); }); }
+
+  // Sync header text size buttons
+  $('tsDown2').onclick = ()=>$('tsDown').click();
+  $('tsUp2').onclick = ()=>$('tsUp').click();
+  const syncTs = ()=>{ $('tsLbl2').textContent = $('tsLbl').textContent; };
+
+  $('btnExport').onclick = exportExcel; $('btnSnap').onclick = saveSnapshot;
+
+  const dz = $('drop');
+  ['dragenter','dragover'].forEach(ev => document.addEventListener(ev, e => { e.preventDefault(); dz.classList.add('over'); }));
+  ['dragleave','drop'].forEach(ev => document.addEventListener(ev, e => { e.preventDefault(); if (ev==='drop' || e.target===dz) dz.classList.remove('over'); }));
+  document.addEventListener('drop', e => { const f = e.dataTransfer?.files?.[0]; if (f) loadFile(f); });
+}
+
+/* ===== Trình chiếu: Fullscreen + bút vẽ / highlight / bút chỉ ===== */
+function initPresent(){
+  const ink=$('ink'), lz=$('laser');
+  const ictx=ink.getContext('2d'), lctx=lz.getContext('2d');
+  let tool=null, drawing=false, last=null;
+  const TOOLS={pen:{color:'#E11D48',w:3,a:1}, hi:{color:'#FDE047',w:16,a:.38}, erase:{color:'#FFFFFF',w:22,a:1,composite:'destination-out'}};
+  function size(){ [ink,lz].forEach(c=>{ const r=c.getBoundingClientRect(); const dpr=window.devicePixelRatio||1; const w=Math.round(r.width*dpr), h=Math.round(r.height*dpr); if(c.width!==w||c.height!==h){ c.width=w; c.height=h; } c.getContext('2d').setTransform(dpr,0,0,dpr,0,0); }); }
+  size(); window.addEventListener('resize',size);
+  const btns={pen:$('tPen'),hi:$('tHi'),laser:$('tLaser'),erase:$('tErase')};
+  
+  function enterFullscreen(){
+    if(!document.fullscreenElement){
+      (document.documentElement.requestFullscreen||function(){}).call(document.documentElement);
+    }
+  }
+  
+  function setTool(t){
+    const toggle = (tool===t);
+    tool = toggle ? null : t;
+    Object.entries(btns).forEach(([k,b])=>b.classList.toggle('on', !toggle && k===tool));
+    ink.classList.toggle('on', !toggle && !!tool && tool!=='laser');
+    lz.classList.toggle('on', !toggle && tool==='laser');
+    if(!toggle && tool) enterFullscreen();
+    if(tool!=='laser'){ lctx.clearRect(0,0,lz.width,lz.height); }
+    showBar();
+  }
+  
+  Object.entries(btns).forEach(([k,b])=>b.onclick=()=>setTool(k));
+  function pos(e){ const r=ink.getBoundingClientRect(); return {x:e.clientX-r.left, y:e.clientY-r.top}; }
+  ink.addEventListener('pointerdown',e=>{ if(!tool||tool==='laser') return; drawing=true; last=pos(e); const cfg=TOOLS[tool]; ictx.globalCompositeOperation = cfg.composite||'source-over'; ictx.globalAlpha=cfg.a; ictx.lineWidth=cfg.w; ictx.lineCap='round'; ictx.lineJoin='round'; ictx.strokeStyle=cfg.color; ictx.beginPath(); ictx.moveTo(last.x,last.y); ictx.lineTo(last.x+.1,last.y+.1); ictx.stroke(); ink.setPointerCapture(e.pointerId); e.preventDefault(); });
+  ink.addEventListener('pointermove',e=>{ if(!drawing||!tool||tool==='laser') return; const p=pos(e); ictx.beginPath(); ictx.moveTo(last.x,last.y); ictx.lineTo(p.x,p.y); ictx.stroke(); last=p; e.preventDefault(); });
+  const stop=()=>{ drawing=false; ictx.globalAlpha=1; ictx.globalCompositeOperation='source-over'; };
+  ink.addEventListener('pointerup',stop); ink.addEventListener('pointercancel',stop);
+  
+  // Laser: simple red dot at cursor, no trail
+  lz.addEventListener('pointermove',e=>{
+    if(tool!=='laser') return;
+    const r=lz.getBoundingClientRect();
+    lctx.clearRect(0,0,lz.width,lz.height);
+    lctx.beginPath();
+    lctx.fillStyle='rgba(255,45,60,0.92)';
+    lctx.arc(e.clientX-r.left, e.clientY-r.top, 6, 0, Math.PI*2);
+    lctx.fill();
+  });
+  lz.addEventListener('pointerleave',()=>{ if(tool==='laser') lctx.clearRect(0,0,lz.width,lz.height); });
+  
+  function clearAll(){
+    ictx.clearRect(0,0,ink.width,ink.height);
+    lctx.clearRect(0,0,lz.width,lz.height);
+    tool=null; drawing=false;
+    Object.values(btns).forEach(b=>b.classList.remove('on'));
+    ink.classList.remove('on'); lz.classList.remove('on');
+  }
+  
+  function exitPresent(){
+    clearAll();
+    _tb.classList.remove('show');
+    if(document.fullscreenElement) document.exitFullscreen();
+  }
+  
+  $('tClear').onclick=clearAll;
+  const _tb=$('ptools'), _pz=$('pzone'); let _hideT=null;
+  const showBar=()=>{ clearTimeout(_hideT); _tb.classList.add('show'); };
+  const hideBar=()=>{ _hideT=setTimeout(()=>{ if(!tool) _tb.classList.remove('show'); },800); };
+  _pz.addEventListener('mouseenter',showBar); _tb.addEventListener('mouseenter',showBar); _tb.addEventListener('mouseleave',hideBar);
+  document.addEventListener('mousemove',e=>{ if(!_tb.classList.contains('show')) return; const nearBottom = (window.innerHeight - e.clientY) < 70; if(!nearBottom && !_tb.matches(':hover')) hideBar(); });
+  window.__showBar=showBar;
+  $('tHide').onclick=()=>{ _tb.classList.remove('show'); };
+  
+  $('tFull').onclick=()=>{
+    if(!document.fullscreenElement){ enterFullscreen(); showBar(); }
+    else exitPresent();
+  };
+  
+  document.addEventListener('fullscreenchange',()=>{
+    document.body.classList.toggle('fullscreen',!!document.fullscreenElement);
+    $('tFull').classList.toggle('on',!!document.fullscreenElement);
+    if(!document.fullscreenElement) exitPresent();
+    else showBar();
+    setTimeout(size,80);
+  });
+  
+  document.addEventListener('keydown',e=>{
+    if(/input|select|textarea/i.test(e.target.tagName)) return;
+    const k=e.key.toLowerCase();
+    if(k==='p'){e.preventDefault();setTool('pen');} else if(k==='h'){e.preventDefault();setTool('hi');}
+    else if(k==='l'){e.preventDefault();setTool('laser');} else if(k==='e'){e.preventDefault();setTool('erase');}
+    else if(k==='c'){e.preventDefault();clearAll();} else if(k==='f'){e.preventDefault();$('tFull').click();}
+    else if(k==='escape'){e.preventDefault();exitPresent();}
+  });
+}
+
+initUI();
+initPresent();
+{ const snap = document.getElementById('snapshot'); if (snap && snap.textContent.trim()) { $('drop').hidden = true; loadSnapshot(snap); } else { $('drop').hidden = false; hideOverlay(); } }
+window.__ksk = { start, demoModel, buildModel, S, saveSnapshot };
+
+</script>
+</body>
+</html>
