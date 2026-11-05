@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Key Sale KM v4.7.0 — Win Rural</title>
+<title>Key Sale KM v4.8.0 — Win Rural</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 [hidden]{display:none!important}
@@ -261,6 +261,27 @@ body.fullscreen .ptools{opacity:.9}
 .sv-btn.on{background:#fff;color:var(--navy);border-color:#fff}
 .sv-dot{display:inline-block;margin-left:5px;font-size:9.5px;font-weight:700;opacity:.75}
 #tbl thead tr.g th:hover .sv-dot{display:none}
+/* Box Recap + thanh điều khiển */
+.recapBox{background:#fff;border:1px solid var(--line);border-left:4px solid var(--red);border-radius:12px;box-shadow:var(--sh);padding:10px 12px 12px;margin:8px 0 10px}
+.rb-hd{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.rb-t{font-size:13px;font-weight:800;color:var(--navy);text-transform:uppercase;letter-spacing:.3px}
+.rb-hd .scopeInfo{margin:0}
+.recapBox #kpis{margin:0;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.recapBox .kpi{box-shadow:none;background:var(--bg);border-color:transparent}
+.ctlBar{display:flex;align-items:center;gap:10px 18px;flex-wrap:wrap;background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px 12px;margin:0 0 6px;box-shadow:var(--sh)}
+.ctl{display:flex;align-items:center;gap:8px}
+.ctl .tlbl{margin:0;white-space:nowrap}
+.ctl-sec{flex:1;min-width:0}
+.ctl-sec .seg{flex-wrap:wrap}
+.segSec button{white-space:nowrap}
+.segSec button[aria-pressed="false"]{color:#9AA5B8;text-decoration:line-through;text-decoration-color:rgba(154,165,184,.6)}
+.ctl-sw{margin-left:auto}
+.sw{width:42px;height:24px;border-radius:999px;border:0;background:#CBD3DF;position:relative;cursor:pointer;padding:0;transition:background .15s}
+.sw .knob{position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:left .15s}
+.sw[aria-checked="true"]{background:var(--good)}
+.sw[aria-checked="true"] .knob{left:21px}
+.swLbl{font-size:12px;min-width:26px;color:var(--ink2)}
+.sw[aria-checked="true"] + .swLbl{color:var(--good)}
 /* bộ lọc nằm trong drawer luôn hiển thị */
 #drawer .filters{display:block}
 /* chip bộ lọc đang áp dụng */
@@ -274,10 +295,10 @@ body.fullscreen .ptools{opacity:.9}
   .hd .mt{width:100%;margin-left:0;justify-content:flex-start;flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px}
   #fileinfo{display:none}
   main{padding:10px}
-  #kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
   .kpi .v{font-size:16px}
   #tabs{flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px} #tabs button{flex:none}
-  .secTog{flex-wrap:nowrap!important;overflow-x:auto} #secChips{display:inline-flex;gap:4px;flex:none}
+  .ctlBar{gap:8px} .ctl-sec{flex-basis:100%;order:3} .ctl-sec .seg{flex-wrap:nowrap;overflow-x:auto} .ctl-sw{margin-left:auto}
+  .recapBox #kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
   #tblWrap{max-height:calc(100vh - 150px)}
   #tbl th.sticky,#tbl td.sticky{max-width:180px}
   .ptools,.pzone{display:none}
@@ -289,7 +310,7 @@ body.fullscreen .ptools{opacity:.9}
 <header class="hd">
   <div class="hd-in">
     <img id="lg" class="lg" alt="WinMart+">
-    <div class="tt">Key Sale KM <span>v4.7.0 · Win Rural · Theo dõi CTKM</span></div>
+    <div class="tt">Key Sale KM <span>v4.8.0 · Win Rural · Theo dõi CTKM</span></div>
     <div class="mt">
       <span class="pill" id="fileinfo">Chưa có dữ liệu</span>
       <button class="btn" id="btnFilters" aria-expanded="false">⚙ Bộ lọc <span id="fCount"></span></button>
@@ -368,20 +389,30 @@ body.fullscreen .ptools{opacity:.9}
     </div>
   </div>
 
-  <!-- Tabs -->
+  <!-- Box Recap -->
+  <section class="recapBox" id="recapBox">
+    <div class="rb-hd"><span class="rb-t">📋 Recap</span><span class="scopeInfo" id="scopeInfo"></span></div>
+    <div id="kpis"></div>
+  </section>
+
+  <!-- View | View Section | Group SKUs -->
+  <div class="ctlBar">
+    <div class="ctl"><span class="tlbl">View</span>
+      <div class="seg" id="segView" title="Mức hiển thị cột (áp dụng cho mọi section chưa chỉnh riêng)">
+        <button data-v="full" aria-pressed="true">Full</button><button data-v="compact" aria-pressed="false">Compact</button><button data-v="lite" aria-pressed="false">Lite</button>
+      </div>
+    </div>
+    <div class="ctl ctl-sec"><span class="tlbl">View Section</span><div class="seg segSec" id="secChips"></div></div>
+    <div class="ctl ctl-sw"><span class="tlbl">Group SKUs</span>
+      <button type="button" class="sw" id="grpSkuSw" role="switch" aria-checked="false" title="Gộp SKU cùng tính chất (chọn tiêu chí gộp trong ⚙ Bộ lọc)"><span class="knob"></span></button><b class="swLbl" id="grpSkuLbl">OFF</b>
+    </div>
+  </div>
+
+  <!-- Tab view -->
   <div id="tabs" role="tablist"></div>
 
-<div class="secTog" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:6px 0">
-  <span style="font-size:11px;font-weight:600;color:var(--ink2);text-transform:uppercase">Nhóm cột:</span>
-  <span id="secChips"></span>
-</div>
-
-
-  <!-- Toolbar -->
+  <!-- Công cụ phụ -->
   <div class="toolbar">
-    <span class="tlbl">Mức cột</span><div class="seg" id="segView" title="Mức hiển thị cột (áp dụng cho mọi nhóm cột chưa chỉnh riêng)">
-      <button data-v="full" aria-pressed="true">Full</button><button data-v="compact" aria-pressed="false">Compact</button><button data-v="lite" aria-pressed="false">Lite</button>
-    </div>
     <div class="ts" title="Cỡ chữ">
       <button id="tsDown">A⁻</button><span class="ts-lbl lbl" id="tsLbl">13px</span><button id="tsUp">A⁺</button><button id="tsReset" style="font-size:11px" title="Về 13px">A</button>
     </div>
@@ -421,8 +452,6 @@ body.fullscreen .ptools{opacity:.9}
     <div class="body" id="logicBody"></div>
   </details>
 
-  <div class="scopeInfo" id="scopeInfo"></div>
-  <div id="kpis"></div>
 
 
 <div class="tbl-card">
@@ -802,7 +831,8 @@ function computeNosaleLoss(M, flt, rows){
 const $ = id => document.getElementById(id);
 const ST_LIST = ['Chạy KM','Ngày KM cuối','Chưa KM','Hết KM'];
 const ST_CLS = {'chạy km':'st-run','ngày km cuối':'st-last','chưa km':'st-pre','hết km':'st-end'};
-const TABS = [['overall','📊 Tổng quan CTKM'],['hottrend','🔥 Hot Trend'],['downtrend','📉 Down Trend'],['sku','📦 SKUs'],['rsmasm','RSM×ASM']];
+const TABS = [['overall','Overall CTKM'],['hottrend','🔥 Hot Trend'],['downtrend','📉 Down Trend'],['sku','SKUs'],['rsmasm','RSM×ASM']];
+const SEC_SHORT = {hq:'Ranking', lk:'Sale', ns:'No Sale', d:'Sale D', d1:'Sale D-1', tk:'Stock', dr:'Độ phủ', fc:'FC', po:'PO', val:'Validate'};
 const CG_ATTRS = [['brand','Thương hiệu'],['size','Size'],['price','Giá KM'],['group','GROUP KM'],['mech','Cơ chế CTKM'],['mch3','MCH3']];
 const RANK_INDS = [['trLK','DT BQ/CH'],['bqV','DT BQ/mã key/CH'],['stR','Tỷ lệ Sale/Tồn']];
 
@@ -1620,7 +1650,7 @@ async function loadSnapshot(el){
 /* ---- events ---- */
 function updateTabUI(){
   const ed = effDim();
-  $('cgBox').hidden = ed !== 'cg';
+  $('cgBox').hidden = false;
   $('trendCfg').hidden = ed !== 'trend';
   $('rankCfg').hidden = ed === 'trend';
   $('btnViewInfo').hidden = ed !== 'sku';
@@ -1659,8 +1689,8 @@ function initUI(){
 
   $('fScope').addEventListener('change', () => { S.scope = $('fScope').value; $('msStatus').classList.toggle('dim', S.scope === 'all'); render(); });
 
-  $('secChips').innerHTML = COLGROUPS.map(([k,l]) => '<button class="chip" data-c="' + k + '" aria-pressed="' + S.cols.has(k) + '" style="padding:3px 8px;font-size:11px">' + l + '</button>').join('');
-  $('secChips').addEventListener('click', e => { const b = e.target.closest('.chip'); if (!b) return; const c = b.dataset.c; S.cols.has(c) ? S.cols.delete(c) : S.cols.add(c); b.setAttribute('aria-pressed', String(S.cols.has(c))); savePrefs(); if (S.M) renderTable(); });
+  $('secChips').innerHTML = COLGROUPS.map(([k,l]) => '<button type="button" data-c="' + k + '" aria-pressed="' + S.cols.has(k) + '" title="Bật/tắt section: ' + l + '">' + (SEC_SHORT[k] || l) + '</button>').join('');
+  $('secChips').addEventListener('click', e => { const b = e.target.closest('button[data-c]'); if (!b) return; const c = b.dataset.c; S.cols.has(c) ? S.cols.delete(c) : S.cols.add(c); b.setAttribute('aria-pressed', String(S.cols.has(c))); savePrefs(); if (S.M) renderTable(); });
 
   $('chipCg').innerHTML = CG_ATTRS.map(([k,l]) => '<button class="chip" data-g="' + k + '" aria-pressed="' + S.cg.has(k) + '">' + l + '</button>').join('');
   $('chipCg').onclick = e => { const b = e.target.closest('button'); if (!b) return; const g = b.dataset.g; S.cg.has(g) ? S.cg.delete(g) : S.cg.add(g); b.setAttribute('aria-pressed', String(S.cg.has(g))); S.open = new Set([...S.open].filter(x => !x.startsWith('cg:'))); render(); };
@@ -1739,9 +1769,14 @@ function initUI(){
   if (filterEl && $('drawerBody')) { $('drawerBody').appendChild(filterEl); $('drawerBody').appendChild($('rankCfg')); $('drawerBody').appendChild($('trendCfg')); $('trendCfg').removeAttribute('hidden');
   // Add Group SKUs toggle
   const grpDiv = document.createElement('div'); grpDiv.id='grpSkuCfg'; grpDiv.className='cfgBox';
-  grpDiv.innerHTML = '<h4 style="margin:0 0 6px;font-size:12px;color:var(--ink2);text-transform:uppercase">🔗 Nhóm SKUs (tab SKUs)</h4><label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="grpSku" '+(S.grpSku?'checked':'')+'> Gộp SKU cùng tính chất</label>';
-  $('drawerBody').appendChild(grpDiv); grpDiv.appendChild($('cgBox'));
-  $('grpSku').addEventListener('change', function(){ S.grpSku = this.checked; S.open = new Set([...S.open].filter(x => !x.startsWith('cg:'))); savePrefs(); updateTabUI(); render(); }); }
+  grpDiv.innerHTML = '<h4 style="margin:0 0 6px;font-size:12px;color:var(--ink2);text-transform:uppercase">🔗 Group SKUs — tiêu chí gộp</h4>';
+  $('drawerBody').appendChild(grpDiv); grpDiv.appendChild($('cgBox')); $('cgBox').querySelector('h4').remove(); }
+  const swSync = () => { $('grpSkuSw').setAttribute('aria-checked', String(!!S.grpSku)); $('grpSkuLbl').textContent = S.grpSku ? 'ON' : 'OFF'; };
+  $('grpSkuSw').onclick = () => { S.grpSku = !S.grpSku; swSync(); S.open = new Set([...S.open].filter(x => !x.startsWith('cg:')));
+    savePrefs();
+    if (S.grpSku && S.dim !== 'sku'){ $('tabs').querySelector('button[data-k="sku"]').click(); return; }   // gộp SKU áp dụng ở tab SKUs
+    updateTabUI(); render(); };
+  swSync();
 
   updateTabUI();
 
