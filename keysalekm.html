@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Key Sale KM v4.8.1 — Win Rural</title>
+<title>Key Sale KM v4.9.0 — Win Rural</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 [hidden]{display:none!important}
@@ -228,6 +228,19 @@ body.lv-lite .vi{display:none}
 .cfgRow input[type=range]{width:120px}
 .cfgRow input[type=number]{width:70px;border:1px solid var(--line);border-radius:6px;padding:4px 6px;font-size:12.5px}
 .wlbl{font-size:11px;color:var(--ink2);min-width:34px;text-align:right}
+.twGrid{display:grid;grid-template-columns:1fr auto;gap:4px 10px;align-items:center;font-size:12.5px;margin-top:8px}
+.twH{font-size:11px;font-weight:700;color:var(--ink2);text-transform:uppercase;border-bottom:1px solid var(--line);padding-bottom:3px}
+.twG{font-weight:700;color:var(--ink);margin-top:4px}
+.twGrid label{color:var(--ink2);padding-left:6px}
+.twIn{display:inline-flex;align-items:center;gap:3px;color:var(--ink2)}
+.twIn input{width:58px;border:1px solid var(--line);border-radius:6px;padding:4px 6px;font-size:12.5px;text-align:right}
+.twT{border-top:1px solid var(--line);padding-top:4px;margin-top:2px}
+#twTot{text-align:right}
+.twGrid.bad #twTot{color:var(--bad)} .twGrid.ok #twTot{color:var(--good)}
+.twGrid.bad .twIn input{border-color:#F5B5B5}
+.twMsg{font-size:11.5px;color:var(--bad);margin-top:4px;min-height:0}
+.twNote{font-size:11px;color:var(--ink2);line-height:1.45;margin-top:6px}
+.twNote a{color:var(--mid)}
 
 /* ===== Trình chiếu ===== */
 #ink,#laser{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:90}
@@ -319,7 +332,7 @@ body.fullscreen .ptools{opacity:.9}
 <header class="hd">
   <div class="hd-in">
     <img id="lg" class="lg" alt="WinMart+">
-    <div class="tt">Key Sale KM <span>v4.8.1 · Win Rural · Theo dõi CTKM</span></div>
+    <div class="tt">Key Sale KM <span>v4.9.0 · Win Rural · Theo dõi CTKM</span></div>
     <div class="mt">
       <span class="pill" id="fileinfo" title="">Chưa có dữ liệu</span>
       <div class="ts hd-ts" title="Cỡ chữ">
@@ -447,11 +460,20 @@ body.fullscreen .ptools{opacity:.9}
       <label>Ngưỡng %Δ tối thiểu <input type="number" id="trThr" value="0" step="5"> %</label>
       <label>TOP N <input type="number" id="trTopN" value="50" min="5" step="5"></label>
     </div>
-    <div class="cfgRow">
-      <span class="wlbl">Doanh thu</span><input type="range" id="wVal" min="0" max="100" value="40"><span class="wlbl" id="wValL">40%</span>
-      <span class="wlbl">Sản lượng</span><input type="range" id="wQty" min="0" max="100" value="30"><span class="wlbl" id="wQtyL">30%</span>
-      <span class="wlbl">Độ phủ</span><input type="range" id="wCov" min="0" max="100" value="30"><span class="wlbl" id="wCovL">30%</span>
+    <div class="twGrid" id="twGrid">
+      <span class="twH">Chỉ số (ngày D so với D-1)</span><span class="twH">Trọng số</span>
+      <span class="twG">Doanh thu</span><span></span>
+      <label for="tw_dv">· Giá trị tăng thêm</label><span class="twIn"><input type="number" id="tw_dv" min="0" max="100" step="5" data-tw="dv">%</span>
+      <label for="tw_pv">· % tăng trưởng</label><span class="twIn"><input type="number" id="tw_pv" min="0" max="100" step="5" data-tw="pv">%</span>
+      <span class="twG">Sản lượng</span><span></span>
+      <label for="tw_dq">· Số lượng tăng thêm</label><span class="twIn"><input type="number" id="tw_dq" min="0" max="100" step="5" data-tw="dq">%</span>
+      <label for="tw_pq">· % tăng trưởng</label><span class="twIn"><input type="number" id="tw_pq" min="0" max="100" step="5" data-tw="pq">%</span>
+      <span class="twG">Độ phủ</span><span></span>
+      <label for="tw_pc">· % tăng số CH có bán</label><span class="twIn"><input type="number" id="tw_pc" min="0" max="100" step="5" data-tw="pc">%</span>
+      <b class="twT">Tổng</b><b class="twT" id="twTot">100%</b>
     </div>
+    <div class="twMsg" id="twMsg"></div>
+    <div class="twNote">Giá trị/số lượng tăng thêm quy về thang ±100 theo mã tăng (giảm) nhiều nhất; % tăng trưởng giới hạn ±100%. Điểm 0–100, <b>50 = không đổi</b>. <a href="#" id="twReset">Về mặc định</a></div>
   </div>
 
   <!-- Logic panel -->
@@ -865,6 +887,8 @@ const COLGROUPS = [
 ];
 const COLS_VIEW = {
 "trend": {
+"dVal": {"F": true, "C": true, "L": true},
+"dQty": {"F": true, "C": true, "L": false},
 "trendScore": {
 "F": true,
 "C": true,
@@ -1082,7 +1106,7 @@ const COLS_VIEW = {
 }
 }
 };
-const TREND_GROUP = ['tr','🔥 Trending',[['trendScore','Điểm','trs'],['trendLabel','Xu hướng','trl'],['vVal','%Δ DT','trp'],['vQty','%Δ SL','trp'],['vCov','%Δ Phủ','trp']]];
+const TREND_GROUP = ['tr','🔥 Trending',[['trendScore','Điểm','trs'],['trendLabel','Xu hướng','trl'],['dVal','DT tăng thêm','dv'],['dQty','SL tăng thêm','dq'],['vVal','%Δ DT','trp'],['vQty','%Δ SL','trp'],['vCov','%Δ Phủ','trp']]];
 
 const S = {
   M:null, dim:'sku', scope:'km', tb:'ps', unit:1000,
@@ -1093,7 +1117,8 @@ const S = {
   open:new Set(), rows:[], fileName:'', tips:{},
   view:'full', fs:13, viewInfo:false,
   rankInds:new Set(['trLK','bqV','stR']), rankByNhom:false, grpSku:false,
-  trThr:0, trTopN:50, wVal:40, wQty:30, wCov:30,
+  trThr:0, trTopN:50,
+  trW:{dv:30, pv:10, dq:30, pq:10, pc:20},
   secView:{},
 };
 try {
@@ -1105,6 +1130,8 @@ try {
   if (sv.fs) S.fs = sv.fs;
   if (sv.grpSku !== undefined) S.grpSku = sv.grpSku;
 } catch(e){}
+const TW_DEF = {dv:30, pv:10, dq:30, pq:10, pc:20};
+try { const w = JSON.parse(localStorage.getItem('ksk_trW')||'null'); if (w && Object.keys(TW_DEF).every(k => typeof w[k] === 'number') && Object.keys(TW_DEF).reduce((a,k) => a + w[k], 0) === 100) S.trW = w; } catch(e){}
 try { const sv = JSON.parse(localStorage.getItem('ksk_secView')||'{}'); if (sv && typeof sv === 'object') S.secView = sv; } catch(e){}
 const savePrefs = () => { try { localStorage.setItem('kskv4_prefs', JSON.stringify({cols:[...S.cols], unit:S.unit, tb:S.tb, view:S.view, fs:S.fs, grpSku:S.grpSku})); } catch(e){} };
 
@@ -1135,6 +1162,8 @@ function fmtCell(type, v){
     case 'nspct': return [fmtPct(v), v===null?'na': v>0.3?'cell-bad': v>0.1?'cell-warn':''];
     case 'trs': return [v==null?'—':'<b>'+Math.round(v)+'</b>', v>=70?'cell-good': v<40?'cell-bad':''];
     case 'trl': return [v==null?'—':esc(v), ''];
+    case 'dv': { if (v==null) return ['—','']; return [(v>0?'+':'') + fmtV(v), v>0?'cell-good': v<0?'cell-bad':'na']; }
+    case 'dq': { if (v==null) return ['—','']; return [(v>0?'+':'') + nf0.format(v), v>0?'cell-good': v<0?'cell-bad':'na']; }
     case 'trp': { if (v==null) return ['—','']; const s = (v>=0?'+':'')+nf1.format(v)+'%'; return [s, v>0?'cell-good': v<0?'cell-bad':'']; }
   }
 }
@@ -1278,12 +1307,17 @@ function rankRowsCfg(list){
 }
 
 function computeTrend(list){
-  const wv = S.wVal, wq = S.wQty, wc = S.wCov, tot = (wv+wq+wc)||1;
-  const clip = v => Math.max(-100, Math.min(100, v));
+  /* 5 thành phần (ngày D so với D-1), trọng số tổng = 100%:
+     dv: DT tăng thêm (giá trị) · pv: %Δ DT · dq: SL tăng thêm · pq: %Δ SL · pc: %Δ số CH có bán
+     Giá trị/SL tăng thêm quy về ±100 theo |Δ| lớn nhất trong danh sách; % giới hạn ±100. */
+  const W = S.trW, clip = v => Math.max(-100, Math.min(100, v));
+  let mV = 0, mQ = 0;
+  for (const m of list){ m.dVal = (m.rD || 0) - (m.rD1 || 0); m.dQty = (m.qD || 0) - (m.qD1 || 0); mV = Math.max(mV, Math.abs(m.dVal)); mQ = Math.max(mQ, Math.abs(m.dQty)); }
   for (const m of list){
     const t = trendingScore(m);
     m.vQty = t.vQty; m.vVal = t.vVal; m.vCov = t.vCov;
-    const raw = clip(t.vVal)*(wv/tot) + clip(t.vQty)*(wq/tot) + clip(t.vCov)*(wc/tot);
+    const nV = mV ? m.dVal / mV * 100 : 0, nQ = mQ ? m.dQty / mQ * 100 : 0;
+    const raw = (nV*W.dv + clip(t.vVal)*W.pv + nQ*W.dq + clip(t.vQty)*W.pq + clip(t.vCov)*W.pc) / 100;
     m.trendScore = Math.round(Math.max(0, Math.min(100, (raw + 100) / 2)));
     let label = '🔴 Sụt giảm';
     if (m.trendScore >= 70) label = '🟢 Bùng nổ';
@@ -1513,8 +1547,8 @@ function exportExcel(){
   const gs = visibleGroups(); const dimLbl = dimLabel(); const ed = effDim();
   const asSku = ed==='sku' || ed==='trend';
   const head = asSku ? ['Mã hàng','Tên hàng','MCH3','Trạng thái KM','GROUP KM','Phân loại key','CTKM','Giá thường','Giá KM','Từ ngày','Đến ngày','Min TB'] : [dimLbl];
-  const cols = gs.flatMap(([, gl, cs]) => cs.map(([k,l,t]) => [k, gl + ' - ' + l + ((t==='v'||t==='tv') ? ' (' + unitLbl() + ')' : ''), t]));
-  const val = (t, v) => v == null ? null : v === Infinity ? 'Hết tồn' : (t==='v'||t==='tv') ? Math.round(v / S.unit * 100)/100 : (t==='pct'||t==='nspct') ? Math.round(v*10000)/10000 : (t==='trl') ? v : Math.round(v*100)/100;
+  const cols = gs.flatMap(([, gl, cs]) => cs.map(([k,l,t]) => [k, gl + ' - ' + l + ((t==='v'||t==='tv'||t==='dv') ? ' (' + unitLbl() + ')' : ''), t]));
+  const val = (t, v) => v == null ? null : v === Infinity ? 'Hết tồn' : (t==='v'||t==='tv'||t==='dv') ? Math.round(v / S.unit * 100)/100 : (t==='pct'||t==='nspct') ? Math.round(v*10000)/10000 : (t==='trl') ? v : Math.round(v*100)/100;
   const aoa = [head.concat(cols.map(c => c[1]))];
   const d = x => x ? fmtDate(x) : '';
   const lead = r => !asSku ? [r.key] : [r.art.code, r.art.name, r.art.mch3, r.km?.status||'', r.km?.group||'', r.km?.key||'', r.km?.mech||'', r.km?.p0||null, r.km?.p1||null, d(r.km?.d0), d(r.km?.d1), r.art.minTB||null];
@@ -1579,8 +1613,9 @@ function renderLogic(){
   </ul>
   <h4>🔥 Top Trending (xu hướng)</h4>
   <ul>
-    <li>So sánh ngày D với D-1 theo 3 chiều: <b>%Δ Doanh thu</b>, <b>%Δ Sản lượng</b>, <b>%Δ Độ phủ</b> (mỗi chiều kẹp trong [-100%, +100%]).</li>
-    <li><b>Điểm</b> = (Σ chiều × trọng số + 100) ÷ 2, quy về thang 0–100 (50 = không đổi). Trọng số đặt ở "Cấu hình Top Trending".</li>
+    <li>So sánh ngày D với D-1 theo 5 thành phần (trọng số mặc định, tổng = 100%): <b>DT tăng thêm</b> 30% · <b>%Δ DT</b> 10% · <b>SL tăng thêm</b> 30% · <b>%Δ SL</b> 10% · <b>%Δ số CH có bán</b> 20%.</li>
+    <li>DT/SL tăng thêm quy về thang ±100 theo mã tăng (giảm) nhiều nhất trong phạm vi lọc; các chỉ số % kẹp trong [-100%, +100%].</li>
+    <li><b>Điểm</b> = (Σ thành phần × trọng số + 100) ÷ 2, quy về thang 0–100 (50 = không đổi). Trọng số đặt ở "Cấu hình Top Trending".</li>
     <li><b>%Δ Phủ</b> = thay đổi số CH có bán ngày D so với D-1.</li>
     <li><b>Hot Trend</b>: điểm &gt; 50, xếp từ cao xuống. <b>Down Trend</b>: điểm &lt; 50, xếp từ thấp lên. Chỉ xét mã có bán ngày D hoặc D-1.</li>
     <li>Nhãn: 🟢 Bùng nổ (≥70) · 🟡 Tăng trưởng (40–69) · ⚪ Ổn định (10–39) · 🔴 Sụt giảm (&lt;10).</li>
@@ -1711,9 +1746,20 @@ function initUI(){
   $('rankByNhom').addEventListener('change', () => { S.rankByNhom = $('rankByNhom').checked; render(); });
 
   // trend config
-  const trW = () => { $('wValL').textContent = $('wVal').value + '%'; $('wQtyL').textContent = $('wQty').value + '%'; $('wCovL').textContent = $('wCov').value + '%'; S.wVal = +$('wVal').value; S.wQty = +$('wQty').value; S.wCov = +$('wCov').value; };
-  let trT; const trRender = () => { clearTimeout(trT); trT = setTimeout(() => { if (effDim()==='trend') render(); }, 120); };
-  ['wVal','wQty','wCov'].forEach(id => $(id).addEventListener('input', () => { trW(); trRender(); }));
+  let trT; const trRender = () => { clearTimeout(trT); trT = setTimeout(() => { if (effDim()==='trend') render(); }, 150); };
+  const twFill = w => document.querySelectorAll('#twGrid input[data-tw]').forEach(x => x.value = w[x.dataset.tw]);
+  const trW = () => {   // chỉ áp dụng khi tổng = 100%
+    const w = {}; let tot = 0, okNum = true;
+    document.querySelectorAll('#twGrid input[data-tw]').forEach(x => { const v = Number(x.value); if (x.value === '' || !isFinite(v) || v < 0) okNum = false; w[x.dataset.tw] = isFinite(v) ? v : 0; tot += isFinite(v) ? v : 0; });
+    const ok = okNum && Math.abs(tot - 100) < 1e-9;
+    $('twTot').textContent = (Math.round(tot*10)/10) + '%';
+    $('twGrid').classList.toggle('bad', !ok); $('twGrid').classList.toggle('ok', ok);
+    $('twMsg').textContent = ok ? '' : (okNum ? 'Tổng trọng số phải = 100% (đang ' + (Math.round(tot*10)/10) + '%). Điểm vẫn tính theo cấu hình hợp lệ gần nhất.' : 'Trọng số phải là số ≥ 0.');
+    if (ok){ S.trW = w; try { localStorage.setItem('ksk_trW', JSON.stringify(w)); } catch(e){} trRender(); }
+  };
+  twFill(S.trW);
+  $('twGrid').addEventListener('input', e => { if (e.target.matches('input[data-tw]')) trW(); });
+  $('twReset').onclick = e => { e.preventDefault(); twFill(TW_DEF); trW(); };
   $('trThr').addEventListener('change', () => { S.trThr = +$('trThr').value; trRender(); });
   $('trTopN').addEventListener('change', () => { S.trTopN = +$('trTopN').value; trRender(); });
   trW();
