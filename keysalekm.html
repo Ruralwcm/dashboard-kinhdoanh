@@ -598,9 +598,9 @@ function newG(key){ return {key, f:new Float64Array(NF), cDR:0, dSale:0, dStock:
 function finishStores(g){ if (!g.st) return; for (const v of g.st.values()){ if (v[0] > 0) g.dSale++; if (v[1] > 0){ g.dStock++; if (v[2] <= 0) g.dNo++; } } g.st = null; }
 function aggregate(M, flt, dim){
   const {stores, arts} = M;
-  const artKey = ai => dim==='sku' ? arts[ai].code : dim==='group' ? (flt.kmOf[ai]?.group || '(Không có KM)') : dim==='bg' ? (flt.kmOf[ai]?.group || '(Không có KM)') + ' | ' + arts[ai].brand : dim==='cg' ? flt.cgKey(ai) : dim==='trend' ? 'trend' : null;
+  const artKey = ai => effDim==='sku' ? arts[ai].code : effDim==='group' ? (flt.kmOf[ai]?.group || '(Không có KM)') : effDim==='bg'||S.dim==='overall' ? (flt.kmOf[ai]?.group || '(Không có KM)') + ' | ' + arts[ai].brand : effDim==='cg' ? flt.cgKey(ai) : effDim==='trend' ? 'trend' : null;
   const storeKey = si => stores[si][dim];
-  const isStoreDim = !!STORE_DIMS[dim], perFact = dim === 'sku' || dim === 'trend';
+  const isStoreDim = !!STORE_DIMS[effDim], perFact = effDim === 'sku' || effDim === 'trend';
   const groups = new Map();
   const mk = key => { let g = groups.get(key); if (!g){ g = newG(key); if (!perFact) g.st = new Map(); groups.set(key,g); } return g; };
   const total = newG('__total'); const tS = new Float64Array(stores.length * 5);
@@ -793,8 +793,13 @@ const CG_ATTRS = [['brand','Thương hiệu'],['size','Size'],['price','Giá KM'
 const RANK_INDS = [['trLK','DT BQ/CH'],['bqV','DT BQ/mã key/CH'],['stR','Tỷ lệ Sale/Tồn']];
 
 
-const TABS = [['sku','SKU'],['cg','Nhóm cùng t/c'],['bg','TH × GROUP'],['rm','RM'],['rsm','RSM'],['asm','QLKV'],['trend','🔥 Top Trending']];
+const TABS = [['overall','📊 Tổng quan CTKM'],['hottrend','🔥 Hot Trend'],['downtrend','📉 Down Trend'],['sku','📦 SKUs'],['rsmasm','RSM×ASM']];
 const _DIM_MAP = {};
+
+
+// Map new 5-tab dims to existing render logic
+const _DM = {overall:'bg', hottrend:'trend', downtrend:'trend', sku:'sku', rsmasm:'rsmasm'};
+const _EFF = d => _DM[d] || d;
 
 const COLGROUPS = [
   ['hq','Hiệu quả / Xếp hạng',[['rank','Hạng','rank'],['score','Điểm TB','t2'],['trLK','DT BQ/CH','tv'],['bqV','DT BQ/mã/CH','tv'],['stR','Sale/Tồn','sr']]],
@@ -1262,10 +1267,21 @@ function renderRecap(){
 function render(){
   renderRecap();
   if (!S.M) return;
+  // Map new tab dims to existing logic
+  const effDim = _DM[S.dim] || S.dim;
+  // For rsmasm: compute cross-tab using RSM×ASM grouping
+  if (S.dim === 'rsmasm'){
+    S._rsmAsmMap = new Map();
+    S.M.stores.forEach((st, i) => {
+      const key = (st.rsm || '?') + ' | ' + (st.asm || '?');
+      if (!S._rsmAsmMap.has(key)) S._rsmAsmMap.set(key, new Set());
+      S._rsmAsmMap.get(key).add(i);
+    });
+  }
   const flt = buildFilter(); S.flt = flt;
   const artByCode = new Map(S.M.arts.map((a,i) => [a.code, i]));
 
-  if (S.dim === 'trend'){
+  if (effDim === 'trend'){
     const sk = aggregate(S.M, flt, 'sku');
     S.rows = sk.rows.map(g => { const m = metrics(g, S.tb); m.key = g.key; const ai = artByCode.get(g.key); m.ai = ai; m.art = S.M.arts[ai]; m.km = flt.kmOf[ai]; return m; });
     computeTrend(S.rows);
@@ -1280,12 +1296,41 @@ function render(){
     return;
   }
 
-  const res = aggregate(S.M, flt, S.dim);
-  S.rows = res.rows.map(g => { const m = metrics(g, S.tb); m.key = g.key; if (S.dim==='sku'){ const ai = artByCode.get(g.key); m.ai = ai; m.art = S.M.arts[ai]; m.km = flt.kmOf[ai]; } return m; });
+  if (S.dim === 'rsmasm'){
+    // Aggregate by RSM×ASM
+    const groups = {};
+    for (const art of S.M.arts){ if (!flt.artOK[art._i]) continue;
+      S.M.stores.forEach((st, i) => { if (!flt.storeOK[i]) return;
+        const key = (st.rsm || '?') + ' | ' + (st.asm || '?');
+        groups[key] = groups[key] || [];
+        const f = S.M.facts[art._i];
+        if (!f || !f[i]) return;
+        groups[key].push({storeIdx: i, f: f[i]});
+      });
+    }
+    S.rows = Object.entries(groups).map(([key, items]) => {
+      const m = {}; m.key = key; let ct = 0, rLK=0, rD=0, sV=0, dio=0, nDR=0;
+      items.forEach(({storeIdx, f}) => { ct++;
+        rLK += (f.tqLK*f.sV*1000)||(f.tqLK*f.cogs*1000)||0; rD += f.rD||0; sV += f.sV||0;
+        dio += (f.dio||0);
+        if (f.dr != null) nDR++;
+      });
+      m.rLK = rLK; m.rD = rD; m.sV = sV; m.dio = dio/ct; m.nDR = nDR;
+      m.tqLK = rLK/ct/1000; m.trLK = 0; m.bqV = 0; m.stR = 0;
+      m.nNo = items.length - nDR; m.noSale = (items.length-nDR)/items.length||0;
+      m.fcV = 0; m.poV = 0; m.ndV = 0; m.vV = 0;
+      m.rank = null; m.score = null; return m;
+    });
+    S.totalRow = metrics({total: S.rows, nArtSel: S.rows.length, nAct: S.rows.length}, 'all');
+    S.ctx = {nArtSel: S.rows.length, nAct: S.rows.length};
+    sortRows(); renderKpis(S.ctx); renderTable(); return;
+  }
+  const res = aggregate(S.M, flt, effDim);
+  S.rows = res.rows.map(g => { const m = metrics(g, S.tb); m.key = g.key; if (effDim==='sku'){ const ai = artByCode.get(g.key); m.ai = ai; m.art = S.M.arts[ai]; m.km = flt.kmOf[ai]; } return m; });
   S.totalRow = metrics(res.total, S.tb);
   S.ctx = res;  S.bgKids = null;
 
-  if (S.dim === 'sku' && S.rankByNhom){
+  if (effDim === 'sku' && S.rankByNhom){
     const artIdxList = S.rows.map(r => r.ai).filter(i => i != null);
     rankByNhomDt(S.M, flt, artIdxList);
     const avgMap = new Map(); artIdxList.forEach(i => avgMap.set(S.M.arts[i].code, S.M.arts[i]._nhomRankAvg));
@@ -1298,8 +1343,8 @@ function render(){
   }
   S.totalRow.rank = null; S.totalRow.score = null;
 
-  if (S.dim === 'code'){ const byCode = new Map(S.M.stores.map(st => [st.code, st])); S.rows.forEach(r => { const st = byCode.get(r.key); r.label = r.key + ' · ' + (st?.name || ''); }); }
-  if (S.dim === 'bg' || S.dim === 'cg'){
+  if (effDim === 'code'){ const byCode = new Map(S.M.stores.map(st => [st.code, st])); S.rows.forEach(r => { const st = byCode.get(r.key); r.label = r.key + ' · ' + (st?.name || ''); }); }
+  if (effDim === 'bg' || effDim === 'cg' || S.dim === 'overall'){
     const sk = aggregate(S.M, flt, 'sku'); S.bgKids = new Map();
     for (const g of sk.rows){ const m = metrics(g, S.tb); const ai = artByCode.get(g.key); m.key = g.key; m.ai = ai; m.art = S.M.arts[ai]; m.km = flt.kmOf[ai];
       const bk = S.dim === 'cg' ? flt.cgKey(ai) : (m.km?.group || '(Không có KM)') + ' | ' + m.art.brand; if (!S.bgKids.has(bk)) S.bgKids.set(bk, []); S.bgKids.get(bk).push(m); }
@@ -1309,7 +1354,7 @@ function render(){
 }
 function sortRows(){
   const {k, asc} = S.sort;
-  const get = r => k === 'key' ? (S.dim==='sku' ? (r.art?.name||r.key) : r.key) : r[k];
+  const get = r => k === 'key' ? (effDim==='sku' ? (r.art?.name||r.key) : r.key) : r[k];
   S.rows.sort((a,b) => { const x = get(a), y = get(b);
     if (typeof x === 'string' || typeof y === 'string') return (asc?1:-1) * String(x??'').localeCompare(String(y??''),'vi');
     if (x === null && y === null) return 0; if (x === null) return 1; if (y === null) return -1;
@@ -1394,7 +1439,7 @@ function childHtml(ai, path){
   }
   return h;
 }
-const SD_CHAIN = {rm:['rm','rsm','asm'], rsm:['rsm','asm','code'], asm:['asm','code']};
+const SD_CHAIN = {rm:['rm','rsm','asm'], rsm:['rsm','asm','code'], asm:['asm','code'], rsmasm:['rsmasm','code']};
 const SD_NAME = {rm:'RM', rsm:'RSM', asm:'QLKV', code:'CH'};
 function sdChildHtml(path){
   const chain = SD_CHAIN[S.dim], lvl = path.length, dim = chain[lvl], leaf = lvl === chain.length - 1;
