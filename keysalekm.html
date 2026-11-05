@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Key Sale KM v4.6.2 — Win Rural</title>
+<title>Key Sale KM v4.6.3 — Win Rural</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 [hidden]{display:none!important}
@@ -271,7 +271,7 @@ body.fullscreen .ptools{opacity:.9}
 <header class="hd">
   <div class="hd-in">
     <img id="lg" class="lg" alt="WinMart+">
-    <div class="tt">Key Sale KM <span>v4.6.2 · Win Rural · Theo dõi CTKM</span></div>
+    <div class="tt">Key Sale KM <span>v4.6.3 · Win Rural · Theo dõi CTKM</span></div>
     <div class="mt">
       <span class="pill" id="fileinfo">Chưa có dữ liệu</span>
       <button class="btn" id="btnFilters" aria-expanded="false">⚙ Bộ lọc <span id="fCount"></span></button>
@@ -1494,12 +1494,13 @@ function renderTable(){
   const firstLbl = (_ed2==='sku'||_ed2==='trend') ? 'Mã hàng / CTKM' : esc(dimLbl);
   let g = '<tr class="g"><th rowspan="2" data-k="key" class="sticky' + (S.sort.k==='key' ? ' sorted' + (S.sort.asc?' asc':'') : '') + '">' + firstLbl + '</th>';
   let c = '<tr class="c">';
-  for (const [gk, label, cols0] of gs){
-    const curSv = S.secView[gk] || 'F';
-    const cols = curSv === 'F' ? cols0 : (SECTION_VIEWS[gk] ? cols0.filter(([k]) => SECTION_VIEWS[gk][k] && SECTION_VIEWS[gk][k][curSv]) : cols0);
+  for (const [gk, label, cols] of gs){
     if (!cols.length) continue;
-    const svBtns = '<span class="sv-sel"><button class="sv-btn' + (curSv==='F'?' on':'') + '" onclick="toggleSecView(\\'' + gk + '\\',event)" data-v="F">F</button><button class="sv-btn' + (curSv==='C'?' on':'') + '" onclick="toggleSecView(\\'' + gk + '\\',event)" data-v="C">C</button><button class="sv-btn' + (curSv==='L'?' on':'') + '" onclick="toggleSecView(\\'' + gk + '\\',event)" data-v="L">L</button></span>';
-    g += '<th colspan="' + cols.length + '" class="' + bandOf(gk) + ' gs">' + label + svBtns + '</th>'; c += '<th data-k="' + k + '" class="' + bandOf(gk) + (i===0?' gs ':' ') + (S.sort.k===k ? 'sorted' + (S.sort.asc?' asc':'') : '') + '">' + l + '</th>'; }); }
+    const curSv = S.secView[gk] || 'F';
+    const svBtns = '<span class="sv-sel"><button class="sv-btn' + (curSv==='F'?' on':'') + '" onclick="toggleSecView(\'' + gk + '\',event)" data-v="F">F</button><button class="sv-btn' + (curSv==='C'?' on':'') + '" onclick="toggleSecView(\'' + gk + '\',event)" data-v="C">C</button><button class="sv-btn' + (curSv==='L'?' on':'') + '" onclick="toggleSecView(\'' + gk + '\',event)" data-v="L">L</button></span>';
+    g += '<th colspan="' + cols.length + '" class="' + bandOf(gk) + ' gs">' + label + svBtns + '</th>';
+    cols.forEach(([k, l], i) => { c += '<th data-k="' + k + '" class="' + bandOf(gk) + (i===0?' gs ':' ') + (S.sort.k===k ? 'sorted' + (S.sort.asc?' asc':'') : '') + '">' + l + '</th>'; });
+  }
   $('tbl').tHead.innerHTML = g + '</tr>' + c + '</tr>';
   const shown = S.rows.slice(0, S.page);
   const mx = heatScale(S.rows);
