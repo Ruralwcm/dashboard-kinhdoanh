@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Key Sale KM v4.8.0 — Win Rural</title>
+<title>Key Sale KM v4.8.1 — Win Rural</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 [hidden]{display:none!important}
@@ -272,7 +272,15 @@ body.fullscreen .ptools{opacity:.9}
 .ctl{display:flex;align-items:center;gap:8px}
 .ctl .tlbl{margin:0;white-space:nowrap}
 .ctl-sec{flex:1;min-width:0}
-.ctl-sec .seg{flex-wrap:wrap}
+.ctl-opt{gap:6px}
+.ctl-opt .seg button{padding:5px 7px;font-size:12px}
+.ctl-opt .chip{padding:4px 9px}
+#segView button{padding:5px 9px}
+.hd-ts{padding:2px 5px}
+.ctl-sec{flex:1 1 0;min-width:260px;gap:6px}
+.ctlBar{gap:10px 10px}
+.ctl-sec .seg{flex-wrap:nowrap;overflow-x:auto;max-width:100%}
+.segSec button{padding:5px 7px;font-size:12px}
 .segSec button{white-space:nowrap}
 .segSec button[aria-pressed="false"]{color:#9AA5B8;text-decoration:line-through;text-decoration-color:rgba(154,165,184,.6)}
 .ctl-sw{margin-left:auto}
@@ -310,9 +318,12 @@ body.fullscreen .ptools{opacity:.9}
 <header class="hd">
   <div class="hd-in">
     <img id="lg" class="lg" alt="WinMart+">
-    <div class="tt">Key Sale KM <span>v4.8.0 · Win Rural · Theo dõi CTKM</span></div>
+    <div class="tt">Key Sale KM <span>v4.8.1 · Win Rural · Theo dõi CTKM</span></div>
     <div class="mt">
       <span class="pill" id="fileinfo">Chưa có dữ liệu</span>
+      <div class="ts hd-ts" title="Cỡ chữ">
+      <button id="tsDown">A⁻</button><span class="ts-lbl lbl" id="tsLbl">13px</span><button id="tsUp">A⁺</button><button id="tsReset" style="font-size:11px" title="Về 13px">A</button>
+      </div>
       <button class="btn" id="btnFilters" aria-expanded="false">⚙ Bộ lọc <span id="fCount"></span></button>
       <button class="btn" id="btnOpen">📂 Mở file</button>
       <button class="btn" id="btnDemo">▶ Demo</button>
@@ -402,6 +413,15 @@ body.fullscreen .ptools{opacity:.9}
         <button data-v="full" aria-pressed="true">Full</button><button data-v="compact" aria-pressed="false">Compact</button><button data-v="lite" aria-pressed="false">Lite</button>
       </div>
     </div>
+    <div class="ctl ctl-opt">
+    <div class="seg" id="segTb" title="Tính trung bình chia cho">
+      <button data-v="ps" aria-pressed="true">TB CH phát sinh</button><button data-v="all" aria-pressed="false">TB mọi CH</button>
+    </div>
+    <div class="seg" id="segUnit" title="Đơn vị tiền">
+      <button data-v="1" aria-pressed="false">đ</button><button data-v="1000" aria-pressed="true">nghìn</button><button data-v="1000000" aria-pressed="false">triệu</button>
+    </div>
+    <button class="chip" id="btnViewInfo" aria-pressed="false" hidden>👁 View Info</button>
+    </div>
     <div class="ctl ctl-sec"><span class="tlbl">View Section</span><div class="seg segSec" id="secChips"></div></div>
     <div class="ctl ctl-sw"><span class="tlbl">Group SKUs</span>
       <button type="button" class="sw" id="grpSkuSw" role="switch" aria-checked="false" title="Gộp SKU cùng tính chất (chọn tiêu chí gộp trong ⚙ Bộ lọc)"><span class="knob"></span></button><b class="swLbl" id="grpSkuLbl">OFF</b>
@@ -411,19 +431,6 @@ body.fullscreen .ptools{opacity:.9}
   <!-- Tab view -->
   <div id="tabs" role="tablist"></div>
 
-  <!-- Công cụ phụ -->
-  <div class="toolbar">
-    <div class="ts" title="Cỡ chữ">
-      <button id="tsDown">A⁻</button><span class="ts-lbl lbl" id="tsLbl">13px</span><button id="tsUp">A⁺</button><button id="tsReset" style="font-size:11px" title="Về 13px">A</button>
-    </div>
-    <div class="seg" id="segTb" title="Tính trung bình chia cho">
-      <button data-v="ps" aria-pressed="true">TB CH phát sinh</button><button data-v="all" aria-pressed="false">TB mọi CH</button>
-    </div>
-    <div class="seg" id="segUnit" title="Đơn vị tiền">
-      <button data-v="1" aria-pressed="false">đ</button><button data-v="1000" aria-pressed="true">nghìn</button><button data-v="1000000" aria-pressed="false">triệu</button>
-    </div>
-    <button class="chip" id="btnViewInfo" aria-pressed="false" hidden>👁 View Info</button>
-  </div>
 
   <!-- Ranking config -->
   <div class="cfgBox" id="rankCfg">
