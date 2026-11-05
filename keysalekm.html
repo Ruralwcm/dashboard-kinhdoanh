@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Key Sale KM v4.5.1 — Win Rural</title>
+<title>Key Sale KM v4.5.2 — Win Rural</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 [hidden]{display:none!important}
@@ -266,7 +266,7 @@ body.fullscreen .ptools{opacity:.9}
 <header class="hd">
   <div class="hd-in">
     <img id="lg" class="lg" alt="WinMart+">
-    <div class="tt">Key Sale KM <span>v4.5.1 · Win Rural · Theo dõi CTKM</span></div>
+    <div class="tt">Key Sale KM <span>v4.5.2 · Win Rural · Theo dõi CTKM</span></div>
     <div class="mt">
       <span class="pill" id="fileinfo">Chưa có dữ liệu</span>
       <button class="btn" id="btnFilters" aria-expanded="false">⚙ Bộ lọc <span id="fCount"></span></button>
@@ -788,13 +788,9 @@ function computeNosaleLoss(M, flt, rows){
 const $ = id => document.getElementById(id);
 const ST_LIST = ['Chạy KM','Ngày KM cuối','Chưa KM','Hết KM'];
 const ST_CLS = {'chạy km':'st-run','ngày km cuối':'st-last','chưa km':'st-pre','hết km':'st-end'};
-const TABS = [['overall','Tổng quan CTKM'],['hottrend','🔥 Hot Trend'],['downtrend','📉 Down Trend'],['sku','SKUs'],['rsmasm','RSM×ASM']];
+const TABS = [['overall','📊 Tổng quan CTKM'],['hottrend','🔥 Hot Trend'],['downtrend','📉 Down Trend'],['sku','📦 SKUs'],['rsmasm','RSM×ASM']];
 const CG_ATTRS = [['brand','Thương hiệu'],['size','Size'],['price','Giá KM'],['group','GROUP KM'],['mech','Cơ chế CTKM'],['mch3','MCH3']];
 const RANK_INDS = [['trLK','DT BQ/CH'],['bqV','DT BQ/mã key/CH'],['stR','Tỷ lệ Sale/Tồn']];
-
-
-const TABS = [['overall','📊 Tổng quan CTKM'],['hottrend','🔥 Hot Trend'],['downtrend','📉 Down Trend'],['sku','📦 SKUs'],['rsmasm','RSM×ASM']];
-const _DIM_MAP = {};
 
 
 // Map new 5-tab dims to existing render logic
