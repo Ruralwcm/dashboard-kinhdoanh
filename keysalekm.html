@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Key Sale KM v4.5.2 — Win Rural</title>
+<title>Key Sale KM v4.5.3 — Win Rural</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 [hidden]{display:none!important}
@@ -266,7 +266,7 @@ body.fullscreen .ptools{opacity:.9}
 <header class="hd">
   <div class="hd-in">
     <img id="lg" class="lg" alt="WinMart+">
-    <div class="tt">Key Sale KM <span>v4.5.2 · Win Rural · Theo dõi CTKM</span></div>
+    <div class="tt">Key Sale KM <span>v4.5.3 · Win Rural · Theo dõi CTKM</span></div>
     <div class="mt">
       <span class="pill" id="fileinfo">Chưa có dữ liệu</span>
       <button class="btn" id="btnFilters" aria-expanded="false">⚙ Bộ lọc <span id="fCount"></span></button>
@@ -598,9 +598,9 @@ function newG(key){ return {key, f:new Float64Array(NF), cDR:0, dSale:0, dStock:
 function finishStores(g){ if (!g.st) return; for (const v of g.st.values()){ if (v[0] > 0) g.dSale++; if (v[1] > 0){ g.dStock++; if (v[2] <= 0) g.dNo++; } } g.st = null; }
 function aggregate(M, flt, dim){
   const {stores, arts} = M;
-  const artKey = ai => effDim==='sku' ? arts[ai].code : effDim==='group' ? (flt.kmOf[ai]?.group || '(Không có KM)') : effDim==='bg'||S.dim==='overall' ? (flt.kmOf[ai]?.group || '(Không có KM)') + ' | ' + arts[ai].brand : effDim==='cg' ? flt.cgKey(ai) : effDim==='trend' ? 'trend' : null;
+  const artKey = ai => dim==='sku' ? arts[ai].code : dim==='group' ? (flt.kmOf[ai]?.group || '(Không có KM)') : dim==='bg' ? (flt.kmOf[ai]?.group || '(Không có KM)') + ' | ' + arts[ai].brand : dim==='cg' ? flt.cgKey(ai) : dim==='trend' ? 'trend' : null;
   const storeKey = si => stores[si][dim];
-  const isStoreDim = !!STORE_DIMS[effDim], perFact = effDim === 'sku' || effDim === 'trend';
+  const isStoreDim = !!STORE_DIMS[dim], perFact = dim === 'sku' || dim === 'trend';
   const groups = new Map();
   const mk = key => { let g = groups.get(key); if (!g){ g = newG(key); if (!perFact) g.st = new Map(); groups.set(key,g); } return g; };
   const total = newG('__total'); const tS = new Float64Array(stores.length * 5);
@@ -1350,6 +1350,7 @@ function render(){
 }
 function sortRows(){
   const {k, asc} = S.sort;
+  const effDim = _DM[S.dim] || S.dim;
   const get = r => k === 'key' ? (effDim==='sku' ? (r.art?.name||r.key) : r.key) : r[k];
   S.rows.sort((a,b) => { const x = get(a), y = get(b);
     if (typeof x === 'string' || typeof y === 'string') return (asc?1:-1) * String(x??'').localeCompare(String(y??''),'vi');
@@ -1370,11 +1371,12 @@ function renderKpis(res){
     ['FC / Validate', fmtV(t.fcV) + ' / ' + fmtV(t.vV), 'SL ' + fmtQ(t.fcQ) + ' / ' + fmtQ(t.vQ)],
     ['GT PO chờ giao', fmtV(t.ndV), 'TBCH: SL ' + (t.tndQ===null?'—':nf1.format(t.tndQ)) + ' · GT ' + fmtV(t.tndV)],
   ];
-  $('scopeInfo').innerHTML = '<b>' + fmtQ(res.nArtSel) + '</b> mã · <b>' + fmtQ(res.nAct) + '</b> CH hoạt động' + (S.dim==='trend'?' · 🔥 Top '+S.rows.length+' theo xu hướng':'');
+  const _ed = _DM[S.dim] || S.dim;
+  $('scopeInfo').innerHTML = '<b>' + fmtQ(res.nArtSel) + '</b> mã · <b>' + fmtQ(res.nAct) + '</b> CH hoạt động' + (_ed==='trend'?' · 🔥 Top '+S.rows.length+' theo xu hướng':'');
   $('kpis').innerHTML = tiles.map(([l,v,s]) => '<div class="kpi" title="' + (l + ': ' + v + ' — ' + String(s)).replace(/<[^>]+>/g,'') + '"><span class="lbl">' + l + '</span><span class="v">' + v + '</span><span class="s">' + s + '</span></div>').join('');
 }
 
-function visibleGroups(){ const base = COLGROUPS.filter(g => S.cols.has(g[0])); if (S.dim==='trend') return [TREND_GROUP, ...base]; return base; }
+function visibleGroups(){ const base = COLGROUPS.filter(g => S.cols.has(g[0])); if ((_DM[S.dim]||S.dim)==='trend') return [TREND_GROUP, ...base]; return base; }
 function kmTip(a, k){
   let h = '<div class="tt-h">' + esc(a.code) + ' - ' + esc(a.name) + '</div><div class="tt-s">' + esc(a.mch3) + (a.maQuyDoi?' · Quy đổi: '+esc(a.maQuyDoi):'') + '</div>';
   if (!k) return h + '<div class="tt-r">Không có trong CTKM</div>';
@@ -1395,17 +1397,18 @@ function viewInfoHtml(a, k){
 }
 function firstCell(r, isTotal, asSku){
   if (isTotal) return '<td class="sticky">Tổng cộng <span class="code">(' + fmtQ(S.ctx.nArtSel) + ' mã)</span></td>';
-  if (!asSku && S.dim === 'bg'){ const [grp, br] = r.key.split(' | '); const pid = 'bg:' + r.key, op = S.open.has(pid);
+  const _ed2 = _DM[S.dim] || S.dim;
+  if (!asSku && (_ed2 === 'bg' || S.dim === 'overall')){ const [grp, br] = r.key.split(' | '); const pid = 'bg:' + r.key, op = S.open.has(pid);
     return '<td class="sticky"><div class="nm"><button class="tg" data-p="' + esc(pid) + '" aria-expanded="' + op + '">' + (op ? '−' : '+') + '</button><span class="cd">' + esc(br) + '</span> · ' + esc(grp) + ' <span class="code">(' + fmtQ(r.nArt) + ' mã)</span></div></td>'; }
-  if (!asSku && S.dim === 'cg'){ const pid = 'cg:' + r.key, op = S.open.has(pid);
+  if (!asSku && _ed2 === 'cg'){ const pid = 'cg:' + r.key, op = S.open.has(pid);
     return '<td class="sticky"><div class="nm" title="' + esc(r.key) + '"><button class="tg" data-p="' + esc(pid) + '" aria-expanded="' + op + '">' + (op ? '−' : '+') + '</button>' + esc(r.key) + ' <span class="code">(' + fmtQ(r.nArt) + ' mã)</span></div></td>'; }
-  if (!asSku && SD_CHAIN[S.dim]){ const pid = 'sd:' + JSON.stringify([r.key]), op = S.open.has(pid);
+  if (!asSku && SD_CHAIN[S.dim] && !(_ed2 === 'bg' || _ed2 === 'cg')){ const pid = 'sd:' + JSON.stringify([r.key]), op = S.open.has(pid);
     return '<td class="sticky"><div class="nm"><button class="tg" data-p="' + esc(pid) + '" aria-expanded="' + op + '">' + (op ? '−' : '+') + '</button>' + esc(r.key) + '</div></td>'; }
   if (!asSku) return '<td class="sticky"><div class="nm">' + esc(r.key) + '</div></td>';
   const a = r.art, k = r.km;
   S.tips[r.ai] = kmTip(a, k);
-  const vi = (S.viewInfo && (S.dim === 'sku')) ? viewInfoHtml(a, k) : '';
-  const canExpand = S.dim === 'sku';
+  const vi = (S.viewInfo && (_ed2 === 'sku')) ? viewInfoHtml(a, k) : '';
+  const canExpand = _ed2 === 'sku';
   const tg = canExpand ? '<button class="tg" data-p="' + esc(String(r.ai)) + '" aria-expanded="' + S.open.has(String(r.ai)) + '" title="Xem RM → RSM → QLKV → CH">' + (S.open.has(String(r.ai)) ? '−' : '+') + '</button>' : '';
   return '<td class="sticky"><div class="nm">' + tg + '<span class="cd" data-tip="' + r.ai + '">' + esc(a.code) + '</span> - <span class="tipname" data-tip="' + r.ai + '">' + esc(a.name || '(Không tên)') + '</span></div>' + vi + '</td>';
 }
@@ -1454,18 +1457,18 @@ function sdChildHtml(path){
   return h;
 }
 function rowHtml(r, isTotal, mx, asSku, trCls){
-  asSku = asSku ?? (S.dim === 'sku' || S.dim === 'trend');
+  asSku = asSku ?? (_ed2 === 'sku' || _ed2 === 'trend');
   let h = '<tr' + (isTotal ? ' class="total"' : trCls ? ' class="' + trCls + '"' : '') + '>' + firstCell(r, isTotal, asSku) + cellsHtml(r, isTotal ? null : mx) + '</tr>';
   if (!isTotal && S.dim === 'sku' && S.open.has(String(r.ai))) h += childHtml(r.ai, []);
   if (!isTotal && !asSku && SD_CHAIN[S.dim] && S.open.has('sd:' + JSON.stringify([r.key]))) h += sdChildHtml([r.key]);
-  if (!isTotal && !asSku && (S.dim === 'bg' || S.dim === 'cg') && S.open.has(S.dim + ':' + r.key)) for (const k of (S.bgKids?.get(r.key) || [])) h += rowHtml(k, false, null, true, 'lvb');
+  if (!isTotal && !asSku && (_ed2 === 'bg' || _ed2 === 'cg') && S.open.has(S.dim + ':' + r.key)) for (const k of (S.bgKids?.get(r.key) || [])) h += rowHtml(k, false, null, true, 'lvb');
   return h;
 }
 function syncX(){ const w = $('tblWrap'), x = $('xscroll'); $('xscrollIn').style.width = $('tbl').scrollWidth + 'px'; x.hidden = $('tbl').scrollWidth <= w.clientWidth + 1; x.scrollLeft = w.scrollLeft; }
 function renderTable(){
   const gs = visibleGroups();
   const dimLbl = TABS.find(t => t[0]===S.dim)[1];
-  const firstLbl = (S.dim==='sku'||S.dim==='trend') ? 'Mã hàng / CTKM' : esc(dimLbl);
+  const firstLbl = (_ed2==='sku'||_ed2==='trend') ? 'Mã hàng / CTKM' : esc(dimLbl);
   let g = '<tr class="g"><th rowspan="2" data-k="key" class="sticky' + (S.sort.k==='key' ? ' sorted' + (S.sort.asc?' asc':'') : '') + '">' + firstLbl + '</th>';
   let c = '<tr class="c">';
   for (const [gk, label, cols] of gs){ g += '<th colspan="' + cols.length + '" class="' + bandOf(gk) + ' gs">' + label + '</th>';
@@ -1638,10 +1641,11 @@ function initUI(){
 
   $('tabs').innerHTML = TABS.map(([k,l]) => '<button role="tab" data-k="' + k + '" aria-selected="' + (k===S.dim) + '">' + l + '</button>').join('');
   $('tabs').onclick = e => { const b = e.target.closest('button'); if (!b) return; S.dim = b.dataset.k; S.page = 200; S.open = new Set([...S.open].filter(x => !x.startsWith('sd:')));
+    const _ed3 = _DM[S.dim] || S.dim;
     $('cgBox').hidden = S.dim !== 'cg';
-    $('trendCfg').hidden = S.dim !== 'trend';
-    $('rankCfg').style.display = (S.dim==='trend') ? 'none' : '';
-    $('btnViewInfo').hidden = S.dim !== 'sku';
+    $('trendCfg').hidden = _ed3 !== 'trend';
+    $('rankCfg').style.display = (_ed3==='trend') ? 'none' : '';
+    $('btnViewInfo').hidden = (_DM[S.dim]||S.dim) !== 'sku';
     $('tabs').querySelectorAll('button').forEach(x => x.setAttribute('aria-selected', String(x===b)));
     if (S.dim==='trend') S.sort = {k:'trendScore',asc:false};
     else if (S.sort.k==='key'||S.sort.k==='trendScore') S.sort = {k:'rLK',asc:false};
