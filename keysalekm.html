@@ -1401,35 +1401,92 @@ function initUI(){
 function initPresent(){
   const ink=$('ink'), lz=$('laser');
   const ictx=ink.getContext('2d'), lctx=lz.getContext('2d');
-  let tool=null, drawing=false, last=null, laserPts=[];
+  let tool=null, drawing=false, last=null;
   const TOOLS={pen:{color:'#E11D48',w:3,a:1}, hi:{color:'#FDE047',w:16,a:.38}, erase:{color:'#FFFFFF',w:22,a:1,composite:'destination-out'}};
   function size(){ [ink,lz].forEach(c=>{ const r=c.getBoundingClientRect(); const dpr=window.devicePixelRatio||1; const w=Math.round(r.width*dpr), h=Math.round(r.height*dpr); if(c.width!==w||c.height!==h){ c.width=w; c.height=h; } c.getContext('2d').setTransform(dpr,0,0,dpr,0,0); }); }
   size(); window.addEventListener('resize',size);
   const btns={pen:$('tPen'),hi:$('tHi'),laser:$('tLaser'),erase:$('tErase')};
-  function setTool(t){ tool = (tool===t)?null:t; Object.entries(btns).forEach(([k,b])=>b.classList.toggle('on',k===tool)); ink.classList.toggle('on', !!tool && tool!=='laser'); lz.classList.toggle('on', tool==='laser'); if(tool!=='laser'){ laserPts=[]; lctx.clearRect(0,0,lz.width,lz.height); } if(window.__showBar) window.__showBar(); }
+  
+  function enterFullscreen(){
+    if(!document.fullscreenElement){
+      (document.documentElement.requestFullscreen||function(){}).call(document.documentElement);
+    }
+  }
+  
+  function setTool(t){
+    const toggle = (tool===t);
+    tool = toggle ? null : t;
+    Object.entries(btns).forEach(([k,b])=>b.classList.toggle('on', !toggle && k===tool));
+    ink.classList.toggle('on', !toggle && !!tool && tool!=='laser');
+    lz.classList.toggle('on', !toggle && tool==='laser');
+    if(!toggle && tool) enterFullscreen();
+    if(tool!=='laser'){ lctx.clearRect(0,0,lz.width,lz.height); }
+    showBar();
+  }
+  
   Object.entries(btns).forEach(([k,b])=>b.onclick=()=>setTool(k));
   function pos(e){ const r=ink.getBoundingClientRect(); return {x:e.clientX-r.left, y:e.clientY-r.top}; }
-  ink.addEventListener('pointerdown',e=>{ if(!tool) return; drawing=true; last=pos(e); const cfg=TOOLS[tool]; ictx.globalCompositeOperation = cfg.composite||'source-over'; ictx.globalAlpha=cfg.a; ictx.lineWidth=cfg.w; ictx.lineCap='round'; ictx.lineJoin='round'; ictx.strokeStyle=cfg.color; ictx.beginPath(); ictx.moveTo(last.x,last.y); ictx.lineTo(last.x+.1,last.y+.1); ictx.stroke(); ink.setPointerCapture(e.pointerId); e.preventDefault(); });
-  ink.addEventListener('pointermove',e=>{ if(!drawing||!tool) return; const p=pos(e); ictx.beginPath(); ictx.moveTo(last.x,last.y); ictx.lineTo(p.x,p.y); ictx.stroke(); last=p; e.preventDefault(); });
+  ink.addEventListener('pointerdown',e=>{ if(!tool||tool==='laser') return; drawing=true; last=pos(e); const cfg=TOOLS[tool]; ictx.globalCompositeOperation = cfg.composite||'source-over'; ictx.globalAlpha=cfg.a; ictx.lineWidth=cfg.w; ictx.lineCap='round'; ictx.lineJoin='round'; ictx.strokeStyle=cfg.color; ictx.beginPath(); ictx.moveTo(last.x,last.y); ictx.lineTo(last.x+.1,last.y+.1); ictx.stroke(); ink.setPointerCapture(e.pointerId); e.preventDefault(); });
+  ink.addEventListener('pointermove',e=>{ if(!drawing||!tool||tool==='laser') return; const p=pos(e); ictx.beginPath(); ictx.moveTo(last.x,last.y); ictx.lineTo(p.x,p.y); ictx.stroke(); last=p; e.preventDefault(); });
   const stop=()=>{ drawing=false; ictx.globalAlpha=1; ictx.globalCompositeOperation='source-over'; };
   ink.addEventListener('pointerup',stop); ink.addEventListener('pointercancel',stop);
-  lz.addEventListener('pointerdown',e=>{ if(tool!=='laser') return; lz.setPointerCapture(e.pointerId); addPt(e); });
-  lz.addEventListener('pointermove',e=>{ if(tool!=='laser') return; addPt(e); });
-  function addPt(e){ const r=lz.getBoundingClientRect(); laserPts.push({x:e.clientX-r.left,y:e.clientY-r.top,t:performance.now()}); }
-  (function loop(){ if(tool==='laser' && laserPts.length){ const now=performance.now(); laserPts=laserPts.filter(p=>now-p.t<650); lctx.clearRect(0,0,lz.width,lz.height); laserPts.forEach((p)=>{ const age=(now-p.t)/650; lctx.beginPath(); lctx.fillStyle=`rgba(255,45,60,${(1-age)*0.9})`; lctx.arc(p.x,p.y,(1-age)*7+2,0,Math.PI*2); lctx.fill(); }); } requestAnimationFrame(loop); })();
-  $('tClear').onclick=()=>{ ictx.clearRect(0,0,ink.width,ink.height); lctx.clearRect(0,0,lz.width,lz.height); laserPts=[]; };
+  
+  // Laser: simple red dot at cursor, no trail
+  lz.addEventListener('pointermove',e=>{
+    if(tool!=='laser') return;
+    const r=lz.getBoundingClientRect();
+    lctx.clearRect(0,0,lz.width,lz.height);
+    lctx.beginPath();
+    lctx.fillStyle='rgba(255,45,60,0.92)';
+    lctx.arc(e.clientX-r.left, e.clientY-r.top, 6, 0, Math.PI*2);
+    lctx.fill();
+  });
+  lz.addEventListener('pointerleave',()=>{ if(tool==='laser') lctx.clearRect(0,0,lz.width,lz.height); });
+  
+  function clearAll(){
+    ictx.clearRect(0,0,ink.width,ink.height);
+    lctx.clearRect(0,0,lz.width,lz.height);
+    tool=null; drawing=false;
+    Object.values(btns).forEach(b=>b.classList.remove('on'));
+    ink.classList.remove('on'); lz.classList.remove('on');
+  }
+  
+  function exitPresent(){
+    clearAll();
+    _tb.classList.remove('show');
+    if(document.fullscreenElement) document.exitFullscreen();
+  }
+  
+  $('tClear').onclick=clearAll;
   const _tb=$('ptools'), _pz=$('pzone'); let _hideT=null;
   const showBar=()=>{ clearTimeout(_hideT); _tb.classList.add('show'); };
-  const hideBar=()=>{ _hideT=setTimeout(()=>{ if(!tool) _tb.classList.remove('show'); },600); };
+  const hideBar=()=>{ _hideT=setTimeout(()=>{ if(!tool) _tb.classList.remove('show'); },800); };
   _pz.addEventListener('mouseenter',showBar); _tb.addEventListener('mouseenter',showBar); _tb.addEventListener('mouseleave',hideBar);
   document.addEventListener('mousemove',e=>{ if(!_tb.classList.contains('show')) return; const nearBottom = (window.innerHeight - e.clientY) < 70; if(!nearBottom && !_tb.matches(':hover')) hideBar(); });
   window.__showBar=showBar;
   $('tHide').onclick=()=>{ _tb.classList.remove('show'); };
-  $('tFull').onclick=()=>{ if(!document.fullscreenElement){ (document.documentElement.requestFullscreen||function(){}).call(document.documentElement); } else document.exitFullscreen(); };
-  document.addEventListener('fullscreenchange',()=>{ document.body.classList.toggle('fullscreen',!!document.fullscreenElement); if(window.__showBar) window.__showBar(); $('tFull').classList.toggle('on',!!document.fullscreenElement); setTimeout(size,80); });
-  document.addEventListener('keydown',e=>{ if(/input|select|textarea/i.test(e.target.tagName)) return; const k=e.key.toLowerCase();
-    if(k==='p'){e.preventDefault();setTool('pen');} else if(k==='h'){e.preventDefault();setTool('hi');} else if(k==='l'){e.preventDefault();setTool('laser');} else if(k==='e'){e.preventDefault();setTool('erase');} else if(k==='c'){e.preventDefault();$('tClear').click();} else if(k==='f'){e.preventDefault();$('tFull').click();} else if(k==='escape'){ exitPresent(); } });
-  function exitPresent(){ tool=null; Object.values(btns).forEach(b=>b.classList.remove('on')); ink.classList.remove('on'); lz.classList.remove('on'); laserPts=[]; ictx.clearRect(0,0,ink.width,ink.height); lctx.clearRect(0,0,lz.width,lz.height); _tb.classList.remove('show'); }
+  
+  $('tFull').onclick=()=>{
+    if(!document.fullscreenElement){ enterFullscreen(); showBar(); }
+    else exitPresent();
+  };
+  
+  document.addEventListener('fullscreenchange',()=>{
+    document.body.classList.toggle('fullscreen',!!document.fullscreenElement);
+    $('tFull').classList.toggle('on',!!document.fullscreenElement);
+    if(!document.fullscreenElement) exitPresent();
+    else showBar();
+    setTimeout(size,80);
+  });
+  
+  document.addEventListener('keydown',e=>{
+    if(/input|select|textarea/i.test(e.target.tagName)) return;
+    const k=e.key.toLowerCase();
+    if(k==='p'){e.preventDefault();setTool('pen');} else if(k==='h'){e.preventDefault();setTool('hi');}
+    else if(k==='l'){e.preventDefault();setTool('laser');} else if(k==='e'){e.preventDefault();setTool('erase');}
+    else if(k==='c'){e.preventDefault();clearAll();} else if(k==='f'){e.preventDefault();$('tFull').click();}
+    else if(k==='escape'){e.preventDefault();exitPresent();}
+  });
 }
 
 initUI();
