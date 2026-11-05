@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Key Sale KM v4.9.1 — Win Rural</title>
+<title>Key Sale KM v4.9.2 — Win Rural</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 [hidden]{display:none!important}
@@ -331,7 +331,7 @@ body.fullscreen .ptools{opacity:.9}
 <header class="hd">
   <div class="hd-in">
     <img id="lg" class="lg" alt="WinMart+">
-    <div class="tt">Key Sale KM <span>v4.9.1 · Win Rural · Theo dõi CTKM</span></div>
+    <div class="tt">Key Sale KM <span>v4.9.2 · Win Rural · Theo dõi CTKM</span></div>
     <div class="mt">
       <span class="pill" id="fileinfo" title="">Chưa có dữ liệu</span>
       <div class="ts hd-ts" title="Cỡ chữ">
@@ -458,6 +458,7 @@ body.fullscreen .ptools{opacity:.9}
     <div class="cfgRow">
       <label>Ngưỡng %Δ tối thiểu <input type="number" id="trThr" value="0" step="5"> %</label>
       <label>TOP N <input type="number" id="trTopN" value="50" min="5" step="5"></label>
+      <label title="Bỏ qua mã bán quá ít nơi — số CH có bán ngày D hoặc D-1 phải đạt ngưỡng">CH có bán tối thiểu <input type="number" id="trMinCH" value="20" min="0" step="5"></label>
     </div>
     <div class="twGrid" id="twGrid">
       <span class="twH">Chỉ số (ngày D so với D-1)</span><span class="twH">Trọng số</span>
@@ -472,7 +473,7 @@ body.fullscreen .ptools{opacity:.9}
       <b class="twT">Tổng</b><b class="twT" id="twTot">100%</b>
     </div>
     <div class="twMsg" id="twMsg"></div>
-    <div class="twNote">Giá trị/số lượng tăng thêm quy về thang ±100 theo mã tăng (giảm) nhiều nhất; % tăng trưởng giới hạn ±100%. Điểm 0–100, <b>50 = không đổi</b>. <a href="#" id="twReset">Về mặc định</a></div>
+    <div class="twNote">Giá trị/số lượng tăng thêm quy về thang ±100 theo mã tăng (giảm) nhiều nhất; % tăng trưởng giới hạn ±100%, D-1 = 0 thì không tính %. Chỉ xét mã có số CH bán ≥ ngưỡng. Điểm 0–100, <b>50 = không đổi</b>. <a href="#" id="twReset">Về mặc định</a></div>
   </div>
 
   <!-- Logic panel -->
@@ -819,15 +820,16 @@ function rankByNhomDt(M, flt, artIdxList){
 /* ---- v4: Top Trending Score (0-100) ---- */
 function trendingScore(m){
   /* Volume: %Δ Qty D vs D-1 */
-  const vQty = m.qD1 > 0 ? ((m.qD - m.qD1) / m.qD1) * 100 : (m.qD > 0 ? 100 : 0);
+  /* D-1 = 0 → không tính được % (trả null, tính 0 điểm) — tránh mã mới/bán lẻ tẻ được +100% */
+  const vQty = m.qD1 > 0 ? ((m.qD - m.qD1) / m.qD1) * 100 : null;
   /* Value: %Δ Revenue D vs D-1 */
-  const vVal = m.rD1 > 0 ? ((m.rD - m.rD1) / m.rD1) * 100 : (m.rD > 0 ? 100 : 0);
+  const vVal = m.rD1 > 0 ? ((m.rD - m.rD1) / m.rD1) * 100 : null;
   /* Coverage: số CH có bán ngày D so với D-1 */
   const covD = m.nD || 0, covD1 = m.nD1 || 0;
-  const vCov = covD1 > 0 ? ((covD - covD1) / covD1) * 100 : (covD > 0 ? 100 : 0);
+  const vCov = covD1 > 0 ? ((covD - covD1) / covD1) * 100 : null;
   /* Composite score scaled to 0-100 */
-  const clip = v => Math.max(-100, Math.min(100, v));
-  const raw = clip(vVal) * 0.4 + clip(vQty) * 0.3 + clip(vCov) * 0.3;
+  const clip = v => v == null ? null : Math.max(-100, Math.min(100, v));
+  const raw = (clip(vVal) ?? 0) * 0.4 + (clip(vQty) ?? 0) * 0.3 + (clip(vCov) ?? 0) * 0.3;
   const score = Math.round(Math.max(0, Math.min(100, (raw + 100) / 2)));
   let label = '🔴 Sụt giảm';
   if (score >= 70) label = '🟢 Bùng nổ';
@@ -1116,7 +1118,7 @@ const S = {
   open:new Set(), rows:[], fileName:'', tips:{},
   view:'full', fs:13, viewInfo:false,
   rankInds:new Set(['trLK','bqV','stR']), rankByNhom:false, grpSku:false,
-  trThr:0, trTopN:50,
+  trThr:0, trTopN:50, trMinCH:20,
   trW:{dv:30, pv:10, dq:30, pq:10, pc:20},
   secView:{},
 };
@@ -1310,7 +1312,7 @@ function computeTrend(list){
   /* 5 thành phần (ngày D so với D-1), trọng số tổng = 100%:
      dv: DT tăng thêm (giá trị) · pv: %Δ DT · dq: SL tăng thêm · pq: %Δ SL · pc: %Δ số CH có bán
      Giá trị/SL tăng thêm quy về ±100 theo |Δ| lớn nhất trong danh sách; % giới hạn ±100. */
-  const W = S.trW, clip = v => Math.max(-100, Math.min(100, v));
+  const W = S.trW, clip = v => v == null ? 0 : Math.max(-100, Math.min(100, v));
   let mV = 0, mQ = 0;
   for (const m of list){ m.dVal = (m.rD || 0) - (m.rD1 || 0); m.dQty = (m.qD || 0) - (m.qD1 || 0); mV = Math.max(mV, Math.abs(m.dVal)); mQ = Math.max(mQ, Math.abs(m.dQty)); }
   for (const m of list){
@@ -1338,12 +1340,14 @@ function render(){
   if (ed === 'trend'){
     const down = S.dim === 'downtrend';
     const sk = aggregate(S.M, flt, 'sku');
-    let rows = sk.rows.map(skuRow).filter(r => r.qD || r.qD1);           // phải có bán ngày D hoặc D-1
+    const minCH = Math.max(0, Number(S.trMinCH) || 0);
+    let rows = sk.rows.map(skuRow).filter(r => (r.qD || r.qD1) && Math.max(r.nD, r.nD1) >= minCH);   // đủ quy mô: số CH có bán (D hoặc D-1) ≥ ngưỡng
     computeTrend(rows);
     const thr = Math.abs(Number(S.trThr) || 0);
     // Hot: điểm > 50 (tăng ròng) và ít nhất 1 chiều ≥ ngưỡng; Down: điểm < 50 (giảm ròng) và ít nhất 1 chiều ≤ -ngưỡng
-    rows = down ? rows.filter(r => r.trendScore < 50 && Math.min(r.vVal, r.vQty, r.vCov) <= -thr)
-                : rows.filter(r => r.trendScore > 50 && Math.max(r.vVal, r.vQty, r.vCov) >= thr);
+    const z = v => v ?? 0;
+    rows = down ? rows.filter(r => r.trendScore < 50 && Math.min(z(r.vVal), z(r.vQty), z(r.vCov)) <= -thr)
+                : rows.filter(r => r.trendScore > 50 && Math.max(z(r.vVal), z(r.vQty), z(r.vCov)) >= thr);
     rows.sort((a,b) => down ? (a.trendScore - b.trendScore || a.vVal - b.vVal) : (b.trendScore - a.trendScore || b.vVal - a.vVal));
     rows = rows.slice(0, Math.max(5, Number(S.trTopN) || 50));
     rows.forEach((r,i) => { r.rank = i + 1; r.rankN = rows.length; });
@@ -1614,7 +1618,8 @@ function renderLogic(){
   <h4>🔥 Top Trending (xu hướng)</h4>
   <ul>
     <li>So sánh ngày D với D-1 theo 5 thành phần (trọng số mặc định, tổng = 100%): <b>DT tăng thêm</b> 30% · <b>%Δ DT</b> 10% · <b>SL tăng thêm</b> 30% · <b>%Δ SL</b> 10% · <b>%Δ số CH có bán</b> 20%.</li>
-    <li>DT/SL tăng thêm quy về thang ±100 theo mã tăng (giảm) nhiều nhất trong phạm vi lọc; các chỉ số % kẹp trong [-100%, +100%].</li>
+    <li>DT/SL tăng thêm quy về thang ±100 theo mã tăng (giảm) nhiều nhất trong phạm vi lọc; các chỉ số % kẹp trong [-100%, +100%]. Nếu D-1 = 0 thì chỉ số % đó không tính (0 điểm, hiện "—").</li>
+    <li>Chỉ xét mã có <b>số CH có bán (D hoặc D-1) ≥ ngưỡng</b> (mặc định 20) để loại mã bán lẻ tẻ.</li>
     <li><b>Điểm</b> = (Σ thành phần × trọng số + 100) ÷ 2, quy về thang 0–100 (50 = không đổi). Trọng số đặt ở "Cấu hình Top Trending".</li>
     <li><b>%Δ Phủ</b> = thay đổi số CH có bán ngày D so với D-1.</li>
     <li><b>Hot Trend</b>: điểm &gt; 50, xếp từ cao xuống. <b>Down Trend</b>: điểm &lt; 50, xếp từ thấp lên. Chỉ xét mã có bán ngày D hoặc D-1.</li>
@@ -1761,6 +1766,7 @@ function initUI(){
   $('twReset').onclick = e => { e.preventDefault(); twFill(TW_DEF); trW(); };
   $('trThr').addEventListener('change', () => { S.trThr = +$('trThr').value; trRender(); });
   $('trTopN').addEventListener('change', () => { S.trTopN = +$('trTopN').value; trRender(); });
+  $('trMinCH').addEventListener('change', () => { S.trMinCH = +$('trMinCH').value; trRender(); });
   trW();
 
   // view level + font size
