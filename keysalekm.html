@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Key Sale KM v4.6.1 — Win Rural</title>
+<title>Key Sale KM v4.6.2 — Win Rural</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 [hidden]{display:none!important}
@@ -271,7 +271,7 @@ body.fullscreen .ptools{opacity:.9}
 <header class="hd">
   <div class="hd-in">
     <img id="lg" class="lg" alt="WinMart+">
-    <div class="tt">Key Sale KM <span>v4.6.1 · Win Rural · Theo dõi CTKM</span></div>
+    <div class="tt">Key Sale KM <span>v4.6.2 · Win Rural · Theo dõi CTKM</span></div>
     <div class="mt">
       <span class="pill" id="fileinfo">Chưa có dữ liệu</span>
       <button class="btn" id="btnFilters" aria-expanded="false">⚙ Bộ lọc <span id="fCount"></span></button>
@@ -1441,7 +1441,7 @@ function heatScale(rows){ const mx = {}; for (const [, , cols] of visibleGroups(
 function bandOf(gk){ return visibleGroups().findIndex(g => g[0]===gk) % 2 ? 'gB' : 'gA'; }
 function cellsHtml(m, mx){
   let h = ''; S.curRankN = m.rankN;
-  for (const [, , cols] of visibleGroups()) cols.forEach(([k, , t], i) => {
+  for (const [gk, , cols] of visibleGroups()) cols.forEach(([k, , t], i) => {
     const [txt, cls] = fmtCell(t, m[k]);
     h += '<td class="' + bandOf(gk) + (i===0?' gs ':' ') + cls + '">' + txt + '</td>';
   });
