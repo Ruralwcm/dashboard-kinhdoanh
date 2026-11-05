@@ -16,7 +16,7 @@
   --fs:13px;
 }
 *{box-sizing:border-box}
-html,body{margin:0;padding:0;height:100%;overflow:hidden}
+html,body{margin:0;padding:0}
 body{font-family:"Be Vietnam Pro",Inter,"Segoe UI",system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink);font-size:var(--fs);-webkit-font-smoothing:antialiased}
 img{max-width:100%}
 button,select,input{font-family:inherit}
@@ -118,7 +118,8 @@ main{max-width:1680px;margin:0 auto;padding:16px 20px 60px}
 .scopeInfo{font-size:12.5px;color:var(--ink2);margin:4px 0}
 .scopeInfo b{color:var(--ink)}
 .tbl-card{background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:var(--sh);overflow:hidden;position:relative}
-#tblWrap{overflow:auto;max-height:calc(100vh - 280px);position:relative}
+#app{overflow-x:hidden}
+#tblWrap{overflow:auto;max-height:calc(100vh - 260px);position:relative}
 table#tbl{border-collapse:separate;border-spacing:0;font-size:var(--fs);width:max-content;min-width:100%}
 #tbl th,#tbl td{padding:6px 9px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line)}
 #tbl thead th{position:sticky;background:#fff;z-index:5;font-size:11.5px;font-weight:700;color:var(--ink2);text-transform:none}
