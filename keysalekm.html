@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Key Sale KM v4.5.3 — Win Rural</title>
+<title>Key Sale KM v4.6 — Win Rural</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 [hidden]{display:none!important}
@@ -256,6 +256,11 @@ body.fullscreen .ptools{opacity:.9}
 
 @media (max-width:640px){
   .hd-in{padding:8px 12px;gap:9px} .hd .lg{height:30px;width:auto;object-fit:contain;object-position:left center} .hd .tt{font-size:14.5px} .hd .tt span{display:none}
+.sv-sel{display:none;margin-left:4px;gap:1px}
+.th-grp-name:hover .sv-sel{display:inline-flex}
+.sv-btn{font-size:9px;padding:1px 4px;border:1px solid var(--line);border-radius:3px;background:var(--bg);color:var(--ink2);cursor:pointer;line-height:1.5}
+.sv-btn.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+
   main{padding:10px}
   .kpi .v{font-size:16px}
 }
@@ -266,7 +271,7 @@ body.fullscreen .ptools{opacity:.9}
 <header class="hd">
   <div class="hd-in">
     <img id="lg" class="lg" alt="WinMart+">
-    <div class="tt">Key Sale KM <span>v4.5.3 · Win Rural · Theo dõi CTKM</span></div>
+    <div class="tt">Key Sale KM <span>v4.6 · Win Rural · Theo dõi CTKM</span></div>
     <div class="mt">
       <span class="pill" id="fileinfo">Chưa có dữ liệu</span>
       <button class="btn" id="btnFilters" aria-expanded="false">⚙ Bộ lọc <span id="fCount"></span></button>
@@ -1348,6 +1353,13 @@ function render(){
   }
   sortRows(); renderKpis(res); renderTable();
 }
+
+function toggleSecView(k, ev){ ev.stopPropagation();
+  S.secView[k] = S.secView[k]==='F'?'C':S.secView[k]==='C'?'L':'F';
+  localStorage.setItem('ksk_secView', JSON.stringify(S.secView));
+  renderTable();
+}
+
 function sortRows(){
   const {k, asc} = S.sort;
   const effDim = _DM[S.dim] || S.dim;
@@ -1376,7 +1388,18 @@ function renderKpis(res){
   $('kpis').innerHTML = tiles.map(([l,v,s]) => '<div class="kpi" title="' + (l + ': ' + v + ' — ' + String(s)).replace(/<[^>]+>/g,'') + '"><span class="lbl">' + l + '</span><span class="v">' + v + '</span><span class="s">' + s + '</span></div>').join('');
 }
 
-function visibleGroups(){ const base = COLGROUPS.filter(g => S.cols.has(g[0])); if ((_DM[S.dim]||S.dim)==='trend') return [TREND_GROUP, ...base]; return base; }
+function visibleGroups(){
+  const base = COLGROUPS.filter(g => {
+    if (!S.cols.has(g[0])) return false;
+    const sv = S.secView[g[0]] || 'F';
+    if (sv === 'F') return true;
+    const cfg = SECTION_VIEWS[g[0]];
+    if (!cfg) return true;
+    return g[2].some(([k]) => cfg[k] && cfg[k][sv]);
+  });
+  if ((_DM[S.dim]||S.dim)==='trend') return [TREND_GROUP, ...base];
+  return base;
+}
 function kmTip(a, k){
   let h = '<div class="tt-h">' + esc(a.code) + ' - ' + esc(a.name) + '</div><div class="tt-s">' + esc(a.mch3) + (a.maQuyDoi?' · Quy đổi: '+esc(a.maQuyDoi):'') + '</div>';
   if (!k) return h + '<div class="tt-r">Không có trong CTKM</div>';
@@ -1418,7 +1441,7 @@ function heatScale(rows){ const mx = {}; for (const [, , cols] of visibleGroups(
 function bandOf(gk){ return visibleGroups().findIndex(g => g[0]===gk) % 2 ? 'gB' : 'gA'; }
 function cellsHtml(m, mx){
   let h = ''; S.curRankN = m.rankN;
-  for (const [gk, , cols] of visibleGroups()) cols.forEach(([k, , t], i) => {
+  for (const gk of gs.map(g=>g[0])) { const cols = secFields[gk]; if (!cols) continue; cols.forEach(([k, , t], i) => {
     const [txt, cls] = fmtCell(t, m[k]);
     h += '<td class="' + bandOf(gk) + (i===0?' gs ':' ') + cls + '">' + txt + '</td>';
   });
@@ -1471,8 +1494,12 @@ function renderTable(){
   const firstLbl = (_ed2==='sku'||_ed2==='trend') ? 'Mã hàng / CTKM' : esc(dimLbl);
   let g = '<tr class="g"><th rowspan="2" data-k="key" class="sticky' + (S.sort.k==='key' ? ' sorted' + (S.sort.asc?' asc':'') : '') + '">' + firstLbl + '</th>';
   let c = '<tr class="c">';
-  for (const [gk, label, cols] of gs){ g += '<th colspan="' + cols.length + '" class="' + bandOf(gk) + ' gs">' + label + '</th>';
-    cols.forEach(([k, l], i) => { c += '<th data-k="' + k + '" class="' + bandOf(gk) + (i===0?' gs ':' ') + (S.sort.k===k ? 'sorted' + (S.sort.asc?' asc':'') : '') + '">' + l + '</th>'; }); }
+  for (const [gk, label, cols0] of gs){
+    const curSv = S.secView[gk] || 'F';
+    const cols = curSv === 'F' ? cols0 : (SECTION_VIEWS[gk] ? cols0.filter(([k]) => SECTION_VIEWS[gk][k] && SECTION_VIEWS[gk][k][curSv]) : cols0);
+    if (!cols.length) continue;
+    const svBtns = '<span class="sv-sel"><button class="sv-btn' + (curSv==='F'?' on':'') + '" onclick="toggleSecView(\\'' + gk + '\\',event)" data-v="F">F</button><button class="sv-btn' + (curSv==='C'?' on':'') + '" onclick="toggleSecView(\\'' + gk + '\\',event)" data-v="C">C</button><button class="sv-btn' + (curSv==='L'?' on':'') + '" onclick="toggleSecView(\\'' + gk + '\\',event)" data-v="L">L</button></span>';
+    g += '<th colspan="' + cols.length + '" class="' + bandOf(gk) + ' gs">' + label + svBtns + '</th>'; c += '<th data-k="' + k + '" class="' + bandOf(gk) + (i===0?' gs ':' ') + (S.sort.k===k ? 'sorted' + (S.sort.asc?' asc':'') : '') + '">' + l + '</th>'; }); }
   $('tbl').tHead.innerHTML = g + '</tr>' + c + '</tr>';
   const shown = S.rows.slice(0, S.page);
   const mx = heatScale(S.rows);
