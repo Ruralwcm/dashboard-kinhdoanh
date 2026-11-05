@@ -1431,7 +1431,7 @@ function initPresent(){
 
 initUI();
 initPresent();
-{ const snap = document.getElementById('snapshot'); if (snap) { $('drop').hidden = true; loadSnapshot(snap); } }
+{ const snap = document.getElementById('snapshot'); if (snap && snap.textContent.trim()) { $('drop').hidden = true; loadSnapshot(snap); } else { $('drop').hidden = false; hideOverlay(); } }
 window.__ksk = { start, demoModel, buildModel, S, saveSnapshot };
 
 </script>
