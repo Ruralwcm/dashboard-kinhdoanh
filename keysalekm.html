@@ -1235,6 +1235,30 @@ function computeTrend(list){
   }
 }
 
+
+function renderRecap(){
+  if (!S.rows || !S.rows.length){ $('recap').innerHTML = ''; return; }
+  let total = {rLK:0, rD:0, sV:0, dio:0, nDR:0, nNo:0, ct:0};
+  S.rows.forEach(r => {
+    total.rLK += (r.rLK||0); total.rD += (r.rD||0); total.sV += (r.sV||0);
+    total.dio += (r.dio||0);
+    if (r.dr != null){ total.nDR += (r.nDR||0); }
+    else { total.nNo += (r.nNo||0); }
+    total.ct++;
+  });
+  const n = total.ct || 1;
+  $('recap').innerHTML = [
+    ['Lũy kế', fmtV(total.rLK), ''],
+    ['Hôm nay', fmtV(total.rD), ''],
+    ['Tồn kho', fmtV(total.sV), ''],
+    ['DIO', nf0.format(total.dio/n), 'ngày'],
+    ['Độ phủ', nf1.format((total.nDR/n)*100)+'%', nf0.format(total.nDR)+' CH'],
+    ['NoSale', nf1.format((total.nNo/n)*100)+'%', nf0.format(total.nNo)+' CH'],
+    ['FC', '—', ''],
+    ['PO', '—', ''],
+  ].map(([l,v,s]) => '<div class="rc"><div class="rc-l">'+esc(l)+'</div><div class="rc-v">'+v+'</div>'+(s?'<div class="rc-s">'+s+'</div>':'')+'</div>').join('');
+}
+
 function render(){
   renderRecap();
   if (!S.M) return;
