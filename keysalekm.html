@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Key Sale KM v4.19.1 — Win Rural</title>
+<title>Key Sale KM v4.20.0 — Win Rural</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 [hidden]{display:none!important}
@@ -411,10 +411,14 @@ table.ctt{border-collapse:separate;border-spacing:0;font-size:12.5px;width:max-c
 .dt .nm2{max-width:260px;overflow:hidden;text-overflow:ellipsis}
 .dt .mech{max-width:170px;overflow:hidden;text-overflow:ellipsis}
 .gdvt th.pg{background:var(--navy);color:#fff;border-left:2px solid #fff;font-size:12px}
+.gdvt{table-layout:fixed;width:max-content}
+.gdvt td.nmc{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .gdvt th.pgD{background:var(--red)} .gdvt th.pgT{background:#44546A}
 .gdvt .pgx{margin-left:4px;border:1px solid rgba(255,255,255,.5);background:transparent;color:#fff;border-radius:5px;padding:0 5px;cursor:pointer;font-size:11px;line-height:1.4}
 .gdvt td.rkc{border-left:2px solid var(--line);font-size:13px} .gdvt td.rkc.top b{color:var(--good)} .gdvt td.rkc.bot b{color:var(--bad)}
 .upt tr.upk td{background:#F6F9FE;font-size:12px}
+.upk.lv2 td{background:#FBFCFE} .upk.lv3 td{background:#fff;font-size:11.5px}
+.upt th.srt{cursor:pointer;user-select:none} .upt th.srt:hover{text-decoration:underline}
 .upt .tg{width:18px;height:18px;border:1px solid var(--line);background:#fff;border-radius:5px;font-weight:700;cursor:pointer;color:var(--ink2);padding:0;line-height:1}
 .dt td.wkc{white-space:normal;text-align:left;min-width:320px}
 .dt .cd{font-weight:700;color:var(--navy)}
@@ -472,7 +476,7 @@ body.dashOn .ctlBar .ctl:first-child,body.dashOn .ctl-sec,body.dashOn .ctl-sw{di
 <header class="hd">
   <div class="hd-in">
     <img id="lg" class="lg" alt="WinMart+">
-    <div class="tt">Key Sale KM <span>v4.19.1 · Win Rural · Theo dõi CTKM</span></div>
+    <div class="tt">Key Sale KM <span>v4.20.0 · Win Rural · Theo dõi CTKM</span></div>
     <div class="mt">
       <span class="pill" id="fileinfo" title="">Chưa có dữ liệu</span>
       <div class="ts hd-ts" title="Cỡ chữ">
@@ -2117,7 +2121,7 @@ function renderDash(){
 
   /* ---------- 1. Overall CTKM & xu hướng ---------- */
   const gr = aggregate(M, flt, 'group').rows.map(g => { const m = metrics(g, S.tb); m.key = g.key; return m; });
-  applyTrend(gr, true); gr.sort((a,b) => b.rD - a.rD);
+  applyTrend(gr, true); gr.sort((a,b) => ((b.rD || 0) - (b.rD1 || 0)) - ((a.rD || 0) - (a.rD1 || 0)));   /* sắp theo DT tăng thêm D vs D-1 */
   const up = gr.filter(g => g.dVal > 0).sort((a,b) => b.dVal - a.dVal), dn = gr.filter(g => g.dVal < 0).sort((a,b) => a.dVal - b.dVal);
   const mxD = Math.max(1, ...gr.map(g => Math.abs(g.dVal || 0)));
   S._grSku = new Map(); for (const r of rows){ const k = r.km?.group || '(Không có KM)'; if (!S._grSku.has(k)) S._grSku.set(k, []); S._grSku.get(k).push(r); }
@@ -2132,14 +2136,14 @@ function renderDash(){
   /* vòng tròn chia 10 phần (mỗi SKU 1 màu) + phần còn lại; bấm để xem thông tin */
   const PIE_C = ['#C8102E','#2563EB','#0E9F6E','#D97706','#7C3AED','#0891B2','#DB2777','#65A30D','#EA580C','#0F2A4A'];
   const pieTop = shL.top.filter(r => r.rLK > 0);
-  S._pie = {items: pieTop.map((r, i) => ({c: PIE_C[i], code: r.art.code, name: r.art.name, grp: r.km?.group || '', p: shL.tot ? r.rLK / shL.tot : 0, rLK: r.rLK, qLK: r.qLK, rD: r.rD, qD: r.qD, pD: shD.tot ? r.rD / shD.tot : 0, ch: r.nSale})), rest: {p: 1 - shL.p, v: shL.tot - shL.v, n: Math.max(0, rows.length - pieTop.length)}, totL: shL.tot, totD: shD.tot};
+  S._pie = {items: pieTop.map((r, i) => ({c: PIE_C[i], code: r.art.code, name: r.art.name, mem: r.art.qdMembers, grp: r.km?.group || '', p: shL.tot ? r.rLK / shL.tot : 0, rLK: r.rLK, qLK: r.qLK, rD: r.rD, qD: r.qD, pD: shD.tot ? r.rD / shD.tot : 0, ch: r.nSale})), rest: {p: 1 - shL.p, v: shL.tot - shL.v, n: Math.max(0, rows.length - pieTop.length)}, totL: shL.tot, totD: shD.tot};
   const SZ = 250, R = 98, CIRC = 2 * Math.PI * R; let acc = 0;
   let svg = '<svg class="pieSvg" width="' + SZ + '" height="' + SZ + '" viewBox="0 0 ' + SZ + ' ' + SZ + '"><circle cx="125" cy="125" r="' + R + '" fill="none" stroke="#E9EDF3" stroke-width="34"/>';
   S._pie.items.forEach((it, i) => { const len = Math.max(0, CIRC * it.p - 1.5); svg += '<circle class="pseg" data-pi="' + i + '" cx="125" cy="125" r="' + R + '" fill="none" stroke="' + it.c + '" stroke-width="34" stroke-dasharray="' + len.toFixed(2) + ' ' + CIRC.toFixed(2) + '" stroke-dashoffset="' + (-acc).toFixed(2) + '" transform="rotate(-90 125 125)"><title>' + esc(it.code + ' ' + it.name + ' · ' + nf1.format(it.p * 100) + '%') + '</title></circle>'; acc += CIRC * it.p; });
   svg += '<circle class="pseg" data-pi="rest" cx="125" cy="125" r="' + R + '" fill="none" stroke="transparent" stroke-width="34" stroke-dasharray="' + Math.max(0, CIRC * S._pie.rest.p).toFixed(2) + ' ' + CIRC.toFixed(2) + '" stroke-dashoffset="' + (-acc).toFixed(2) + '" transform="rotate(-90 125 125)"></circle>';
   svg += '<text x="125" y="118" text-anchor="middle" font-size="30" font-weight="800" fill="var(--ink)">' + nf1.format(shL.p * 100) + '%</text><text x="125" y="140" text-anchor="middle" font-size="12" fill="var(--ink2)">Top 10 SKU / tổng DT</text><text x="125" y="156" text-anchor="middle" font-size="11" fill="var(--ink2)">lũy kế</text></svg>';
   const pieH = '<div class="d1pie"><div class="d1t">DT Top 10 SKU / Tổng DT</div><div class="pieWrap">' + svg
-    + '<div class="pieLeg">' + S._pie.items.map((it, i) => '<div class="pl" data-pi="' + i + '"><i style="background:' + it.c + '"></i><span class="pn" title="' + esc(it.code + ' ' + it.name) + '">' + esc(it.name) + '</span><b>' + nf1.format(it.p * 100) + '%</b></div>').join('')
+    + '<div class="pieLeg">' + S._pie.items.map((it, i) => '<div class="pl" data-pi="' + i + '"><i style="background:' + it.c + '"></i><span class="pn" title="' + esc(it.code + ' ' + it.name + (it.mem ? ' · gộp ' + it.mem.join(', ') : '')) + '">' + esc(it.name) + (it.mem ? ' <span class="qdb">×' + it.mem.length + '</span>' : '') + '</span><b>' + nf1.format(it.p * 100) + '%</b></div>').join('')
     + '<div class="pl" data-pi="rest"><i style="background:#E9EDF3"></i><span class="pn">' + fmtQ(S._pie.rest.n) + ' SKU còn lại</span><b>' + nf1.format(S._pie.rest.p * 100) + '%</b></div></div></div>'
     + '<div class="pieInfo" id="pieInfo"></div></div>';
   h += '<div class="d1row"><div class="d1tbl">';
@@ -2215,12 +2219,14 @@ function renderDash(){
   const KPI = (p, fr, dl) => [['Index DT', m => idxTd(m['iV_' + p])], ['Index SL', m => idxTd(m['iQ_' + p])], ['% CH×mã bán', m => '<td>' + fmtPct(m['cov_' + p]) + '</td>'], ['Sell-through', m => '<td>' + fmtPct(m['st_' + p]) + '</td>'], ['DR', m => '<td class="' + (m.dr < 0.5 ? 'cell-bad' : m.dr < 0.8 ? 'cell-warn' : '') + '">' + fmtPct(m.dr) + '</td>']];
   const rkTd = (v, n) => '<td class="c rkc' + (v <= 3 ? ' top' : v > n - 3 ? ' bot' : '') + '"><b>#' + v + '</b></td>';
   const gdvTbl = (rs, lbl, N, withGdv) => { const n = N || rs.length; lbl = lbl || 'GĐV';
-    let t = '<div class="wrapx"><table class="dt gdvt"><thead><tr><th class="l" rowspan="2">' + lbl + '</th>' + (withGdv ? '<th class="l" rowspan="2">GĐV</th>' : '') + '<th rowspan="2">Số CH</th>';
+    /* độ rộng cột cố định → bảng GĐV và QLKV thẳng cột nhau */
+    let cg = '<col style="width:200px"><col style="width:56px">'; for (const [p] of PERS){ cg += '<col style="width:50px"><col style="width:92px"><col style="width:72px"><col style="width:72px"><col style="width:76px">'; if (exp[p]) cg += '<col style="width:70px">'.repeat(5); } cg += '<col style="width:72px"><col style="width:92px"><col style="width:260px">';
+    let t = '<div class="wrapx"><table class="dt gdvt"><colgroup>' + cg + '</colgroup><thead><tr><th class="l" rowspan="2">' + lbl + (withGdv ? '<br><span style="font-weight:500">GĐV</span>' : '') + '</th><th rowspan="2">Số CH</th>';
     for (const [p, l] of PERS) t += '<th class="c pg ' + (p === 'D' ? 'pgD' : '') + '" colspan="' + (5 + (exp[p] ? 5 : 0)) + '">' + l + ' <button type="button" class="pgx" data-dexp="' + p + '" title="' + (exp[p] ? 'Ẩn' : 'Hiện') + ' KPI chính">' + (exp[p] ? '▾' : '▸') + '</button></th>';
     t += '<th class="c pg pgT" colspan="3">Xu hướng</th></tr><tr>';
     for (const [p, , fr, dl] of PERS){ t += '<th class="c">Rank</th>' + BASE(p, fr).map(k => '<th>' + k[0] + '</th>').join(''); if (exp[p]) t += KPI(p, fr, dl).map(k => '<th>' + k[0] + '</th>').join(''); }
     t += '<th class="c">D vs D-1</th><th>DT tăng thêm</th><th class="l">Chỉ số flop</th></tr></thead><tbody>';
-    for (const m of rs){ t += '<tr><td class="l"><b>' + esc(m.key) + '</b></td>' + (withGdv ? '<td class="l">' + esc(M.stores.find(x => x.asm === m.key)?.rsm || '') + '</td>' : '') + '<td>' + fmtQ(m.nAct) + '</td>';
+    for (const m of rs){ t += '<tr><td class="l nmc"><b>' + esc(m.key) + '</b>' + (withGdv ? '<br><span class="na" style="font-size:11px">' + esc(M.stores.find(x => x.asm === m.key)?.rsm || '') + '</span>' : '') + '</td><td>' + fmtQ(m.nAct) + '</td>';
       for (const [p, , fr, dl] of PERS){ t += rkTd(m['rank' + p], n) + BASE(p, fr).map(k => k[1](m)).join(''); if (exp[p]) t += KPI(p, fr, dl).map(k => k[1](m)).join(''); }
       t += '<td class="c">' + rkHtml(m.rkTrend) + '</td><td class="' + clsSg(m.dVal) + '">' + sgnV(m.dVal) + '</td><td class="wkc">' + wkHtml(m) + '</td></tr>'; }
     return t + '</tbody></table></div>'; };
@@ -2229,8 +2235,9 @@ function renderDash(){
   const qTbl = rs => '<div class="wrapx"><table class="dt"><thead><tr><th class="c">Rank D</th><th class="l">QLKV</th><th class="l">GĐV</th><th class="c">vs D-1</th><th>Index DT</th><th>DT tăng thêm</th><th class="l">Chỉ số yếu</th></tr></thead><tbody>'
     + rs.map(m => { const g = M.stores.find(x => x.asm === m.key)?.rsm || ''; return '<tr><td class="c"><b>#' + m.rankD + '</b></td><td class="l"><b>' + esc(m.key) + '</b></td><td class="l">' + esc(g) + '</td><td class="c">' + rkHtml(m.rkTrend) + '</td><td class="' + (m.iV_D >= 110 ? 'cell-good' : m.iV_D < 90 ? 'cell-bad' : '') + '">' + (m.iV_D == null ? '—' : nf0.format(m.iV_D)) + '</td><td class="' + clsSg(m.dVal) + '">' + sgnV(m.dVal) + '</td><td class="wkc">' + wkHtml(m, 3) + '</td></tr>'; }).join('') + '</tbody></table></div>';
   const qDown = pQ.filter(m => m.rkTrend != null).sort((a,b) => a.rkTrend - b.rkTrend).slice(0, 10);
-  h += '<h4>👥 Performance CTKM theo QLKV · 🏅 Top 10 (Rank lũy kế / ' + pQ.length + ' QLKV)</h4>' + gdvTbl(pQ.slice(0, 10), 'QLKV', pQ.length, true);
-  h += '<h4>👥 Performance CTKM theo QLKV · 🔻 Flop 10 (Rank lũy kế thấp nhất)</h4>' + gdvTbl(pQ.slice(-10).reverse(), 'QLKV', pQ.length, true);
+  if (selSet('fRsm') || selSet('fAsm') || pQ.length <= 20) h += '<h4>👥 Performance CTKM theo QLKV · ' + pQ.length + ' QLKV (Rank lũy kế)</h4>' + gdvTbl(pQ, 'QLKV', pQ.length, true);
+  else { h += '<h4>👥 Performance CTKM theo QLKV · 🏅 Top 10 (Rank lũy kế / ' + pQ.length + ' QLKV)</h4>' + gdvTbl(pQ.slice(0, 10), 'QLKV', pQ.length, true);
+    h += '<h4>👥 Performance CTKM theo QLKV · 🔻 Flop 10 (Rank lũy kế thấp nhất)</h4>' + gdvTbl(pQ.slice(-10).reverse(), 'QLKV', pQ.length, true); }
   h += '</section>';
 
   /* ---------- 3. SKUs sắp KM ---------- */
@@ -2246,12 +2253,22 @@ function renderDash(){
     /* cột chung cho dòng SKU và dòng GĐV (khi mở rộng) */
     const upCells = m => { const r = rdy(m); return '<td>' + fmtQ(m.sQ) + '</td><td>' + fmtV(m.sV) + '</td><td>' + fmtQ(Math.min(Math.round(m.nDR), m.nAct)) + ' / ' + fmtQ(m.nAct) + '</td><td class="' + (m.dr < 0.5 ? 'cell-bad' : m.dr < 0.8 ? 'cell-warn' : 'cell-good') + '">' + fmtPct(m.dr) + '</td><td>' + fmtQ(m.ndQ) + '</td><td>' + fmtV(m.ndV) + '</td><td>' + fmtQ(m.fcQ) + '</td><td>' + fmtV(m.fcV) + '</td><td>' + fmtQ(m.vQ) + '</td><td>' + fmtV(m.vV) + '</td><td class="l"><span class="rdy ' + r[0] + '">' + r[1] + '</span></td>'; };
     const upOpen = S.dashUpOpen || (S.dashUpOpen = new Set());
-    const upKids = m => { const mask = new Uint8Array(M.arts.length); mask[m.ai] = 1;
-      return aggregate(M, {...f2, artOK:mask}, 'rsm').rows.filter(g => g.key && g.key !== '(Trống)').map(g => { const k = metrics(g, S.tb); k.key = g.key; if (k.dr != null) k.dr = Math.min(1, k.dr); return k; }).sort((a,b) => (a.dr ?? 0) - (b.dr ?? 0)); };
-    h += '<div class="wrapx"><table class="dt upt"><thead><tr><th class="l">SKU</th><th class="l">Nhóm CTKM</th><th class="l">Cơ chế</th><th>Giá KM</th><th>Bắt đầu</th><th>Còn</th><th>Min TB</th><th>SL tồn</th><th>GT tồn</th><th>CH đạt Min / CH</th><th>DR</th><th>SL chờ giao</th><th>GT chờ giao</th><th>SL FC</th><th>GT FC</th><th>SL Validate</th><th>GT Validate</th><th class="l">Đánh giá</th></tr></thead><tbody>'
-      + upc.map((m, i) => { const hid = i >= 20 && !S.dashAllUpc ? ' hidden' : '', op = upOpen.has(m.ai);
-        let t = '<tr' + hid + '><td class="l nm2" title="' + esc(m.art.code + ' - ' + m.art.name) + '"><button type="button" class="tg" data-upx="' + m.ai + '" title="Xem theo GĐV">' + (op ? '−' : '+') + '</button> <span class="cd">' + esc(m.art.code) + '</span> ' + esc(m.art.name) + '</td><td class="l">' + esc(m.km.group) + '</td><td class="l mech" title="' + esc(m.km.mech) + '">' + esc(m.km.mech || '—') + '</td><td>' + (m.km.p1 ? nf0.format(m.km.p1) : '—') + '</td><td>' + fmtDate(m.km.d0) + '</td><td class="' + (m.dl != null && m.dl <= 3 ? 'cell-bad' : '') + '">' + (m.dl == null ? '—' : m.dl + ' ngày') + '</td><td>' + (m.art.minTB || '—') + '</td>' + upCells(m) + '</tr>';
-        if (op && !hid) t += upKids(m).map(k => '<tr class="upk"><td class="l" style="padding-left:34px">' + esc(k.key) + '</td><td colspan="6" class="l na">GĐV</td>' + upCells(k) + '</tr>').join('');
+    const UPL = ['rsm', 'asm', 'code'], UPN = {rsm:'GĐV', asm:'QLKV', code:'CH'};
+    const us = S.upSort || (S.upSort = {k:'dl', asc:true});
+    const upVal = (m, k) => k === 'code' ? m.art?.code : k === 'group' ? m.km?.group : k === 'mech' ? m.km?.mech : k === 'p1' ? m.km?.p1 : k === 'd0' ? +m.km?.d0 : k === 'minTB' ? m.art?.minTB : k === 'rdy' ? {bad:0, mid:1, ok:2}[rdy(m)[0]] : k === 'name' ? m.key : m[k];
+    const upCmp = (a, b) => { const x = upVal(a, us.k), y = upVal(b, us.k); if (x == null && y == null) return 0; if (x == null) return 1; if (y == null) return -1; const c = typeof x === 'string' || typeof y === 'string' ? String(x).localeCompare(String(y), 'vi', {numeric:true}) : x - y; return us.asc ? c : -c; };
+    upc.sort(upCmp);
+    const upKids = (m, path) => { const mask = new Uint8Array(M.arts.length); mask[m.ai] = 1; const dim = UPL[path.length];
+      const so = path.length ? Uint8Array.from(f2.storeOK, (v, si) => v && path.every((p, j) => M.stores[si][UPL[j]] === p) ? 1 : 0) : f2.storeOK;
+      const ks = aggregate(M, {...f2, artOK:mask, storeOK:so}, dim).rows.filter(g => g.key && g.key !== '(Trống)').map(g => { const k = metrics(g, S.tb); k.key = g.key; if (k.dr != null) k.dr = Math.min(1, k.dr); if (dim === 'code') k.nm = M.stores.find(x => x.code === g.key)?.name || ''; return k; });
+      const kk = ['code','group','mech','p1','d0','dl','minTB'].includes(us.k) ? 'dr' : us.k; return ks.sort((a, b) => { const x = kk === 'dr' ? a.dr ?? 0 : kk === 'rdy' ? {bad:0, mid:1, ok:2}[rdy(a)[0]] : a[kk] ?? 0, y = kk === 'dr' ? b.dr ?? 0 : kk === 'rdy' ? {bad:0, mid:1, ok:2}[rdy(b)[0]] : b[kk] ?? 0; return (kk === 'dr' || kk === 'rdy' ? 1 : us.asc ? 1 : -1) * (x - y); }); };
+    const kidRows = (m, path) => upKids(m, path).map(k => { const p2 = path.concat([k.key]), id = m.ai + '|' + p2.join('|'), lv = p2.length, leaf = lv >= UPL.length, op = !leaf && upOpen.has(id);
+      return '<tr class="upk lv' + lv + '"><td class="l" style="padding-left:' + (14 + lv * 18) + 'px">' + (leaf ? '' : '<button type="button" class="tg" data-upx="' + esc(id) + '" title="Xem theo ' + UPN[UPL[lv]] + '">' + (op ? '−' : '+') + '</button> ') + esc(k.key) + (k.nm ? ' <span class="na">' + esc(k.nm) + '</span>' : '') + '</td><td colspan="6" class="l na">' + UPN[UPL[lv - 1]] + '</td>' + upCells(k) + '</tr>' + (op ? kidRows(m, p2) : ''); }).join('');
+    const uth = (k, l, c) => '<th class="' + (c || '') + ' srt" data-ups="' + k + '">' + l + (us.k === k ? (us.asc ? ' ▲' : ' ▼') : '') + '</th>';
+    h += '<div class="wrapx"><table class="dt upt"><thead><tr>' + uth('code','SKU','l') + uth('group','Nhóm CTKM','l') + uth('mech','Cơ chế','l') + uth('p1','Giá KM') + uth('d0','Bắt đầu') + uth('dl','Còn') + uth('minTB','Min TB') + uth('sQ','SL tồn') + uth('sV','GT tồn') + uth('nDR','CH đạt Min / CH') + uth('dr','DR') + uth('ndQ','SL chờ giao') + uth('ndV','GT chờ giao') + uth('fcQ','SL FC') + uth('fcV','GT FC') + uth('vQ','SL Validate') + uth('vV','GT Validate') + uth('rdy','Đánh giá','l') + '</tr></thead><tbody>'
+      + upc.map((m, i) => { const hid = i >= 20 && !S.dashAllUpc ? ' hidden' : '', op = upOpen.has(String(m.ai));
+        let t = '<tr' + hid + '><td class="l nm2" title="' + esc(m.art.code + ' - ' + m.art.name) + '"><button type="button" class="tg" data-upx="' + m.ai + '" title="Xem theo GĐV → QLKV → CH">' + (op ? '−' : '+') + '</button> <span class="cd">' + esc(m.art.code) + '</span> ' + esc(m.art.name) + '</td><td class="l">' + esc(m.km.group) + '</td><td class="l mech" title="' + esc(m.km.mech) + '">' + esc(m.km.mech || '—') + '</td><td>' + (m.km.p1 ? nf0.format(m.km.p1) : '—') + '</td><td>' + fmtDate(m.km.d0) + '</td><td class="' + (m.dl != null && m.dl <= 3 ? 'cell-bad' : '') + '">' + (m.dl == null ? '—' : m.dl + ' ngày') + '</td><td>' + (m.art.minTB || '—') + '</td>' + upCells(m) + '</tr>';
+        if (op && !hid) t += kidRows(m, []);
         return t; }).join('') + '</tbody></table></div>'
       + (upc.length > 20 ? '<div class="dmore"><button class="btn" id="dashUpcMore">' + (S.dashAllUpc ? 'Thu gọn' : 'Xem tất cả ' + upc.length + ' mã') + '</button></div>' : ''); }
   h += '</section>';
@@ -2300,16 +2317,16 @@ function renderDash(){
     $('dash').querySelectorAll('.pseg,.pl').forEach(x => x.classList.toggle('on', x.dataset.pi === String(k)));
     if (k === 'rest'){ el.innerHTML = '<div class="pih"><i style="background:#CBD3DF"></i><b>' + fmtQ(P.rest.n) + ' SKU còn lại</b></div><div class="pig"><span>Tỷ trọng DT lũy kế</span><b>' + nf1.format(P.rest.p * 100) + '%</b><span>DT lũy kế</span><b>' + fmtV(P.rest.v) + '</b></div>'; return; }
     const it = P.items[k]; if (!it){ el.innerHTML = '<div class="na" style="font-size:12px">Bấm vào từng phần màu hoặc tên mã để xem chi tiết.</div>'; return; }
-    el.innerHTML = '<div class="pih"><i style="background:' + it.c + '"></i><b>' + esc(it.code) + '</b> ' + esc(it.name) + '</div><div class="na" style="font-size:11.5px;margin-bottom:4px">' + esc(it.grp) + ' · #' + (k + 1) + ' theo DT lũy kế · ' + fmtQ(it.ch) + ' CH bán</div>'
+    el.innerHTML = '<div class="pih"><i style="background:' + it.c + '"></i><b>' + esc(it.code) + '</b> ' + esc(it.name) + '</div><div class="na" style="font-size:11.5px;margin-bottom:4px">' + esc(it.grp) + ' · #' + (k + 1) + ' theo DT lũy kế · ' + fmtQ(it.ch) + ' CH bán' + (it.mem ? ' · <b>gộp ' + it.mem.length + ' mã</b>: ' + esc(it.mem.join(', ')) : '') + '</div>'
       + '<div class="pig"><span>Tỷ trọng DT lũy kế</span><b>' + nf1.format(it.p * 100) + '%</b><span>DT lũy kế · ' + unitShort() + '</span><b>' + fmtV(it.rLK) + '</b><span>SL bán lũy kế</span><b>' + fmtQ(it.qLK) + '</b>'
       + '<span>Tỷ trọng DT ngày D</span><b>' + nf1.format(it.pD * 100) + '%</b><span>DT ngày D</span><b>' + fmtV(it.rD) + '</b><span>SL bán ngày D</span><b>' + fmtQ(it.qD) + '</b></div>'; };
   { let pop = $('gPop'); if (!pop){ pop = document.createElement('div'); pop.id = 'gPop'; pop.hidden = true; document.body.appendChild(pop); }
     const show = (td, ev) => { const k = td.dataset.gk, mode = td.dataset.gp, L = (S._grSku.get(k) || []).slice(), G = S._grTot.get(k) || {}; let t;
       if (mode === 'lk'){ const top = L.filter(r => r.rLK > 0).sort((a,b) => b.rLK - a.rLK).slice(0, 5), tot = G.rLK || 0;
-        t = '<h5>' + esc(k) + ' · Top 5 SKU đóng góp DT lũy kế</h5><table><tr><th class="l">SKU</th><th>DT lũy kế</th><th>Tỷ trọng</th><th>SL lũy kế</th><th>CH bán</th></tr>' + top.map(r => '<tr><td class="l"><b>' + esc(r.art.code) + '</b> ' + esc(r.art.name) + '</td><td>' + fmtV(r.rLK) + '</td><td>' + (tot ? nf1.format(r.rLK / tot * 100) + '%' : '—') + '</td><td>' + fmtQ(r.qLK) + '</td><td>' + fmtQ(r.nSale) + '</td></tr>').join('') + '</table>'
+        t = '<h5>' + esc(k) + ' · Top 5 SKU đóng góp DT lũy kế</h5><table><tr><th class="l">SKU</th><th>DT lũy kế</th><th>Tỷ trọng</th><th>SL lũy kế</th><th>CH bán</th></tr>' + top.map(r => '<tr><td class="l"><b>' + esc(r.art.code) + '</b> ' + esc(r.art.name) + (r.art.qdMembers ? ' <span class="qdb">×' + r.art.qdMembers.length + '</span>' : '') + '</td><td>' + fmtV(r.rLK) + '</td><td>' + (tot ? nf1.format(r.rLK / tot * 100) + '%' : '—') + '</td><td>' + fmtQ(r.qLK) + '</td><td>' + fmtQ(r.nSale) + '</td></tr>').join('') + '</table>'
           + '<div style="margin-top:4px;color:var(--ink2)">5 mã = <b>' + (tot ? nf1.format(top.reduce((a,r) => a + r.rLK, 0) / tot * 100) : '0') + '%</b> DT lũy kế của nhóm (' + L.length + ' mã)</div>'; }
       else { const dv = r => (r.rD || 0) - (r.rD1 || 0), up = L.filter(r => dv(r) > 0).sort((a,b) => dv(b) - dv(a)).slice(0, 5), dn = L.filter(r => dv(r) < 0).sort((a,b) => dv(a) - dv(b)).slice(0, 3);
-        const rowH = r => '<tr><td class="l"><b>' + esc(r.art.code) + '</b> ' + esc(r.art.name) + '</td><td>' + fmtV(r.rD1) + '</td><td>' + fmtV(r.rD) + '</td><td class="' + clsSg(dv(r)) + '">' + sgnV(dv(r)) + '</td><td class="' + clsSg(dv(r)) + '">' + (r.rD1 > 0 ? pctTxt((r.rD - r.rD1) / r.rD1 * 100) : '—') + '</td></tr>';
+        const rowH = r => '<tr><td class="l"><b>' + esc(r.art.code) + '</b> ' + esc(r.art.name) + (r.art.qdMembers ? ' <span class="qdb">×' + r.art.qdMembers.length + '</span>' : '') + '</td><td>' + fmtV(r.rD1) + '</td><td>' + fmtV(r.rD) + '</td><td class="' + clsSg(dv(r)) + '">' + sgnV(dv(r)) + '</td><td class="' + clsSg(dv(r)) + '">' + (r.rD1 > 0 ? pctTxt((r.rD - r.rD1) / r.rD1 * 100) : '—') + '</td></tr>';
         t = '<h5>' + esc(k) + ' · Top 5 SKU đóng góp DT tăng thêm (D vs D-1)</h5><table><tr><th class="l">SKU</th><th>DT D-1</th><th>DT D</th><th>Tăng thêm</th><th>%</th></tr>' + (up.length ? up.map(rowH).join('') : '<tr><td class="l" colspan="5">Không có mã tăng.</td></tr>') + '</table>'
           + (dn.length ? '<h5 style="margin-top:6px;color:var(--bad)">Kéo giảm nhiều nhất</h5><table>' + dn.map(rowH).join('') + '</table>' : '')
           + '<div style="margin-top:4px;color:var(--ink2)">Cả nhóm: <b class="' + clsSg(G.dVal) + '">' + sgnV(G.dVal || 0) + '</b> · ' + up.length + ' mã tăng dẫn đầu cộng <b>' + sgnV(up.reduce((a,r) => a + dv(r), 0)) + '</b></div>'; }
@@ -2319,7 +2336,8 @@ function renderDash(){
   $('dash').querySelectorAll('[data-pi]').forEach(x => x.onclick = () => pieInfo(x.dataset.pi === 'rest' ? 'rest' : +x.dataset.pi));
   pieInfo(0);
   $('dash').querySelectorAll('[data-dmore],[data-dless]').forEach(b => b.onclick = () => { const y = window.scrollY, k = b.dataset.dmore || b.dataset.dless; S.dashN[k] = b.dataset.dmore ? S.dashN[k] + 5 : 5; renderDash(); window.scrollTo(0, y); });
-  $('dash').querySelectorAll('[data-upx]').forEach(b => b.onclick = () => { const y = window.scrollY, a = +b.dataset.upx; S.dashUpOpen.has(a) ? S.dashUpOpen.delete(a) : S.dashUpOpen.add(a); renderDash(); window.scrollTo(0, y); });
+  $('dash').querySelectorAll('[data-upx]').forEach(b => b.onclick = () => { const y = window.scrollY, a = String(b.dataset.upx); if (S.dashUpOpen.has(a)) { for (const x of [...S.dashUpOpen]) if (x === a || x.startsWith(a + '|')) S.dashUpOpen.delete(x); } else S.dashUpOpen.add(a); renderDash(); window.scrollTo(0, y); });
+  $('dash').querySelectorAll('[data-ups]').forEach(th => th.onclick = () => { const y = window.scrollY, k = th.dataset.ups, u = S.upSort; if (u.k === k) u.asc = !u.asc; else { u.k = k; u.asc = ['code','group','mech','d0','dl','dr','rdy'].includes(k); } renderDash(); window.scrollTo(0, y); });
   $('dash').querySelectorAll('[data-dexp]').forEach(b => b.onclick = () => { const y = window.scrollY; S.dashExp[b.dataset.dexp] = !S.dashExp[b.dataset.dexp]; renderDash(); window.scrollTo(0, y); });
 }
 /* ===================== DANH MỤC CTKM ===================== */
@@ -2416,7 +2434,14 @@ function applyQuyDoi(M){
   const tq = new Map(); try { for (const r of ctLoad().r){ const c = String(r.v[1] || '').trim(), q = String(r.v[11] || '').trim(), t = String(r.v[12] || '').trim(); if (c){ if (q && idx.has(c)) A[idx.get(c)].maQuyDoi = q; if (t && !tq.has(q || c)) tq.set(q || c, t); } } } catch(e){}
   for (const a of A){ if (a.name0 === undefined) a.name0 = a.name; else a.name = a.name0; if (a.kms0 === undefined) a.kms0 = a.kms; else a.kms = a.kms0; a.merged = false; a.qdMembers = null; }
   const rLK = new Float64Array(A.length); for (let i = 0; i < O.n; i++) rLK[O.fa[i]] += O.fv[i*NF + F.rLK];
-  const grp = new Map(); A.forEach((a, i) => { const q = String(a.maQuyDoi || '').trim(); if (!q || q === a.code && !grp.has(q)) { if (q) grp.set(q, [i]); return; } if (!grp.has(q)) grp.set(q, []); grp.get(q).push(i); });
+  /* khoá gộp: Mã quy đổi khác mã SP → theo Mã quy đổi; nếu không, các mã dùng chung 1 "Tên quy đổi" cũng gộp với nhau */
+  const tOf = new Map(); try { for (const r of ctLoad().r){ const c = String(r.v[1] || '').trim(), t = String(r.v[12] || '').trim(); if (c && t && !tOf.has(c)) tOf.set(c, t); } } catch(e){}
+  const tCnt = new Map(); for (const [c, t] of tOf){ const k = vnFold(t); if (!tCnt.has(k)) tCnt.set(k, new Set()); tCnt.get(k).add(c); }
+  const grp = new Map(); A.forEach((a, i) => { const q = String(a.maQuyDoi || '').trim(); let k;
+    if (q && q !== a.code) k = q; else { const t = tOf.get(a.code), set = t && tCnt.get(vnFold(t)); k = set && set.size > 1 ? 'T:' + vnFold(t) : (q || null); if (k && k.startsWith('T:') && !tq.has(k)) tq.set(k, t); }
+    if (!k) return; if (!grp.has(k)) grp.set(k, []); grp.get(k).push(i); });
+  /* nhóm theo Mã quy đổi nhận thêm các mã có mã SP = Mã quy đổi đó */
+  for (const [k, mem] of grp) if (!k.startsWith('T:') && idx.has(k) && !mem.includes(idx.get(k))){ const o = idx.get(k); for (const [k2, m2] of grp) if (k2 !== k){ const j = m2.indexOf(o); if (j >= 0) m2.splice(j, 1); } mem.push(o); }
   const to = new Int32Array(A.length).map((_, i) => i); let nG = 0;
   for (const [q, mem] of grp){ if (mem.length < 2) continue; nG++;
     const own = idx.get(q), r = own !== undefined && mem.includes(own) ? own : mem.slice().sort((x, y) => rLK[y] - rLK[x])[0], R = A[r];
