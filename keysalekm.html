@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Key Sale KM v4.23.1 — Win Rural</title>
+<title>Key Sale KM v4.23.2 — Win Rural</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 [hidden]{display:none!important}
@@ -445,6 +445,8 @@ table.ctt{border-collapse:separate;border-spacing:0;font-size:12.5px;width:max-c
 .hm th.l{text-align:left}
 .hm td{white-space:nowrap}
 .hm td.l{overflow:hidden;text-overflow:ellipsis}
+.hm thead th:not(.hc){padding-left:4px;padding-right:4px;font-size:11.5px}
+.hm tbody td:not(.hc){padding-left:4px;padding-right:4px}
 .hm td.hc{padding:4px 1px!important;font-size:11px!important;letter-spacing:-.2px}
 .upt th{white-space:normal!important;line-height:1.2;vertical-align:bottom}
 .hm td.hc{text-align:center;font-weight:700;font-size:11.5px;border-left:2px solid #fff;color:var(--ink)}
@@ -500,7 +502,7 @@ body.dashOn .ctlBar .ctl:first-child,body.dashOn .ctl-sec,body.dashOn .ctl-sw{di
 <header class="hd">
   <div class="hd-in">
     <img id="lg" class="lg" alt="WinMart+">
-    <div class="tt">Key Sale KM <span>v4.23.1 · Win Rural · Theo dõi CTKM</span></div>
+    <div class="tt">Key Sale KM <span>v4.23.2 · Win Rural · Theo dõi CTKM</span></div>
     <div class="mt">
       <span class="pill" id="fileinfo" title="">Chưa có dữ liệu</span>
       <div class="ts hd-ts" title="Cỡ chữ">
@@ -2246,7 +2248,7 @@ function renderDash(){
     const list = all.slice(0, DN[bk]);
     if (!list.length) return '<h4>' + title + '</h4><div class="dnone">Không có mã phù hợp.</div>';
     const lk = mode === 'lk';
-    let t = '<h4>' + title + ' <span style="text-transform:none;font-weight:500">(' + list.length + '/' + all.length + ')</span></h4><div class="wrapx"><table class="dt hm" style="min-width:' + (520 + gdvs.length * 40) + 'px"><colgroup><col style="width:15%">' + '<col style="width:5.8%">'.repeat(5) + ('<col style="width:' + (56 / Math.max(1, gdvs.length)).toFixed(3) + '%">').repeat(gdvs.length) + '</colgroup><thead><tr><th class="l">SKU</th>' + (lk ? '<th>DT lũy kế</th><th>DT BQ/CH</th><th>% CH bán</th><th>GT tồn</th><th title="Tồn ÷ giá vốn bán TB/ngày 30 ngày">DIO</th>' : '<th>DT D</th><th>DT tăng thêm</th><th>%Δ DT</th><th>GT tồn</th><th title="SL tồn ÷ SL bán TB 2 ngày gần nhất (D, D-1)">DIO 2N</th>') + gdvs.map(g => '<th class="hc" title="' + esc((hmDim === 'code' ? g + ' - ' : '') + gMap.get(g)) + '">' + hmHead(g) + '</th>').join('') + '</tr></thead><tbody>';
+    let t = '<h4>' + title + ' <span style="text-transform:none;font-weight:500">(' + list.length + '/' + all.length + ')</span></h4><div class="wrapx"><table class="dt hm" style="min-width:' + (300 + 5 * 62 + gdvs.length * 42) + 'px"><colgroup><col style="width:300px">' + '<col style="width:62px">'.repeat(5) + '<col>'.repeat(gdvs.length) + '</colgroup><thead><tr><th class="l">SKU</th>' + (lk ? '<th>DT lũy kế</th><th>DT BQ/CH</th><th>% CH bán</th><th>GT tồn</th><th title="Tồn ÷ giá vốn bán TB/ngày 30 ngày">DIO</th>' : '<th>DT D</th><th>DT tăng thêm</th><th>%Δ DT</th><th>GT tồn</th><th title="SL tồn ÷ SL bán TB 2 ngày gần nhất (D, D-1)">DIO 2N</th>') + gdvs.map(g => '<th class="hc" title="' + esc((hmDim === 'code' ? g + ' - ' : '') + gMap.get(g)) + '">' + hmHead(g) + '</th>').join('') + '</tr></thead><tbody>';
     for (const r of list){ const mask = new Uint8Array(M.arts.length); mask[r.ai] = 1;
       const byG = new Map(aggregate(M, {...flt, artOK:mask}, hmDim).rows.map(g => [g.key, g]));
       r.gdvWorst = [...byG.values()].filter(g => g.key && g.key !== '(Trống)').map(g => [g.key, g.f[F.rD] - g.f[F.rD1]]).sort((a,b) => a[1] - b[1]).slice(0, 2).filter(x => x[1] < 0);
