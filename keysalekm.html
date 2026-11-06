@@ -784,7 +784,7 @@ function buildModel(sale, ctkm, fc){
 
 /* ---- aggregate ---- */
 const STORE_DIMS = {region:1, rm:1, rsm:1, asm:1, code:1, rsmasm:1};
-function newG(key){ return {key, f:new Float64Array(NF), cDR:0, dSale:0, dStock:0, dNo:0, dND:0, dD:0, dD1:0, pStock:0, pNo:0, pS:0, pDD:0, pDD1:0, pc:0, nArt:0, nAct:0, nosaleCH:0, st:null}; }
+function newG(key){ return {key, f:new Float64Array(NF), cDR:0, dSale:0, dStock:0, dNo:0, dND:0, dD:0, dD1:0, pStock:0, pNo:0, pS:0, pDD:0, pDD1:0, pc:0, pNoT:0, pNoD1:0, nArt:0, nAct:0, nosaleCH:0, st:null}; }
 function finishStores(g){ if (!g.st) return; for (const v of g.st.values()){ if (v[0] > 0) g.dSale++; if (v[1] > 0){ g.dStock++; if (v[2] <= 0) g.dNo++; } if (v[2] > 0) g.dD++; if (v[3] > 0) g.dD1++; } g.st = null; }
 function aggregate(M, flt, dim){
   const {stores, arts} = M;
@@ -808,7 +808,7 @@ function aggregate(M, flt, dim){
     for (let k = 0; k < NF; k++){ const v = fv[o+k]; if (v){ g.f[k] += v; total.f[k] += v; } }
     const qLK = fv[o+F.qLK], sQ = fv[o+F.sQ], qDD = fv[o+F.qD];
     if (sQ >= thr[ai]){ g.cDR++; total.cDR++; }
-    if (sQ > 0){ total.pStock++; g.pStock++; if (qDD <= 0){ total.pNo++; g.pNo++; } }
+    if (sQ > 0){ total.pStock++; g.pStock++; if (qDD <= 0){ total.pNo++; g.pNo++; } if (qLK <= 0){ total.pNoT++; g.pNoT++; } if (fv[o+F.qD1] <= 0){ total.pNoD1++; g.pNoD1++; } }
     g.pc = total.pc = 1; if (qLK > 0){ g.pS++; total.pS++; } if (qDD > 0){ g.pDD++; total.pDD++; } if (fv[o+F.qD1] > 0){ g.pDD1++; total.pDD1++; }
     const qD1 = fv[o+F.qD1];
     tS[si*TW] += qLK; tS[si*TW+1] += sQ; tS[si*TW+2] += qDD; tS[si*TW+3] += fv[o+F.ndQ]; tS[si*TW+5] += qD1;
@@ -860,7 +860,7 @@ function metrics(g, tbMode){
     bqQ:div(div(f[F.qLK],dS), g.nArt), bqV:div(div(f[F.rLK],dS), g.nArt), stR:f[F.sQ] > 0 ? f[F.qLK] / f[F.sQ] : (f[F.qLK] > 0 ? Infinity : null),
     nDR:g.nArt ? g.cDR / g.nArt : 0, dr:div(g.cDR,pairs), nNo:g.pStock ? g.pNo : g.dNo, noSale:g.pStock ? div(g.pNo, g.pStock) : div(g.dNo,g.dStock), nAct:g.nAct, nArt:g.nArt,
     fcQ:f[F.fcQ], fcV:f[F.fcV], poQ:f[F.poQ], poV:f[F.poV], ndQ:f[F.ndQ], ndV:f[F.ndV], nND:g.dND, tndQ:div(f[F.ndQ], tbMode === 'ps' ? g.dND : g.nAct), tndV:div(f[F.ndV], tbMode === 'ps' ? g.dND : g.nAct), vQ:f[F.vQ], vV:f[F.vV], pairs,
-    nosaleLoss:null, nosaleCH:g.nosaleCH||0, nD:g.dD||0, nD1:g.dD1||0, kS:g.pc ? g.pS : g.dSale, kD:g.pc ? g.pDD : (g.dD||0), kD1:g.pc ? g.pDD1 : (g.dD1||0), pStock:g.pStock||0, pNo:g.pNo||0
+    nosaleLoss:null, nosaleCH:g.nosaleCH||0, nD:g.dD||0, nD1:g.dD1||0, kS:g.pc ? g.pS : g.dSale, kD:g.pc ? g.pDD : (g.dD||0), kD1:g.pc ? g.pDD1 : (g.dD1||0), pStock:g.pStock||0, pNo:g.pNo||0, nsT:g.pStock ? (g.pNoT||0) / g.pStock : null, nsD1:g.pStock ? (g.pNoD1||0) / g.pStock : null, nsD:g.pStock ? (g.pNo||0) / g.pStock : null, nSaleD:g.dD||0, nSaleD1:g.dD1||0
   };
 }
 
@@ -2123,27 +2123,31 @@ function renderDash(){
     + rs.map(m => '<tr><td class="c"><b>#' + m.rankD + '</b></td><td class="l"><b>' + esc(m.key) + '</b></td><td>#' + m.rankD1 + '</td><td class="c">' + rkHtml(m.rkTrend) + '</td><td>#' + m.rankT + '</td><td class="' + (m.iV_D >= 110 ? 'cell-good' : m.iV_D < 90 ? 'cell-bad' : '') + '">' + (m.iV_D == null ? '—' : nf0.format(m.iV_D)) + '</td><td class="' + (m.iQ_D >= 110 ? 'cell-good' : m.iQ_D < 90 ? 'cell-bad' : '') + '">' + (m.iQ_D == null ? '—' : nf0.format(m.iQ_D)) + '</td><td>' + fmtPct(m.cov_D) + '</td><td>' + fmtV(m.rD) + '</td><td class="' + clsSg(m.dVal) + '">' + sgnV(m.dVal) + '</td><td class="' + clsSg(m.vVal) + '">' + pctTxt(m.vVal) + '</td><td class="l">' + lblHtml(m.trendLabel) + '</td><td class="wkc">' + wkHtml(m) + '</td></tr>').join('') + '</tbody></table></div>';
   const pG = perf('rsm'), pQ = perf('asm'); weakDiag(pG); weakDiag(pQ);
   /* Bảng GĐV: Rank Full | Rank D-1 | Rank D (KPI chính ẩn/hiện) | Xu hướng – Chỉ số flop */
-  const exp = S.dashExp || (S.dashExp = {T:false, D1:false, D:true});
+  const exp = S.dashExp || (S.dashExp = {T:false, D1:false, D:false});
   const idxTd = v => '<td class="' + (v >= 110 ? 'cell-good' : v < 90 ? 'cell-bad' : '') + '">' + (v == null ? '—' : nf0.format(v)) + '</td>';
   const PERS = [['T','Rank Full','rLK','DT lũy kế'],['D1','Rank D-1','rD1','DT D-1'],['D','Rank D','rD','DT D']];
-  const KPI = (p, fr, dl) => [[dl, m => '<td>' + fmtV(m[fr]) + '</td>'], ['Index DT', m => idxTd(m['iV_' + p])], ['Index SL', m => idxTd(m['iQ_' + p])], ['% CH×mã bán', m => '<td>' + fmtPct(m['cov_' + p]) + '</td>'], ['Sell-through', m => '<td>' + fmtPct(m['st_' + p]) + '</td>'], ['DR', m => '<td class="' + (m.dr < 0.5 ? 'cell-bad' : m.dr < 0.8 ? 'cell-warn' : '') + '">' + fmtPct(m.dr) + '</td>']];
+  const NSF = {T:'nsT', D1:'nsD1', D:'nsD'}, NCH = {T:'nSale', D1:'nSaleD1', D:'nSaleD'};
+  const bqOf = (m, p, fr) => { const n = S.tb === 'ps' ? (m[NCH[p]] || 0) : (m.nAct || 0); return n ? (m[fr] || 0) / n : null; };
+  const BASE = (p, fr) => [['Total Sale', m => '<td>' + fmtV(m[fr]) + '</td>'], ['Sale BQ', m => { const v = bqOf(m, p, fr); return '<td>' + (v == null ? '—' : fmtV(v)) + '</td>'; }], ['% No sale', m => { const v = m[NSF[p]]; return '<td class="' + (v > 0.85 ? 'cell-bad' : v > 0.7 ? 'cell-warn' : '') + '">' + fmtPct(v) + '</td>'; }]];
+  const KPI = (p, fr, dl) => [['Index DT', m => idxTd(m['iV_' + p])], ['Index SL', m => idxTd(m['iQ_' + p])], ['% CH×mã bán', m => '<td>' + fmtPct(m['cov_' + p]) + '</td>'], ['Sell-through', m => '<td>' + fmtPct(m['st_' + p]) + '</td>'], ['DR', m => '<td class="' + (m.dr < 0.5 ? 'cell-bad' : m.dr < 0.8 ? 'cell-warn' : '') + '">' + fmtPct(m.dr) + '</td>']];
   const rkTd = (v, n) => '<td class="c rkc' + (v <= 3 ? ' top' : v > n - 3 ? ' bot' : '') + '"><b>#' + v + '</b></td>';
-  const gdvTbl = rs => { const n = rs.length;
-    let t = '<div class="wrapx"><table class="dt gdvt"><thead><tr><th class="l" rowspan="2">GĐV</th>';
-    for (const [p, l] of PERS) t += '<th class="c pg ' + (p === 'D' ? 'pgD' : '') + '" colspan="' + (1 + (exp[p] ? 6 : 0)) + '">' + l + ' <button type="button" class="pgx" data-dexp="' + p + '" title="' + (exp[p] ? 'Ẩn' : 'Hiện') + ' KPI chính">' + (exp[p] ? '▾' : '▸') + '</button></th>';
+  const gdvTbl = (rs, lbl, N, withGdv) => { const n = N || rs.length; lbl = lbl || 'GĐV';
+    let t = '<div class="wrapx"><table class="dt gdvt"><thead><tr><th class="l" rowspan="2">' + lbl + '</th>' + (withGdv ? '<th class="l" rowspan="2">GĐV</th>' : '') + '<th rowspan="2">Số CH</th>';
+    for (const [p, l] of PERS) t += '<th class="c pg ' + (p === 'D' ? 'pgD' : '') + '" colspan="' + (4 + (exp[p] ? 5 : 0)) + '">' + l + ' <button type="button" class="pgx" data-dexp="' + p + '" title="' + (exp[p] ? 'Ẩn' : 'Hiện') + ' KPI chính">' + (exp[p] ? '▾' : '▸') + '</button></th>';
     t += '<th class="c pg pgT" colspan="3">Xu hướng</th></tr><tr>';
-    for (const [p, , fr, dl] of PERS){ t += '<th class="c">Rank</th>'; if (exp[p]) t += KPI(p, fr, dl).map(k => '<th>' + k[0] + '</th>').join(''); }
+    for (const [p, , fr, dl] of PERS){ t += '<th class="c">Rank</th>' + BASE(p, fr).map(k => '<th>' + k[0] + '</th>').join(''); if (exp[p]) t += KPI(p, fr, dl).map(k => '<th>' + k[0] + '</th>').join(''); }
     t += '<th class="c">D vs D-1</th><th>DT tăng thêm</th><th class="l">Chỉ số flop</th></tr></thead><tbody>';
-    for (const m of rs){ t += '<tr><td class="l"><b>' + esc(m.key) + '</b></td>';
-      for (const [p, , fr, dl] of PERS){ t += rkTd(m['rank' + p], n); if (exp[p]) t += KPI(p, fr, dl).map(k => k[1](m)).join(''); }
+    for (const m of rs){ t += '<tr><td class="l"><b>' + esc(m.key) + '</b></td>' + (withGdv ? '<td class="l">' + esc(M.stores.find(x => x.asm === m.key)?.rsm || '') + '</td>' : '') + '<td>' + fmtQ(m.nAct) + '</td>';
+      for (const [p, , fr, dl] of PERS){ t += rkTd(m['rank' + p], n) + BASE(p, fr).map(k => k[1](m)).join(''); if (exp[p]) t += KPI(p, fr, dl).map(k => k[1](m)).join(''); }
       t += '<td class="c">' + rkHtml(m.rkTrend) + '</td><td class="' + clsSg(m.dVal) + '">' + sgnV(m.dVal) + '</td><td class="wkc">' + wkHtml(m) + '</td></tr>'; }
     return t + '</tbody></table></div>'; };
   const imp = pG.filter(m => m.rkTrend > 0).length, dec = pG.filter(m => m.rkTrend < 0).length;
-  h += '<h4>🏆 Performance CTKM theo GĐV</h4><p class="dsum">Xếp hạng theo 5 tiêu chí (Index DT/SL so với CH cùng nhóm MCH3, % CH bán, sell-through, DR). <b>' + imp + '</b> GĐV lên hạng, <b>' + dec + '</b> GĐV xuống hạng so với D-1.' + (pG.length ? ' Dẫn đầu: <b>' + esc(pG[0].key) + '</b>.' : '') + ' Bấm ▸ / ▾ ở tiêu đề Rank để hiện / ẩn KPI chính của kỳ.</p>' + gdvTbl(pG);
+  h += '<h4>🏆 Performance CTKM theo GĐV</h4><p class="dsum">Xếp hạng theo 5 tiêu chí (Index DT/SL so với CH cùng nhóm MCH3, % CH bán, sell-through, DR). <b>' + imp + '</b> GĐV lên hạng, <b>' + dec + '</b> GĐV xuống hạng so với D-1.' + (pG.length ? ' Dẫn đầu: <b>' + esc(pG[0].key) + '</b>.' : '') + ' Mỗi kỳ luôn hiện Rank · Total Sale · Sale BQ · % No sale; bấm ▸ / ▾ để hiện thêm Index DT/SL, % CH×mã bán, Sell-through, DR.</p>' + gdvTbl(pG);
   const qTbl = rs => '<div class="wrapx"><table class="dt"><thead><tr><th class="c">Rank D</th><th class="l">QLKV</th><th class="l">GĐV</th><th class="c">vs D-1</th><th>Index DT</th><th>DT tăng thêm</th><th class="l">Chỉ số yếu</th></tr></thead><tbody>'
     + rs.map(m => { const g = M.stores.find(x => x.asm === m.key)?.rsm || ''; return '<tr><td class="c"><b>#' + m.rankD + '</b></td><td class="l"><b>' + esc(m.key) + '</b></td><td class="l">' + esc(g) + '</td><td class="c">' + rkHtml(m.rkTrend) + '</td><td class="' + (m.iV_D >= 110 ? 'cell-good' : m.iV_D < 90 ? 'cell-bad' : '') + '">' + (m.iV_D == null ? '—' : nf0.format(m.iV_D)) + '</td><td class="' + clsSg(m.dVal) + '">' + sgnV(m.dVal) + '</td><td class="wkc">' + wkHtml(m, 3) + '</td></tr>'; }).join('') + '</tbody></table></div>';
   const qDown = pQ.filter(m => m.rkTrend != null).sort((a,b) => a.rkTrend - b.rkTrend).slice(0, 10);
-  h += '<h4>👥 Performance CTKM theo QLKV (' + pQ.length + ' QLKV)</h4><div class="dgrid"><div class="dcard"><h5>🔻 Bottom 10 theo Rank D — địa bàn yếu</h5>' + qTbl(pQ.slice(-10).reverse()) + '</div><div class="dcard"><h5>⚠ 10 QLKV tụt hạng mạnh nhất vs D-1</h5>' + qTbl(qDown) + '</div><div class="dcard"><h5>🏅 Top 10 theo Rank D</h5>' + qTbl(pQ.slice(0, 10)) + '</div><div class="dcard"><h5>🚀 10 QLKV lên hạng mạnh nhất vs D-1</h5>' + qTbl(pQ.filter(m => m.rkTrend != null).sort((a,b) => b.rkTrend - a.rkTrend).slice(0, 10)) + '</div></div>';
+  h += '<h4>👥 Performance CTKM theo QLKV · 🏅 Top 10 (Rank D / ' + pQ.length + ' QLKV)</h4>' + gdvTbl(pQ.slice(0, 10), 'QLKV', pQ.length, true);
+  h += '<h4>👥 Performance CTKM theo QLKV · 🔻 Flop 10 (Rank D thấp nhất)</h4>' + gdvTbl(pQ.slice(-10).reverse(), 'QLKV', pQ.length, true);
   h += '</section>';
 
   /* ---------- 3. SKUs sắp KM ---------- */
