@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Key Sale KM v4.28.4 — Win Rural</title>
+<title>Key Sale KM v4.28.5 — Win Rural</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 [hidden]{display:none!important}
@@ -397,8 +397,9 @@ table.ctt{border-collapse:separate;border-spacing:0;font-size:12.5px;width:max-c
 .hm thead th{border-left:1px solid #fff}.spSeg button{font-size:12px;padding:3px 10px}
 .spInfo{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--ink2)}.spInfo span{max-width:420px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.spInfo b{color:var(--ink)}
 .spT{overflow:auto;border:1px solid var(--line);border-radius:10px;flex:1;min-height:200px}
-.spt{width:100%;font-size:12.5px}
-.spt tbody td.l{min-width:320px;white-space:nowrap;overflow:visible}.spt th{position:sticky;top:0;z-index:1;white-space:normal!important;vertical-align:bottom}
+.spt{width:100%}
+.spt tbody td.l{min-width:220px;white-space:nowrap;overflow:visible}
+.spt{font-size:var(--spfs,14px)!important}.spt td,.spt th{font-size:inherit}.spt thead tr.spH th{font-size:.9em}.spt th{position:sticky;top:0;z-index:1;white-space:normal!important;vertical-align:bottom}
 .spt tr.sptot td{background:#FFF7E6;font-weight:800}.spt tr.spl0 td{font-weight:700;background:#F4F7FC}.spt tr.spl2 td{font-size:12px}
 .skl{cursor:pointer}.skl:hover{color:var(--mid);text-decoration:underline}
 .eqg{border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin:8px 0;background:#fff}
@@ -535,7 +536,7 @@ body.dashOn .ctlBar .ctl:first-child,body.dashOn .ctl-sec,body.dashOn .ctl-sw{di
 <header class="hd">
   <div class="hd-in">
     <img id="lg" class="lg" alt="WinMart+">
-    <div class="tt">Key Sale KM <span id="fileinfo" title="">v4.28.4 · Win Rural · Theo dõi CTKM</span></div>
+    <div class="tt">Key Sale KM <span id="fileinfo" title="">v4.28.5 · Win Rural · Theo dõi CTKM</span></div>
     <div class="mainTabs hdTabs" id="mainTabs" role="tablist"></div>
     <div class="mt">
       <div class="ts hd-ts" title="Cỡ chữ">
@@ -2194,6 +2195,7 @@ function weakDiag(list){
 const wkHtml = (m, max) => (m.weak || []).length ? m.weak.slice(0, max || 9).map(([t, c]) => '<span class="wk ' + c + '">' + esc(t) + '</span>').join('') : '<span class="na">—</span>';
 /* ===== Popup chi tiết 1 mã: Miền → GĐV → QLKV (Compact) ===== */
 function skuPop(ai){
+  if (!S.spFs){ try { S.spFs = +localStorage.getItem('ksk_spFs') || 14; } catch(e){ S.spFs = 14; } }
   if (!S.spView){ try { S.spView = localStorage.getItem('ksk_spView') || 'compact'; } catch(e){ S.spView = 'compact'; } }
   const M = S.M, flt = S.flt || buildFilter(), A = M.arts[ai]; if (!A) return;
   const km = flt.kmOf[ai] || A.km, mask = new Uint8Array(M.arts.length); mask[ai] = 1;
@@ -2223,7 +2225,7 @@ function skuPop(ai){
     C.sort((a, b) => zone0(a[0]) - zone0(b[0])); };
   const zOf = i => zone0(C[i][0]), zc = i => 'z' + zOf(i), zb = i => i > 0 && zOf(i) !== zOf(i - 1) ? 'zs' : '';
   const row = (m, path, lv) => { const id = path.concat([m.key]).join('|'), leaf = lv >= LV.length - 1, op = !leaf && open.has(id);
-    return '<tr class="spl' + lv + '"><td class="l" style="padding-left:' + (8 + lv * 18) + 'px">' + (leaf ? '<span style="display:inline-block;width:22px"></span>' : '<button type="button" class="tg" data-spx="' + esc(id) + '">' + (op ? '−' : '+') + '</button> ') + esc(m.key) + ' <span class="na" style="font-size:10.5px">' + LN[LV[lv]] + '</span></td>' + C.map((c, i) => '<td class="' + zb(i) + '">' + c[1](m) + '</td>').join('') + '</tr>'
+    return '<tr class="spl' + lv + '"><td class="l" style="padding-left:' + (8 + lv * 18) + 'px">' + (leaf ? '<span style="display:inline-block;width:22px"></span>' : '<button type="button" class="tg" data-spx="' + esc(id) + '">' + (op ? '−' : '+') + '</button> ') + esc(m.key) + '</td>' + C.map((c, i) => '<td class="' + zb(i) + '">' + c[1](m) + '</td>').join('') + '</tr>'
       + (op ? agg(path.concat([m.key])).map(k => row(k, path.concat([m.key]), lv + 1)).join('') : ''); };
   let bd = $('spModal'); if (!bd){ bd = document.createElement('div'); bd.id = 'spModal'; bd.className = 'qdBack'; document.body.appendChild(bd); }
   const draw = () => {
@@ -2235,7 +2237,7 @@ function skuPop(ai){
     bd.innerHTML = '<div class="qdBox spBox" role="dialog"><div class="spHd"><span class="spIc">📦</span><span class="spCd">' + esc(A.code) + '</span><span class="spNm">' + esc(A.name) + '</span>'
       + (km ? '<span class="spPr">' + (km.p1 ? nf0.format(km.p1) + 'đ' : '—') + (km.p0 ? '<s>' + nf0.format(km.p0) + '</s>' : '') + '</span><span class="spGr">' + esc(km.group || '') + '</span><span class="spDt">' + dm(km.d0) + ' → ' + dm(km.d1) + '</span>' : '<span class="na">Không có CTKM</span>')
       + '<button class="qdX" data-x>✕</button></div>'
-      + '<div class="spInfo"><span class="seg spSeg">' + [['full','Full'],['compact','Compact'],['lite','Lite']].map(([k, l]) => '<button type="button" data-spv="' + k + '" aria-pressed="' + (vw === k) + '">' + l + '</button>').join('') + '</span>' + (km ? '<span>' + esc(km.status || '') + '</span>' + (km.mech ? '<span title="' + esc(km.mech) + '">' + esc(km.mech) + '</span>' : '') : '') + '<span>MCH3: ' + esc(A.mch3 || '—') + '</span><span>Min TB: ' + (A.minTB || '—') + '</span>' + (A.qdMembers ? '<span class="qdb">gộp ' + A.qdMembers.length + ' mã: ' + esc(A.qdMembers.join(', ')) + '</span>' : '') + '</div>'
+      + '<div class="spInfo"><span class="seg spSeg" title="Cỡ chữ bảng"><button type="button" data-spf="-1">A⁻</button><button type="button" disabled style="opacity:1;cursor:default">' + S.spFs + 'px</button><button type="button" data-spf="1">A⁺</button></span><span class="seg spSeg">' + [['full','Full'],['compact','Compact'],['lite','Lite']].map(([k, l]) => '<button type="button" data-spv="' + k + '" aria-pressed="' + (vw === k) + '">' + l + '</button>').join('') + '</span>' + (km ? '<span>' + esc(km.status || '') + '</span>' + (km.mech ? '<span title="' + esc(km.mech) + '">' + esc(km.mech) + '</span>' : '') : '') + '<span>MCH3: ' + esc(A.mch3 || '—') + '</span><span>Min TB: ' + (A.minTB || '—') + '</span>' + (A.qdMembers ? '<span class="qdb">gộp ' + A.qdMembers.length + ' mã: ' + esc(A.qdMembers.join(', ')) + '</span>' : '') + '</div>'
       + '<div class="spT"><table class="dt spt"><thead><tr class="spZ">' + ZN.map((z, i) => '<th colspan="' + z[1] + '" class="z' + (['Phạm vi','Lũy kế','Ngày D vs D-1'].indexOf(z[0]) + 1 || 4) + '">' + z[0] + '</th>').join('') + '</tr><tr class="spH"><th class="l z1">Miền → GĐV → QLKV</th>' + C.map((c, i) => '<th class="' + zc(i) + ' ' + zb(i) + '">' + c[0] + '</th>').join('') + '</tr></thead><tbody>'
       + '<tr class="sptot"><td class="l"><b>Tổng</b></td>' + C.map((c, i) => '<td class="' + zb(i) + '">' + (c[0] === 'Rank LK' || c[0] === 'Xu hướng' ? '' : c[1](tot)) + '</td>').join('') + '</tr>'
       + top.map(m => row(m, [], 0)).join('') + '</tbody></table></div>'
@@ -2243,6 +2245,8 @@ function skuPop(ai){
     bd.hidden = false;
     bd.querySelectorAll('[data-x]').forEach(b => b.onclick = () => { bd.hidden = true; bd.innerHTML = ''; });
     bd.querySelectorAll('[data-spx]').forEach(b => b.onclick = () => { const id = b.dataset.spx; if (open.has(id)) { for (const x of [...open]) if (x === id || x.startsWith(id + '|')) open.delete(x); } else open.add(id); const y = bd.querySelector('.spT').scrollTop; draw(); bd.querySelector('.spT').scrollTop = y; });
+    bd.querySelectorAll('[data-spf]').forEach(b => b.onclick = () => { S.spFs = Math.max(11, Math.min(20, S.spFs + +b.dataset.spf)); try { localStorage.setItem('ksk_spFs', S.spFs); } catch(e){} draw(); });
+    bd.querySelector('.spt').style.setProperty('--spfs', S.spFs + 'px');
     bd.querySelectorAll('[data-spv]').forEach(b => b.onclick = () => { S.spView = b.dataset.spv; try { localStorage.setItem('ksk_spView', S.spView); } catch(e){} draw(); });
     bd.querySelector('[data-spall]').onclick = () => { for (const m of top) open.add(m.key); draw(); };
     bd.querySelector('[data-spnone]').onclick = () => { open.clear(); draw(); };
