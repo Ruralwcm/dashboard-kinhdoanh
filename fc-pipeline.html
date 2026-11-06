@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>FC Pipeline — MsT</title>
+<style>
+:root{--bg:#f0f2f5;--card:#fff;--primary:#1a73e8;--danger:#ea4335;--warn:#fbbc04;--ok:#34a853;--text:#202124;--sub:#5f6368;--border:#dadce0}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font:14px/1.5 system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text)}
+.header{background:linear-gradient(135deg,#1a237e,#0d47a1);color:#fff;padding:16px 24px;display:flex;align-items:center;gap:16px}
+.header h1{font-size:20px;font-weight:600}
+.header sub{opacity:.8;font-size:12px}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;padding:16px 24px}
+.kpi{background:var(--card);border-radius:8px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.kpi .label{font-size:11px;color:var(--sub);text-transform:uppercase;letter-spacing:.5px}
+.kpi .value{font-size:28px;font-weight:700;margin:4px 0}
+.kpi .sub{font-size:12px;color:var(--sub)}
+.pipeline{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;padding:0 24px 24px}
+.stage{background:var(--card);border-radius:8px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,.1);min-height:200px}
+.stage h3{font-size:14px;margin-bottom:8px;padding-bottom:8px;border-bottom:2px solid var(--border);display:flex;justify-content:space-between}
+.stage .count{font-size:24px;font-weight:700}
+.stage.s1 h3{border-color:#4285f4}.stage.s1 .count{color:#4285f4}
+.stage.s2 h3{border-color:#fbbc04}.stage.s2 .count{color:#fbbc04}
+.stage.s3 h3{border-color:#ff6d01}.stage.s3 .count{color:#ff6d01}
+.stage.s4 h3{border-color:#34a853}.stage.s4 .count{color:#34a853}
+.stage.s5 h3{border-color:#1a73e8}.stage.s5 .count{color:#1a73e8}
+.stage .card{background:#f8f9fa;border-radius:6px;padding:10px;margin-bottom:8px;font-size:12px;border-left:3px solid var(--border)}
+.stage.s1 .card{border-left-color:#4285f4}
+.stage.s2 .card{border-left-color:#fbbc04}
+.stage.s3 .card{border-left-color:#ff6d01}
+.stage.s4 .card{border-left-color:#34a853}
+.stage.s5 .card{border-left-color:#1a73e8}
+.section{padding:0 24px 16px}
+.section h2{font-size:16px;margin-bottom:12px}
+table{width:100%;border-collapse:collapse;background:var(--card);border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+th{background:#f8f9fa;padding:10px 12px;text-align:left;font-size:12px;font-weight:600;color:var(--sub);border-bottom:1px solid var(--border)}
+td{padding:10px 12px;font-size:13px;border-bottom:1px solid #eee}
+tr:hover{background:#f8f9fa}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.badge.FRESH{background:#e8f5e9;color:#2e7d32}
+.badge.RR{background:#e3f2fd;color:#1565c0}
+.badge.BW{background:#fff3e0;color:#e65100}
+.badge.CTKM{background:#fce4ec;color:#c62828}
+.badge.ADHOC{background:#f3e5f5;color:#6a1b9a}
+.empty{text-align:center;color:var(--sub);padding:40px;font-style:italic}
+@media(max-width:1200px){.pipeline{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:768px){.pipeline{grid-template-columns:1fr}.kpi-grid{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="header">
+  <div><h1>📦 FC Pipeline</h1><sub>Forecast → GĐ Chuỗi duyệt → SC Valid → SC ra PO → NCC giao hàng</sub></div>
+</div>
+
+<div class="kpi-grid" id="kpi"></div>
+
+<div class="section"><h2>📊 Pipeline Status</h2></div>
+<div class="pipeline" id="pipeline"></div>
+
+<div class="section">
+  <h2>📋 Theo loại FC</h2>
+  <table id="type-table"><thead><tr><th>Loại</th><th>Số dòng</th><th>Số files</th><th>GT FC (tỷ)</th></tr></thead><tbody></tbody></table>
+</div>
+
+<div class="section">
+  <h2>📁 Top Files</h2>
+  <table id="files-table"><thead><tr><th>File</th><th>Loại</th><th>Số dòng</th></tr></thead><tbody></tbody></table>
+</div>
+
+<script>
+const STAGES = [
+  {id:'FC',label:'1. FC',desc:'Tạo Forecast'},
+  {id:'GD_CHUOI_DUYET',label:'2. GĐ Chuỗi duyệt',desc:'Phê duyệt'},
+  {id:'SC_VALID',label:'3. SC Valid',desc:'Supply Chain'},
+  {id:'SC_RA_PO',label:'4. SC ra PO',desc:'Ra đơn hàng'},
+  {id:'NCC_XAC_NHAN',label:'5. NCC xác nhận',desc:'Giao hàng'},
+];
+
+fetch('https://ruralwcm.github.io/dashboard-kinhdoanh/fc_dashboard_data.json')
+  .then(r=>r.json())
+  .then(d=>{
+    // KPI
+    const kpi = d.kpi[0] || d.kpi;
+    const gt = kpi.total_gt_fc_ty || kpi.gt_fc_ty || 0;
+    document.getElementById('kpi').innerHTML = `
+      <div class="kpi"><div class="label">Tổng dòng FC</div><div class="value">${(kpi.total_fc||0).toLocaleString()}</div><div class="sub">${kpi.total_files||0} files</div></div>
+      <div class="kpi"><div class="label">Cửa hàng</div><div class="value">${(kpi.total_stores||0).toLocaleString()}</div><div class="sub">${kpi.total_types||0} loại FC</div></div>
+      <div class="kpi"><div class="label">Mã SP (SKU)</div><div class="value">${(kpi.total_skus||0).toLocaleString()}</div></div>
+      <div class="kpi"><div class="label">Tổng GT FC</div><div class="value">${Number(gt).toFixed(1)} tỷ</div><div class="sub">${(kpi.rows_with_fc||0).toLocaleString()} dòng có SL</div></div>
+    `;
+
+    // Pipeline
+    const statusDist = d.status_dist || [];
+    const statusMap = {};
+    statusDist.forEach(s=>{statusMap[s.status]=s.cnt;});
+    document.getElementById('pipeline').innerHTML = STAGES.map((s,i)=>{
+      const cnt = statusMap[s.id] || 0;
+      return `<div class="stage s${i+1}"><h3>${s.label}<span class="count">${cnt.toLocaleString()}</span></h3><p style="font-size:12px;color:var(--sub)">${s.desc}</p></div>`;
+    }).join('');
+
+    // Type table
+    const types = d.by_type || [];
+    document.querySelector('#type-table tbody').innerHTML = types.map(t=>
+      `<tr><td><span class="badge ${t.fc_type}">${t.fc_type}</span></td><td>${(t.cnt||0).toLocaleString()}</td><td>${t.files||0}</td><td>${Number(t.gt_fc_ty||0).toFixed(2)}</td></tr>`
+    ).join('');
+
+    // Files table
+    const files = d.top_files || [];
+    document.querySelector('#files-table tbody').innerHTML = files.map(f=>
+      `<tr><td style="max-width:400px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${f.file_name}">${f.file_name||''}</td><td><span class="badge ${f.fc_type}">${f.fc_type}</span></td><td>${(f.cnt||0).toLocaleString()}</td></tr>`
+    ).join('');
+  });
+</script>
+</body>
+</html>
