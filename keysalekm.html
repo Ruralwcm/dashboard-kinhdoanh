@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Key Sale KM v4.28.7 — Win Rural</title>
+<title>Key Sale KM v4.28.8 — Win Rural</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 [hidden]{display:none!important}
@@ -537,7 +537,7 @@ body.dashOn .ctlBar .ctl:first-child,body.dashOn .ctl-sec,body.dashOn .ctl-sw{di
 <header class="hd">
   <div class="hd-in">
     <img id="lg" class="lg" alt="WinMart+">
-    <div class="tt">Key Sale KM <span id="fileinfo" title="">v4.28.7 · Win Rural · Theo dõi CTKM</span></div>
+    <div class="tt">Key Sale KM <span id="fileinfo" title="">v4.28.8 · Win Rural · Theo dõi CTKM</span></div>
     <div class="mainTabs hdTabs" id="mainTabs" role="tablist"></div>
     <div class="mt">
       <div class="ts hd-ts" title="Cỡ chữ">
@@ -2219,11 +2219,12 @@ function skuPop(ai){
     '% No sale': [['SL tồn', m => fmtQ(m.sQ)], ['SL chờ giao', m => fmtQ(m.ndQ)], ['GT chờ giao', m => fmtV(m.ndV)], ['SL FC', m => fmtQ(m.fcQ)], ['SL Validate', m => fmtQ(m.vQ)]]};
   const LITE = new Set(['Số CH', 'Rank LK', 'DT lũy kế', 'DT BQ/CH', 'DT D', '%Δ', 'GT tồn', 'DIO', 'Xu hướng']);
   const ZB = ['Số CH', 'DT lũy kế', 'DT D-1', 'GT tồn'];   /* cột đầu mỗi vùng */
-  const zone0 = l => ['Số CH', 'Rank LK'].includes(l) ? 1 : ['DT lũy kế', 'DT BQ/CH', '% CH bán', 'SL lũy kế'].includes(l) ? 2 : ['DT D-1', 'DT D', 'Tăng thêm', '%Δ', 'SL D-1', 'SL D', 'DT BQ/CH D', 'DIO 2N'].includes(l) ? 3 : 4;
+  const zone0 = l => ['Số CH', 'Rank LK'].includes(l) ? 1 : ['DT lũy kế', 'DT BQ/CH', '% CH bán', 'SL lũy kế'].includes(l) ? 2 : ['DT D-1', 'DT D', 'Tăng thêm', '%Δ', 'SL D-1', 'SL D', 'DT BQ/CH D', 'DIO 2N', 'Xu hướng'].includes(l) ? 3 : 4;
+  const ZORD = {1: 0, 4: 1, 2: 2, 3: 3};   /* thứ tự vùng: Phạm vi → Tồn kho → Lũy kế → Ngày D */
   let C = [];
   const setView = () => { const v = S.spView || 'compact'; C = [];
     for (const c of C0){ if (v !== 'lite' || LITE.has(c[0])) C.push(c); if (v === 'full' && XF[c[0]]) C.push(...XF[c[0]]); }
-    C.sort((a, b) => zone0(a[0]) - zone0(b[0])); };
+    C.sort((a, b) => ZORD[zone0(a[0])] - ZORD[zone0(b[0])]); };
   const zOf = i => zone0(C[i][0]), zc = i => 'z' + zOf(i), zb = i => i > 0 && zOf(i) !== zOf(i - 1) ? 'zs' : '';
   const row = (m, path, lv) => { const id = path.concat([m.key]).join('|'), leaf = lv >= LV.length - 1, op = !leaf && open.has(id);
     return '<tr class="spl' + lv + '"><td class="l" style="padding-left:' + (8 + lv * 18) + 'px">' + (leaf ? '<span style="display:inline-block;width:22px"></span>' : '<button type="button" class="tg" data-spx="' + esc(id) + '">' + (op ? '−' : '+') + '</button> ') + esc(m.key) + '</td>' + C.map((c, i) => '<td class="' + zb(i) + '">' + c[1](m) + '</td>').join('') + '</tr>'
@@ -2233,13 +2234,13 @@ function skuPop(ai){
     const top = agg([]);
     const dm = d => d ? String(d.getUTCDate()).padStart(2, '0') + '/' + String(d.getUTCMonth() + 1).padStart(2, '0') : '—';
     setView(); const zc4 = [1, 2, 3, 4].map(z => C.filter(c => zone0(c[0]) === z).length); zc4[0]++;
-    const ZN = [['Phạm vi', zc4[0]], ['Lũy kế', zc4[1]], ['Ngày D vs D-1', zc4[2]], ['Tồn kho · Độ phủ · Xu hướng', zc4[3]]].filter(z => z[1] > 0);
+    const ZN = [['Phạm vi', zc4[0], 1], ['Tồn kho · Độ phủ', zc4[3], 4], ['Lũy kế', zc4[1], 2], ['Ngày D vs D-1 · Xu hướng', zc4[2], 3]].filter(z => z[1] > 0);
     const vw = S.spView || 'compact';
     bd.innerHTML = '<div class="qdBox spBox" role="dialog"><div class="spHd"><span class="spIc">📦</span><span class="spCd">' + esc(A.code) + '</span><span class="spNm">' + esc(A.name) + '</span>'
       + (km ? '<span class="spPr">' + (km.p1 ? nf0.format(km.p1) + 'đ' : '—') + (km.p0 ? '<s>' + nf0.format(km.p0) + '</s>' : '') + '</span><span class="spGr">' + esc(km.group || '') + '</span><span class="spDt">' + dm(km.d0) + ' → ' + dm(km.d1) + '</span>' : '<span class="na">Không có CTKM</span>')
       + '<button class="qdX" data-x>✕</button></div>'
       + '<div class="spInfo"><span class="seg spSeg" title="Cỡ chữ bảng"><button type="button" data-spf="-1">A⁻</button><button type="button" disabled style="opacity:1;cursor:default">' + S.spFs + 'px</button><button type="button" data-spf="1">A⁺</button></span><span class="seg spSeg">' + [['full','Full'],['compact','Compact'],['lite','Lite']].map(([k, l]) => '<button type="button" data-spv="' + k + '" aria-pressed="' + (vw === k) + '">' + l + '</button>').join('') + '</span>' + (km ? '<span>' + esc(km.status || '') + '</span>' + (km.mech ? '<span title="' + esc(km.mech) + '">' + esc(km.mech) + '</span>' : '') : '') + '<span>MCH3: ' + esc(A.mch3 || '—') + '</span><span>Min TB: ' + (A.minTB || '—') + '</span>' + (A.qdMembers ? '<span class="qdb">gộp ' + A.qdMembers.length + ' mã: ' + esc(A.qdMembers.join(', ')) + '</span>' : '') + '</div>'
-      + '<div class="spT"><table class="dt spt"><thead><tr class="spZ">' + ZN.map((z, i) => '<th colspan="' + z[1] + '" class="z' + (['Phạm vi','Lũy kế','Ngày D vs D-1'].indexOf(z[0]) + 1 || 4) + '">' + z[0] + '</th>').join('') + '</tr><tr class="spH"><th class="l z1">Miền → GĐV → QLKV</th>' + C.map((c, i) => '<th class="' + zc(i) + ' ' + zb(i) + '">' + c[0] + '</th>').join('') + '</tr></thead><tbody>'
+      + '<div class="spT"><table class="dt spt"><thead><tr class="spZ">' + ZN.map((z, i) => '<th colspan="' + z[1] + '" class="z' + z[2] + '">' + z[0] + '</th>').join('') + '</tr><tr class="spH"><th class="l z1">Miền → GĐV → QLKV</th>' + C.map((c, i) => '<th class="' + zc(i) + ' ' + zb(i) + '">' + c[0] + '</th>').join('') + '</tr></thead><tbody>'
       + '<tr class="sptot"><td class="l"><b>Tổng</b></td>' + C.map((c, i) => '<td class="' + zb(i) + '">' + (c[0] === 'Rank LK' || c[0] === 'Xu hướng' ? '' : c[1](tot)) + '</td>').join('') + '</tr>'
       + top.map(m => row(m, [], 0)).join('') + '</tbody></table></div>'
       + '<div class="qdA"><button class="btn" data-spall>Mở tất cả GĐV</button><button class="btn" data-spnone>Thu gọn</button><span style="flex:1"></span><span class="na" style="font-size:11.5px">Theo bộ lọc hiện tại · Rank LK = xếp hạng lũy kế trong cùng cấp</span><button class="btn pri" data-x>Đóng</button></div></div>';
