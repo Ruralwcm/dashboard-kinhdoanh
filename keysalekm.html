@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Key Sale KM v4.25.2 — Win Rural</title>
+<title>Key Sale KM v4.26.0 — Win Rural</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 [hidden]{display:none!important}
@@ -517,7 +517,7 @@ body.dashOn .ctlBar .ctl:first-child,body.dashOn .ctl-sec,body.dashOn .ctl-sw{di
 <header class="hd">
   <div class="hd-in">
     <img id="lg" class="lg" alt="WinMart+">
-    <div class="tt">Key Sale KM <span id="fileinfo" title="">v4.25.2 · Win Rural · Theo dõi CTKM</span></div>
+    <div class="tt">Key Sale KM <span id="fileinfo" title="">v4.26.0 · Win Rural · Theo dõi CTKM</span></div>
     <div class="mainTabs hdTabs" id="mainTabs" role="tablist"></div>
     <div class="mt">
       <div class="ts hd-ts" title="Cỡ chữ">
@@ -653,7 +653,7 @@ body.dashOn .ctlBar .ctl:first-child,body.dashOn .ctl-sec,body.dashOn .ctl-sw{di
       <b class="twT">Tổng</b><b class="twT" id="rkTot">100%</b>
     </div>
     <div class="twMsg" id="rkMsg"></div>
-    <div class="twNote" style="margin-top:6px"><b>Tỷ trọng Sale KM / Total Sale</b> = DT hàng KM ÷ Tổng DT của các CH (SPD trong Storeslist × số ngày). Ngày D / D-1: 1 ngày; lũy kế: <input type="number" id="lkDays" min="1" max="62" step="1" style="width:56px"> ngày <span id="lkDaysNote"></span>. <span id="spdInfo"></span></div>
+    <div class="twNote" style="margin-top:6px"><b>Tỷ trọng Sale KM / Total Sale</b> = DT hàng KM lũy kế ÷ <b>Tổng DT lũy kế của CH</b> (cột trong STORELIST của file upload, vd "Tổng DT lũy kế CH"; có thêm cột "Tổng DT D", "Tổng DT D-1" thì kỳ D/D-1 dùng luôn). Nếu file chưa có cột này → ước tính bằng SPD (Storeslist) × số ngày. Ngày D / D-1: 1 ngày; lũy kế: <input type="number" id="lkDays" min="1" max="62" step="1" style="width:56px"> ngày <span id="lkDaysNote"></span>. <span id="spdInfo"></span></div>
     <div class="twNote"><b>Index</b> = thực tế ÷ mức chuẩn của CH cùng <b>nhóm ở MCH3 đó</b> × 100 (100 = bằng nhóm). Mỗi tiêu chí xếp hạng 1 → hết trong cùng cấp; điểm = Σ hạng × trọng số, nhỏ = tốt. <span id="rkNhom"></span> <a href="#" id="rkReset">Về mặc định</a></div>
   </div>
 
@@ -838,6 +838,13 @@ function buildModel(sale, ctkm, fc){
             for (let k = 1; k < 20; k++){ let hit = 0, tot = 0; for (let r = h+1; r < Math.min(sale.n, h+200); r++){ const v = String(sale.get(r, c+k) ?? '').trim(); if (!v) continue; tot++; if (/^N\s*\d{1,2}$/i.test(v)) hit++; } if (tot > 20 && hit / tot > 0.8) return c+k; }
             return -1; })();
     const txt = (r, cc) => cc < 0 ? '' : String(sale.get(r, cc) ?? '').trim();
+    /* Tổng doanh thu của CH (mọi mặt hàng) — dùng cho Tỷ trọng Sale KM / Total; nếu không có cột thì dùng SPD Storeslist */
+    const fz = t => String(t).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d').toLowerCase().replace(/\s+/g,' ').trim();
+    const colRe = re => { for (const t in hd) if (re.test(fz(t))) return hd[t]; return -1; };
+    const cTL = colRe(/(tong|total).*(dt|doanh thu|sale).*(luy ke|lk|mtd)|(dt|doanh thu|sale).*(luy ke|lk|mtd).*(ch|cua hang|store|total|tong)|^(total sale|tong dt|tong doanh thu|dt ch|doanh thu ch)$/),
+          cTD1 = colRe(/(tong|total|ch|store).*(dt|doanh thu|sale).*(d-1|d1|hom qua)|(dt|doanh thu|sale).*(ch|store|tong|total).*(d-1|d1)/),
+          cTD = colRe(/(tong|total|ch|store).*(dt|doanh thu|sale).*(ngay d|d)$|(dt|doanh thu|sale).*(ch|store|tong|total).*(ngay d|d)$/);
+    if (cTL >= 0) warn.push('STORELIST có cột tổng DT lũy kế CH → Tỷ trọng KM = DT KM ÷ tổng DT CH.');
     for (let r = h+1; r < sale.n; r++){
       const s = code(sale.get(r,c)); if (!s || isJunk(s)) continue;
       const i = getStore(s); const o = stores[i]; cnt++;
@@ -846,6 +853,7 @@ function buildModel(sale, ctkm, fc){
       o.rm = txt(r,cRm) || '(Trống)'; o.rsm = txt(r,cRsm) || '(Trống)'; o.asm = txt(r,cAsm) || '(Trống)';
       o.nhomDt = cNd >= 0 ? (txt(r,cNd) || 'NSO') : 'NSO';
       o.active = norm(o.status) === 'hoạt động';
+      if (cTL >= 0) o.totLK = num(sale.get(r, cTL)); if (cTD >= 0) o.totD = num(sale.get(r, cTD)); if (cTD1 >= 0 && cTD1 !== cTD) o.totD1 = num(sale.get(r, cTD1));
     }
     if (!cnt) warn.push('Không tìm thấy dữ liệu STORELIST trong sheet SALE.');
     else if (cNd < 0) warn.push('STORELIST không có cột Nhóm DT — Index xếp hạng sẽ so với toàn bộ CH.'); }
@@ -1610,6 +1618,7 @@ function expectedOf(scope){
 }
 const RK_PER = [['T','rLK','qLK','kS'],['D1','rD1','qD1','kD1'],['D','rD','qD','kD']];
 /* Σ SPD của CH đang tính chuẩn (CH hoạt động trong phạm vi lọc) */
+function sumStores(stF, f){ const B = S.bench, ST = S.M.stores; if (!B) return 0; let x = 0; for (let si = 0; si < ST.length; si++){ if (B.sgm[si*B.M3] < 0 || (stF && !stF(si))) continue; x += ST[si][f] || 0; } return x; }
 function spdOf(stF){ const B = S.bench, ST = S.M.stores; if (!B) return 0; let x = 0; for (let si = 0; si < ST.length; si++){ if (B.sgm[si*B.M3] < 0 || (stF && !stF(si))) continue; x += ST[si].spd || 0; } return x; }
 /* số ngày lũy kế: người dùng nhập, mặc định ước tính = DT lũy kế ÷ TB DT ngày (D, D-1) */
 function lkDays(){ const u = Number(S.lkDays); if (u >= 1) return u; return S.lkDaysAuto || null; }
@@ -1629,9 +1638,15 @@ function rankHQ(list, scopeOf){
     const v = list.map(m => m[f]).filter(x => x != null), avg = v.length ? v.reduce((a,b) => a + b, 0) / v.length : 0;
     for (const m of list) m[f] = m[f] != null && avg > 0 ? m[f] / avg * 100 : null; }
   /* tỷ trọng Sale KM / Total Sale: Total = Σ SPD (Storeslist) của CH trong phạm vi × số ngày */
-  { const B = S.bench, ST = S.M.stores, days = lkDays(); const all = !scopeOf || rel ? spdOf(null) : null;
-    for (const m of list){ const sp = all != null ? all : spdOf(scopeOf(m).st);
-      m.kmS_T = sp > 0 && days ? (m.rLK || 0) / (sp * days) : null; m.kmS_D1 = sp > 0 ? (m.rD1 || 0) / sp : null; m.kmS_D = sp > 0 ? (m.rD || 0) / sp : null; } }
+  { const days = lkDays(), gAll = !scopeOf || rel;
+    const tot = (stF, f) => sumStores(stF, f), cache = {};
+    const all = f => cache[f] ?? (cache[f] = tot(null, f));
+    for (const m of list){ const stF = gAll ? null : scopeOf(m).st, g = f => gAll ? all(f) : tot(stF, f);
+      const sp = g('spd'), tL = g('totLK'), tD = g('totD'), tD1 = g('totD1');
+      /* ưu tiên tổng DT thực của CH (file upload); thiếu thì ước tính bằng SPD × số ngày */
+      m.kmS_T = tL > 0 ? (m.rLK || 0) / tL : sp > 0 && days ? (m.rLK || 0) / (sp * days) : null;
+      m.kmS_D1 = tD1 > 0 ? (m.rD1 || 0) / tD1 : sp > 0 ? (m.rD1 || 0) / sp : null;
+      m.kmS_D = tD > 0 ? (m.rD || 0) / tD : sp > 0 ? (m.rD || 0) / sp : null; } }
   for (const m of list) m.drC = m.dr == null ? null : Math.min(1, m.dr);   /* DR tối đa 100% */
   for (const [p] of RK_PER){
     const sc = new Float64Array(n);
@@ -1750,7 +1765,8 @@ function render(){
 }
 function rkNhomInfo(){ const el = $('rkNhom'); const B = S.bench;
   { const a = $('lkDaysNote'), b = $('spdInfo'); if (a) { a.textContent = S.lkDays ? '(đang nhập tay; để trống = tự ước tính ' + (S.lkDaysAuto || '—') + ' ngày)' : '(tự ước tính ' + (S.lkDaysAuto || '—') + ' ngày = DT lũy kế ÷ TB DT ngày D, D-1; nhập để sửa)'; if (!S.lkDays) $('lkDays').placeholder = S.lkDaysAuto || ''; }
-    if (b && S.M){ const n = S.M.stores.filter(x => x.active && x.spd > 0).length, na = S.M.stores.filter(x => x.active).length; b.innerHTML = n ? 'SPD có cho <b>' + fmtQ(n) + '/' + fmtQ(na) + '</b> CH hoạt động.' : '<b style="color:var(--warn)">Chưa có SPD (đang đọc Storeslist hoặc không đọc được) → tiêu chí này chưa tính.</b>'; } }
+    if (b && S.M){ const n = S.M.stores.filter(x => x.active && x.spd > 0).length, na = S.M.stores.filter(x => x.active).length, nt = S.M.stores.filter(x => x.active && x.totLK > 0).length;
+      if (nt){ b.innerHTML = '✅ Đang dùng <b>tổng DT lũy kế CH</b> từ file upload cho <b>' + fmtQ(nt) + '/' + fmtQ(na) + '</b> CH hoạt động.'; } else b.innerHTML = '<b style="color:var(--warn)">File upload chưa có cột tổng DT lũy kế CH</b> → đang ước tính bằng SPD. ' + (n ? 'SPD có cho <b>' + fmtQ(n) + '/' + fmtQ(na) + '</b> CH hoạt động.' : '<b style="color:var(--warn)">Chưa có SPD (đang đọc Storeslist hoặc không đọc được) → tiêu chí này chưa tính.</b>'); } }
   if (!el) return;
   if (S.nhomState === 'loading'){ el.innerHTML = '⏳ Đang đọc phân nhóm CH × MCH3 từ Sheet gốc…'; return; }
   if (!B){ el.innerHTML = ''; return; }
