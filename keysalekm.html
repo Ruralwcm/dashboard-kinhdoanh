@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Key Sale KM v4.10.1 — Win Rural</title>
+<title>Key Sale KM v4.11.0 — Win Rural</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 [hidden]{display:none!important}
@@ -136,6 +136,8 @@ th:hover .sec-view,th:focus-within .sec-view{display:flex}
 .cb-opt:hover,.cb-opt.hi{background:var(--midbg)}
 .cb-opt.on{font-weight:700;color:var(--mid)}
 .cb-none{padding:6px 8px;color:var(--ink2);font-size:12px}
+.cb-hint{font-size:10.5px;color:var(--ink2);padding:0 4px 5px}
+.cb-opt.on:before{content:'✓ ';font-weight:700}
 
 /* logic panel */
 .logic{background:#fff;border:1px solid var(--line);border-radius:12px;margin:12px 0 0;box-shadow:var(--sh);overflow:hidden;order:999}
@@ -167,6 +169,9 @@ table#tbl{border-collapse:separate;border-spacing:0;font-size:var(--fs);width:ma
 #tbl td.gB{background:#FAFBFD}
 #tbl td.gs{border-left:1px solid var(--line)}
 #tbl thead th.gs{border-left:1px solid rgba(255,255,255,.25)}
+#tbl td.tl,#tbl th.tl{text-align:left}
+.trb{display:inline-block;width:18px;text-align:center;margin-right:4px;font-size:11px}
+.tb-up{color:var(--good)} .tb-flat{color:var(--ink2);font-size:9px} .tb-down{color:var(--bad)} .tb-top{font-size:12px}
 #tbl tr.total td{font-weight:800;background:#FFF7E6;border-bottom:2px solid #F3D9A6}
 #tbl tr.total td.sticky{background:#FFF7E6}
 #tbl tbody tr:hover td{background:var(--midbg)}
@@ -340,7 +345,7 @@ body.fullscreen .ptools{opacity:.9}
 <header class="hd">
   <div class="hd-in">
     <img id="lg" class="lg" alt="WinMart+">
-    <div class="tt">Key Sale KM <span>v4.10.1 · Win Rural · Theo dõi CTKM</span></div>
+    <div class="tt">Key Sale KM <span>v4.11.0 · Win Rural · Theo dõi CTKM</span></div>
     <div class="mt">
       <span class="pill" id="fileinfo" title="">Chưa có dữ liệu</span>
       <div class="ts hd-ts" title="Cỡ chữ">
@@ -1182,7 +1187,7 @@ function fmtCell(type, v){
     case 'sr': if (v === Infinity) return ['<span title="Có bán nhưng SL tồn = 0">Hết tồn</span>', 'cell-bad']; return [fmtPct(v), v===null?'na': v<0.3?'cell-bad': v<0.7?'cell-warn':'cell-good'];
     case 'nspct': return [fmtPct(v), v===null?'na': v>0.3?'cell-bad': v>0.1?'cell-warn':''];
     case 'trs': return [v==null||Number.isNaN(v)?'—':'<b>'+nf1.format(v)+'</b>', ''];
-    case 'trl': return [v==null?'—':esc(v), ''];
+    case 'trl': { if (v==null) return ['—','tl']; const ic = TREND_ICON[v]; return [ic ? '<span class="trb ' + ic[1] + '">' + ic[0] + '</span>' + esc(v) : esc(v), 'tl']; }
     case 'dv': { if (v==null) return ['—','']; return [(v>0?'+':'') + fmtV(v), v>0?'cell-good': v<0?'cell-bad':'na']; }
     case 'dq': { if (v==null) return ['—','']; return [(v>0?'+':'') + nf0.format(v), v>0?'cell-good': v<0?'cell-bad':'na']; }
     case 'trp': { if (v==null) return ['—','']; if (v === Infinity) return ['<span title="D-1 = 0, ngày D có bán">Mới ↑</span>','cell-good']; const s = (v>=0?'+':'')+nf1.format(v)+'%'; return [s, v>0?'cell-good': v<0?'cell-bad':'']; }
@@ -1221,40 +1226,58 @@ async function loadFile(file){
 function alertBox(msg){ const b = $('warnBox'); b.textContent = msg; b.hidden = false; $('app').hidden = false; }
 
 /* ---- cascade filters ---- */
+/* bộ lọc chọn nhiều: select ẩn ở chế độ multiple; không chọn gì / chọn "Tất cả" = không lọc */
+const selVals = id => [...$(id).selectedOptions].map(o => o.value).filter(v => v !== '');
+const selSet = id => { const a = selVals(id); return a.length ? new Set(a) : null; };
+const MULTI_IDS = ['fGroup','fMch3','fRegion','fRm','fRsm','fAsm','fType'];
+const MULTI_TOUCH = matchMedia('(pointer: coarse)').matches;   // điện thoại: chạm = bật/tắt từng mục
 function cascade(){
   if (!S.M) return; let st = S.M.stores;
-  const reg = $('fRegion').value; if (reg) st = st.filter(x => x.region === reg);
-  fillSelect($('fRm'), uniq(st.map(x => x.rm)), 'Tất cả'); const rm = $('fRm').value; if (rm) st = st.filter(x => x.rm === rm);
-  fillSelect($('fRsm'), uniq(st.map(x => x.rsm)), 'Tất cả'); const rsm = $('fRsm').value; if (rsm) st = st.filter(x => x.rsm === rsm);
+  const reg = selSet('fRegion'); if (reg) st = st.filter(x => reg.has(x.region));
+  fillSelect($('fRm'), uniq(st.map(x => x.rm)), 'Tất cả'); const rm = selSet('fRm'); if (rm) st = st.filter(x => rm.has(x.rm));
+  fillSelect($('fRsm'), uniq(st.map(x => x.rsm)), 'Tất cả'); const rsm = selSet('fRsm'); if (rsm) st = st.filter(x => rsm.has(x.rsm));
   fillSelect($('fAsm'), uniq(st.map(x => x.asm)), 'Tất cả');
   cbSyncAll();
 }
 const vnFold = t => String(t).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d').replace(/Đ/g,'D').toLowerCase();
 function cbMake(sel){
-  if (sel.dataset.cb) return; sel.dataset.cb = '1'; sel.classList.add('cb-src');
+  if (sel.dataset.cb) return; sel.dataset.cb = '1'; sel.classList.add('cb-src'); const multi = MULTI_IDS.includes(sel.id); sel.multiple = multi;
   const w = document.createElement('div'); w.className = 'cb';
-  w.innerHTML = '<button type="button" class="cb-btn" aria-haspopup="listbox" aria-expanded="false"></button><div class="cb-panel" hidden><input type="search" class="cb-q" placeholder="Gõ để tìm…" aria-label="Tìm"><div class="cb-list" role="listbox"></div></div>';
+  w.innerHTML = '<button type="button" class="cb-btn" aria-haspopup="listbox" aria-expanded="false"></button><div class="cb-panel" hidden><input type="search" class="cb-q" placeholder="Gõ để tìm…" aria-label="Tìm">' + (multi ? '<div class="cb-hint">' + (MULTI_TOUCH ? 'Chạm để chọn/bỏ nhiều mục' : '<b>Ctrl</b> + Click để chọn nhiều') + '</div>' : '') + '<div class="cb-list" role="listbox" aria-multiselectable="true"></div></div>';
   sel.after(w);
   const btn = w.querySelector('.cb-btn'), pan = w.querySelector('.cb-panel'), q = w.querySelector('.cb-q'), list = w.querySelector('.cb-list');
   const draw = () => { const f = vnFold(q.value.trim()); const opts = [...sel.options].filter(o => !f || vnFold(o.text).includes(f));
-    list.innerHTML = opts.slice(0, 400).map((o,i) => '<div class="cb-opt' + (o.value === sel.value ? ' on' : '') + (i===0 && f ? ' hi' : '') + '" role="option" data-v="' + esc(o.value) + '">' + esc(o.text) + '</div>').join('') || '<div class="cb-none">Không có kết quả</div>'; };
+    const none = multi ? !selVals(sel.id).length : false;
+    list.innerHTML = opts.slice(0, 400).map((o,i) => '<div class="cb-opt' + ((multi ? (o.value === '' ? none : o.selected) : o.value === sel.value) ? ' on' : '') + (i===0 && f ? ' hi' : '') + '" role="option" data-v="' + esc(o.value) + '">' + esc(o.text) + '</div>').join('') || '<div class="cb-none">Không có kết quả</div>'; };
   const close = () => { pan.hidden = true; btn.setAttribute('aria-expanded','false'); };
-  const pick = v => { close(); if (sel.value !== v){ sel.value = v; sel.dispatchEvent(new Event('change')); } cbSync(sel); };
+  const pick = (v, multi) => {
+    if (!multi){ close(); if (sel.value !== v){ sel.value = v; sel.dispatchEvent(new Event('change')); } cbSync(sel); return; }
+    const before = selVals(sel.id).join('\u0001');
+    if (v === '' ){ [...sel.options].forEach(o => o.selected = o.value === ''); close(); }
+    else if (multi){ const o = [...sel.options].find(x => x.value === v); if (o) o.selected = !o.selected; sel.options[0].selected = false; if (!selVals(sel.id).length) sel.options[0].selected = true; draw(); }
+    else { [...sel.options].forEach(o => o.selected = o.value === v); close(); }
+    if (selVals(sel.id).join('\u0001') !== before) sel.dispatchEvent(new Event('change'));
+    cbSync(sel); };
   btn.onclick = e => { e.stopPropagation(); const open = pan.hidden; document.querySelectorAll('.cb-panel').forEach(p => p.hidden = true); document.querySelectorAll('.ms-panel').forEach(p => p.hidden = true);
     if (open){ pan.hidden = false; btn.setAttribute('aria-expanded','true'); q.value = ''; draw(); q.focus({preventScroll:true}); } };
-  pan.addEventListener('click', e => { e.stopPropagation(); const o = e.target.closest('.cb-opt'); if (o) pick(o.dataset.v); });
+  pan.addEventListener('click', e => { e.stopPropagation(); if (e.target !== q) e.preventDefault();   /* chặn <label> click hộ vào select ẩn (làm đóng panel) */
+    const o = e.target.closest('.cb-opt'); if (o) pick(o.dataset.v, e.ctrlKey || e.metaKey || MULTI_TOUCH); });
   q.addEventListener('input', draw);
-  q.addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); const o = list.querySelector('.cb-opt.hi') || list.querySelector('.cb-opt'); if (o) pick(o.dataset.v); } else if (e.key === 'Escape'){ close(); btn.focus(); } });
+  q.addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); const o = list.querySelector('.cb-opt.hi') || list.querySelector('.cb-opt'); if (o) pick(o.dataset.v, e.ctrlKey || e.metaKey); } else if (e.key === 'Escape'){ close(); btn.focus(); } });
   document.addEventListener('click', close);
   sel.addEventListener('change', () => cbSync(sel));
   cbSync(sel);
 }
-function cbSync(sel){ const w = sel.nextElementSibling; if (!w || !w.classList.contains('cb')) return; const o = sel.options[sel.selectedIndex]; w.querySelector('.cb-btn').textContent = o ? o.text : ''; w.querySelector('.cb-btn').classList.toggle('set', !!sel.value); }
+function cbSync(sel){ const w = sel.nextElementSibling; if (!w || !w.classList.contains('cb')) return; const b = w.querySelector('.cb-btn');
+  if (!sel.multiple){ const o = sel.options[sel.selectedIndex]; b.textContent = o ? o.text : ''; b.title = ''; b.classList.toggle('set', !!sel.value); return; }
+  const v = [...sel.selectedOptions].filter(o => o.value !== '').map(o => o.text);
+  b.textContent = !v.length ? (sel.options[0]?.text || 'Tất cả') : v.length === 1 ? v[0] : v[0] + ' +' + (v.length - 1);
+  b.title = v.length > 1 ? v.join('\n') : ''; b.classList.toggle('set', v.length > 0); }
 function cbSyncAll(){ document.querySelectorAll('select.cb-src').forEach(cbSync); }
 function fillSelect(el, values, allLabel){
-  const cur = el.value;
-  el.innerHTML = '<option value="">' + allLabel + '</option>' + values.map(v => '<option>' + esc(v) + '</option>').join('');
-  if (values.includes(cur)) el.value = cur;
+  const cur = new Set([...el.selectedOptions].map(o => o.value).filter(v => v !== ''));
+  el.innerHTML = '<option value="">' + allLabel + '</option>' + values.map(v => '<option' + (cur.has(v) ? ' selected' : '') + '>' + esc(v) + '</option>').join('');
+  if (![...el.selectedOptions].length) el.options[0].selected = true;
   cbSync(el);
 }
 const uniq = arr => [...new Set(arr.filter(v => v !== undefined && v !== null && v !== ''))].sort((a,b) => String(a).localeCompare(String(b),'vi'));
@@ -1284,25 +1307,26 @@ function start(M, demo){
   render();
 }
 
-function countFilters(){ return ['q','fStore','fGroup','fMch3','fRegion','fRm','fRsm','fAsm','fType'].filter(id => $(id).value.trim()).length; }
+const fltText = id => $(id).tagName === 'SELECT' ? selVals(id).join(', ') : $(id).value.trim();
+function countFilters(){ return ['q','fStore','fGroup','fMch3','fRegion','fRm','fRsm','fAsm','fType'].filter(id => fltText(id)).length; }
 function keyLabel(){ const vals = S.keyVals || []; $('msKeyBtn').textContent = !S.keySel ? 'Tất cả' : S.keySel.size ? vals.filter(v => S.keySel.has(v)).join(', ') : '(Chưa chọn)'; }
 
 function buildFilter(){
   { const n = countFilters(); $('fCount').textContent = n ? '(' + n + ')' : ''; if (document.activeElement !== $('qTop')) $('qTop').value = $('q').value; }
   const M = S.M;
-  const q = vnFold($('q').value.trim()), g = $('fGroup').value, m3 = $('fMch3').value;
-  const reg = $('fRegion').value, rm = $('fRm').value, rsm = $('fRsm').value, asm = $('fAsm').value, ty = $('fType').value, sq = $('fStore').value.trim().toLowerCase();
+  const q = vnFold($('q').value.trim()), g = selSet('fGroup'), m3 = selSet('fMch3');
+  const reg = selSet('fRegion'), rm = selSet('fRm'), rsm = selSet('fRsm'), asm = selSet('fAsm'), ty = selSet('fType'), sq = $('fStore').value.trim().toLowerCase();
   const storeOK = new Uint8Array(M.stores.length), artOK = new Uint8Array(M.arts.length), kmOf = new Array(M.arts.length).fill(null);
-  M.stores.forEach((s,i) => { storeOK[i] = (!reg || s.region===reg) && (!rm || s.rm===rm) && (!rsm || s.rsm===rsm) && (!asm || s.asm===asm) && (!ty || s.type===ty) && (!sq || s.code.toLowerCase().includes(sq)) ? 1 : 0; });
+  M.stores.forEach((s,i) => { storeOK[i] = (!reg || reg.has(s.region)) && (!rm || rm.has(s.rm)) && (!rsm || rsm.has(s.rsm)) && (!asm || asm.has(s.asm)) && (!ty || ty.has(s.type)) && (!sq || s.code.toLowerCase().includes(sq)) ? 1 : 0; });
   M.arts.forEach((a,i) => {
     let km = null;
     if (a.kms.length){
-      const cand = a.kms.filter(k => (S.scope==='all' || S.status.has(k.status)) && (!g || k.group===g) && (!S.keySel || S.keySel.has(k.key)));
+      const cand = a.kms.filter(k => (S.scope==='all' || S.status.has(k.status)) && (!g || g.has(k.group)) && (!S.keySel || S.keySel.has(k.key)));
       km = cand[0] || null;
     }
     if (S.scope === 'km' && !km) return;
     if (S.scope === 'all' && (g || S.keySel) && !km) return;
-    if (m3 && a.mch3 !== m3) return;
+    if (m3 && !m3.has(a.mch3)) return;
     if (q && !(vnFold(a.code).includes(q) || vnFold(a.name).includes(q))) return;
     artOK[i] = 1; kmOf[i] = km || a.km;
   });
@@ -1330,6 +1354,8 @@ function rankRowsCfg(list){
 /* Top Trending theo RANK: mỗi thành phần xếp hạng 1 → N trên toàn bộ SKU đủ điều kiện,
    Điểm hạng = Σ (hạng × trọng số) / 100 — càng nhỏ càng tốt.
    Hot: hạng 1 = tăng nhiều nhất · Down: hạng 1 = giảm nhiều nhất. */
+const TREND_ICON = {'Top Trend':['🔥','tb-top'], 'Tăng':['▲','tb-up'], 'Đi ngang':['▶','tb-flat'], 'Giảm':['▼','tb-down']};
+const TREND_FLAT = 5;   // |%Δ DT| < 5% coi là đi ngang
 const TREND_COMP = [['dv','dVal'],['pv','vVal'],['dq','dQty'],['pq','vQty'],['pc','vCov']];
 function computeTrend(list, down){
   for (const m of list){ const t = trendingScore(m); m.vQty = t.vQty; m.vVal = t.vVal; m.vCov = t.vCov; m.dVal = (m.rD || 0) - (m.rD1 || 0); m.dQty = (m.qD || 0) - (m.qD1 || 0); m.trendScore = null; m.trendLabel = null; m.trRanks = {}; }
@@ -1362,8 +1388,9 @@ function render(){
     rows = down ? rows.filter(r => r.dVal < 0 && Math.min(r.vVal, r.vQty, r.vCov) <= -thr)
                 : rows.filter(r => r.dVal > 0 && Math.max(r.vVal, r.vQty, r.vCov) >= thr);
     rows.sort((a,b) => a.trendScore - b.trendScore || (down ? a.dVal - b.dVal : b.dVal - a.dVal));
-    rows.forEach((m,i) => { const p = (i + 1) / rows.length;
-      m.trendLabel = down ? (p <= 0.1 ? '🔴 Sụt mạnh' : p <= 0.3 ? '🟠 Giảm mạnh' : '🟡 Giảm') : (p <= 0.1 ? '🟢 Bùng nổ' : p <= 0.3 ? '🟢 Tăng mạnh' : '🟡 Tăng'); });
+    // Nhãn: Top Trend = 10% đầu danh sách Hot · Đi ngang = |%Δ DT| < 5% · còn lại Tăng / Giảm theo chiều DT
+    rows.forEach((m,i) => { const flat = Number.isFinite(m.vVal) && Math.abs(m.vVal) < TREND_FLAT;
+      m.trendLabel = !down && (i + 1) / rows.length <= 0.1 ? 'Top Trend' : flat ? 'Đi ngang' : m.dVal > 0 ? 'Tăng' : 'Giảm'; });
     rows = rows.slice(0, Math.max(5, Number(S.trTopN) || 50));
     rows.forEach((r,i) => { r.rank = i + 1; r.rankN = rows.length; });
     S.rows = rows;
@@ -1433,7 +1460,7 @@ function renderKpis(res){
   ];
   const _ed = effDim();
   const FL = [['q','Tìm'],['fStore','CH'],['fGroup','GROUP'],['fMch3','MCH3'],['fRegion','Miền'],['fRm','RM'],['fRsm','RSM'],['fAsm','QLKV'],['fType','Loại CH']];
-  const act = FL.filter(([id]) => $(id).value.trim()).map(([id,l]) => '<button type="button" class="fchip" data-clr="' + id + '" title="Bỏ lọc này">' + l + ': ' + esc($(id).value.trim()) + ' ✕</button>');
+  const act = FL.filter(([id]) => fltText(id)).map(([id,l]) => { const t = fltText(id), n = $(id).tagName === 'SELECT' ? selVals(id).length : 1; return '<button type="button" class="fchip" data-clr="' + id + '" title="' + esc(t) + ' — bấm để bỏ lọc này">' + l + ': ' + esc(n > 2 ? selVals(id).slice(0,2).join(', ') + ' +' + (n-2) : t) + ' ✕</button>'; });
   if (S.keySel) act.push('<button type="button" class="fchip" data-clr="key" title="Bỏ lọc này">Key: ' + esc([...S.keySel].join(', ') || '(trống)') + ' ✕</button>');
   if (act.length > 1) act.push('<button type="button" class="fchip clr" data-clr="all">Xoá tất cả</button>');
   $('scopeInfo').innerHTML = '<b>' + fmtQ(res.nArtSel) + '</b> mã · <b>' + fmtQ(res.nAct) + '</b> CH hoạt động' + (_ed==='trend' ? ' · ' + (S.dim==='downtrend' ? '📉 Top ' + S.rows.length + ' giảm mạnh nhất' : '🔥 Top ' + S.rows.length + ' tăng mạnh nhất') : '') + act.join('');
@@ -1552,7 +1579,7 @@ function renderTable(){
     const band = gi % 2 ? 'gB' : 'gA', lv = secLevel(gk), own = !!S.secView[gk];
     const svBtns = '<span class="sv-sel">' + ['F','C','L'].map(v => '<button type="button" class="sv-btn' + (lv===v?' on':'') + '" data-sv="' + gk + '" data-v="' + v + '" title="' + SV_T[v] + (own && lv===v ? ' (bấm lại để theo mức chung)' : '') + '">' + v + '</button>').join('') + '</span>';
     g += '<th colspan="' + cols.length + '" class="' + band + ' gs">' + label + (own ? '<span class="sv-dot">' + lv + '</span>' : '') + svBtns + '</th>';
-    cols.forEach(([k, l], i) => { const u = colUnit(k); c += '<th data-k="' + k + '" class="' + band + (i===0?' gs ':' ') + (S.sort.k===k ? 'sorted' + (S.sort.asc?' asc':'') : '') + '">' + l + (u ? '<small class="u">' + u + '</small>' : '') + '</th>'; });
+    cols.forEach(([k, l], i) => { c += '<th data-k="' + k + '" class="' + band + (i===0?' gs ':' ') + (k === 'trendLabel' ? 'tl ' : '') + (S.sort.k===k ? 'sorted' + (S.sort.asc?' asc':'') : '') + '">' + l + '</th>'; });
   });
   $('tbl').tHead.innerHTML = g + '</tr>' + c + '</tr>';
   const shown = S.rows.slice(0, S.page);
@@ -1641,7 +1668,7 @@ function renderLogic(){
     <li>Mỗi thành phần được <b>xếp hạng 1 → N</b> trên toàn bộ SKU đủ điều kiện (Hot: tăng nhiều nhất = 1; Down: giảm nhiều nhất = 1; bằng nhau cùng hạng). <b>Điểm hạng</b> = Σ (hạng × trọng số) ÷ 100 — càng nhỏ càng tốt.</li>
     <li>D-1 = 0 mà ngày D có bán: %Δ tính là <b>“Mới ↑”</b> (cao nhất khi xếp hạng).</li>
     <li>Điều kiện: số CH có bán (D hoặc D-1) ≥ ngưỡng (mặc định 20). <b>Hot</b> chỉ lấy mã có DT tăng; <b>Down</b> chỉ lấy mã có DT giảm.</li>
-    <li>Nhãn theo vị trí trong danh sách Hot/Down (trước khi cắt Top N): Hot — 🟢 Bùng nổ (top 10%) · 🟢 Tăng mạnh (top 30%) · 🟡 Tăng; Down — 🔴 Sụt mạnh · 🟠 Giảm mạnh · 🟡 Giảm.</li>
+    <li>Nhãn xu hướng: 🔥 <b>Top Trend</b> (10% đầu danh sách Hot) · <span style="color:var(--good)">▲</span> <b>Tăng</b> · ▶ <b>Đi ngang</b> (|%Δ DT| &lt; 5%) · <span style="color:var(--bad)">▼</span> <b>Giảm</b>.</li>
   </ul>
   <h4>DIO &amp; Sale/Tồn</h4>
   <ul>
