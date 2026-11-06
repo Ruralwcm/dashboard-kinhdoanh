@@ -55,6 +55,8 @@ main{max-width:1680px;margin:0 auto;padding:16px 20px 60px}
 .kpi .lbl .ku{white-space:nowrap;text-transform:none;font-weight:500;color:#8A96A8}
 .kpi .v{font-size:19px;font-weight:800;color:var(--ink);line-height:1.1}
 .kpi .s{font-size:11px;color:var(--ink2)}
+.kpi .s .kl{display:flex;justify-content:space-between;gap:8px;line-height:1.55}
+.kpi .s .kl b{color:var(--ink);font-weight:700;white-space:nowrap}
 .kpi .s .up{color:var(--good);font-weight:700}
 .kpi .s .down{color:var(--bad);font-weight:700}
 
@@ -1496,11 +1498,12 @@ function sortRows(){
     return asc ? x - y : y - x; });
 }
 
+const kpiLine = (l, v) => '<span class="kl"><span>' + l + '</span><b>' + v + '</b></span>';
 function renderKpis(res){
   const t = S.totalRow; const dd = t.rD1 ? (t.rD - t.rD1) / t.rD1 : null;
   const tiles = [
-    ['Doanh thu lũy kế', fmtV(t.rLK), 'TBCH: SL ' + (t.tqLK===null?'—':nf1.format(t.tqLK)) + ' · DT ' + fmtV(t.trLK) + ' · ' + fmtQ(t.nSale) + ' CH bán'],
-    ['Doanh thu D', fmtV(t.rD), dd===null ? 'D-1: ' + fmtV(t.rD1) : '<span class="' + (dd>=0?'up':'down') + '">' + (dd>=0?'▲':'▼') + nf1.format(Math.abs(dd)*100) + '%</span> vs D-1 ' + fmtV(t.rD1)],
+    ['Doanh thu lũy kế', fmtV(t.rLK), kpiLine('DT BQ/CH', fmtV(t.trLK)) + kpiLine('SL BQ/CH', t.tqLK===null?'—':nf1.format(t.tqLK))],
+    ['Doanh thu D', fmtV(t.rD), kpiLine('DT BQ/CH', fmtV(t.trD)) + kpiLine('SL BQ/CH', t.tqD===null?'—':nf1.format(t.tqD)) + kpiLine('Tăng trưởng vs D-1', dd===null ? '—' : '<span class="' + (dd>=0?'up':'down') + '">' + (dd>=0?'▲ ':'▼ ') + nf1.format(Math.abs(dd)*100) + '%</span>')],
     ['Giá trị tồn', fmtV(t.sV), 'TBCH: SL ' + (t.tsQ===null?'—':nf1.format(t.tsQ)) + ' · GT ' + fmtV(t.tsV) + ' · ' + fmtQ(t.nStock) + ' CH tồn'],
     ['DIO', t.dio===null ? '—' : nf0.format(t.dio) + ' ngày', ''],
     ['Độ phủ (DR)', fmtPct(t.dr), 'BQ ' + fmtQ(t.nDR) + '/' + fmtQ(t.nAct) + ' CH đạt Min TB'],
