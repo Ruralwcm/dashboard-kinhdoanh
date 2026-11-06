@@ -195,6 +195,9 @@ table#tbl{border-collapse:separate;border-spacing:0;font-size:var(--fs);width:ma
 #tbl .lv2 td.sticky{padding-left:34px}
 #tbl .lv3 td.sticky{padding-left:48px}
 #tbl .lv4 td.sticky{padding-left:62px}
+#tbl .lv5 td.sticky{padding-left:76px}
+#tbl .lv6 td.sticky{padding-left:90px}
+#tbl .lv5 td,#tbl .lv6 td{background:#F6F9FE}
 #tbl .lvb td.sticky{padding-left:28px}
 .lvl{display:inline-block;font-size:9.5px;font-weight:700;color:#fff;background:var(--ink2);border-radius:4px;padding:1px 5px;margin-right:6px;vertical-align:1px}
 .nm{display:flex;align-items:center;gap:6px;overflow:hidden}
@@ -1575,8 +1578,9 @@ function firstCell(r, isTotal, asSku, trCls){
 }
 const LV_NAME = ['Miền','GĐV','QLKV','CH'];
 const TREND_DRILL = ['rm','rsm','asm'], TREND_DRILL_NAME = ['Miền','GĐV','QLKV'];
-const drillKeys = () => effDim() === 'trend' ? TREND_DRILL : DRILL_KEYS;
-const drillNames = () => effDim() === 'trend' ? TREND_DRILL_NAME : LV_NAME;
+const MCH_DRILL = ['rm','rsm'], MCH_DRILL_NAME = ['Miền','GĐV'];
+const drillKeys = () => effDim() === 'trend' ? TREND_DRILL : effDim() === 'fa' ? MCH_DRILL : DRILL_KEYS;
+const drillNames = () => effDim() === 'trend' ? TREND_DRILL_NAME : effDim() === 'fa' ? MCH_DRILL_NAME : LV_NAME;
 const HEAT = {q:1, v:1, t:1, tv:1, t1:1};
 function heatScale(rows){ const mx = {}; for (const [, , cols] of visibleGroups()) for (const [k, , t] of cols) if (HEAT[t]){ let m = 0; for (const r of rows){ const v = r[k]; if (v > m) m = v; } mx[k] = m; } return mx; }
 function bandOf(gk){ return (S._vg || visibleGroups()).findIndex(g => g[0]===gk) % 2 ? 'gB' : 'gA'; }
@@ -1597,8 +1601,8 @@ function cellsHtml(m, mx){
   }); });
   return h;
 }
-function childHtml(ai, path){
-  path = path || []; const keys = drillKeys(), names = drillNames(), level = path.length, leaf = level === keys.length - 1;
+function childHtml(ai, path, base){
+  path = path || []; base = base || 0; const keys = drillKeys(), names = drillNames(), level = path.length, leaf = level === keys.length - 1;
   const kids = drillRows(S.M, S.flt, ai, path, keys).map(g => { const m = metrics(g, S.tb); m.key = g.key; m.label = g.label; return m; });
   rankRowsCfg(kids); applyTrend(kids, true);
   if (effDim() === 'trend') kids.sort((a,b) => S.dim === 'downtrend' ? b.trendScore - a.trendScore : a.trendScore - b.trendScore);
@@ -1607,8 +1611,8 @@ function childHtml(ai, path){
   for (const m of kids){
     const np = path.concat([m.key]); const pid = JSON.stringify([ai].concat(np)); const open = !leaf && S.open.has(pid);
     let fc = '<td class="sticky">' + (!leaf ? '<button class="tg" data-p="' + esc(pid) + '" aria-expanded="' + open + '">' + (open ? '−' : '+') + '</button>' : '') + '<span title="' + names[level] + '">' + esc(m.label) + '</span></td>';
-    h += '<tr class="lv' + (level+1) + '">' + fc + cellsHtml(m, mx) + '</tr>';
-    if (open) h += childHtml(ai, np);
+    h += '<tr class="lv' + Math.min(level + 1 + base, 6) + '">' + fc + cellsHtml(m, mx) + '</tr>';
+    if (open) h += childHtml(ai, np, base);
   }
   return h;
 }
@@ -1644,10 +1648,12 @@ function adChildHtml(path){
     const np = path.concat([m.key]), pid = 'ad:' + JSON.stringify(np), open = !leaf && S.open.has(pid);
     let fc;
     if (dim === 'sku'){ S.tips[m.ai] = kmTip(m.art, m.km);
-      fc = '<td class="sticky"><div class="nm"><span class="cd" data-tip="' + m.ai + '">' + esc(m.art.code) + '</span> - <span class="tipname" data-tip="' + m.ai + '">' + esc(m.art.name || '(Không tên)') + '</span></div>' + (S.viewInfo ? viewInfoHtml(m.art, m.km) : '') + '</td>'; }
+      const so = S.open.has(String(m.ai));
+      fc = '<td class="sticky"><div class="nm"><button class="tg" data-p="' + esc(String(m.ai)) + '" aria-expanded="' + so + '" title="Xem Miền → GĐV">' + (so ? '−' : '+') + '</button><span class="cd" data-tip="' + m.ai + '">' + esc(m.art.code) + '</span> - <span class="tipname" data-tip="' + m.ai + '">' + esc(m.art.name || '(Không tên)') + '</span></div>' + (S.viewInfo ? viewInfoHtml(m.art, m.km) : '') + '</td>'; }
     else fc = '<td class="sticky">' + (!leaf ? '<button class="tg" data-p="' + esc(pid) + '" aria-expanded="' + open + '">' + (open ? '−' : '+') + '</button>' : '') + '<span title="MCH3">' + esc(m.key) + '</span> <span class="code">(' + fmtQ(m.nArt) + ' mã)</span></td>';
     h += '<tr class="lv' + Math.min(lvl+1, 4) + '">' + fc + cellsHtml(m, null) + '</tr>';
     if (open) h += adChildHtml(np);
+    if (dim === 'sku' && S.open.has(String(m.ai))) h += childHtml(m.ai, [], lvl + 1);
   }
   return h;
 }
@@ -1765,7 +1771,7 @@ function renderLogic(){
     <li>D-1 = 0 mà ngày D có bán: %Δ tính là <b>“Mới ↑”</b> (cao nhất khi xếp hạng).</li>
     <li>Điều kiện: số CH có bán (D hoặc D-1) ≥ ngưỡng (mặc định 20). <b>Hot</b> chỉ lấy mã có DT tăng; <b>Down</b> chỉ lấy mã có DT giảm.</li>
     <li><b>Fresh &amp; Chilled | Ambient</b> theo MCH3. Fresh &amp; Chilled: Thịt nguội, xúc xích, hàng chua · Đông lạnh · Trái cây · Thịt · Thủy hải sản · Rau củ · Bánh mỳ · Thức ăn nấu sẵn · Bơ, sữa, trứng. Các MCH3 còn lại là Ambient.</li>
-    <li><b>Tab MCH3</b>: Fresh &amp; Chilled / Ambient → MCH3 → SKU.</li>
+    <li><b>Tab MCH3</b>: Fresh &amp; Chilled / Ambient → MCH3 → SKU → Miền → GĐV.</li>
     <li><b>Mọi tab</b> đều có cột Trending. Cấp <b>mã hàng</b>: DT/SL tăng thêm tuyệt đối. Cấp <b>nhóm</b> (Nhóm CTKM, RSM×ASM, Miền → GĐV → QLKV → CH): <b>điểm xếp hạng</b> tính theo <b>tăng trưởng BQ/CH</b> = DT (SL) ÷ số CH có bán của từng ngày (hoặc ÷ CH hoạt động khi chọn "TB mọi CH"), so trong cùng cấp. Các cột DT/SL tăng thêm, %Δ luôn hiển thị số tuyệt đối — cộng các cấp con bằng cấp cha.</li>
     <li><b>Top Trend / Flop Trend</b>: bấm + ở mỗi mã để xem Miền → GĐV → QLKV.</li>
     <li>Nhãn xu hướng: 🔥 <b>Top Trend</b> (10% đầu danh sách Hot) · <span style="color:var(--good)">▲</span> <b>Tăng</b> · ▶ <b>Đi ngang</b> (|%Δ DT| &lt; 5%) · <span style="color:var(--bad)">▼</span> <b>Giảm</b>.</li>
