@@ -337,6 +337,13 @@ body.fullscreen .ptools{opacity:.9}
 .dsec>h3{margin:0 0 8px;font-size:14.5px;display:flex;gap:8px;align-items:center;color:var(--navy)}
 .dsec>h3 .n{background:var(--red);color:#fff;border-radius:6px;padding:1px 8px;font-size:12px}
 .dsec h4{margin:12px 0 6px;font-size:12.5px;color:var(--ink2);text-transform:uppercase;letter-spacing:.3px}
+.d1row{display:flex;gap:14px;align-items:stretch}
+.d1tbl{flex:1;min-width:0}
+.d1pie{flex:none;width:250px;border:1px solid var(--line);border-radius:12px;padding:10px 14px;display:flex;flex-direction:column;align-items:center;gap:4px}
+.d1t{font-size:12px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.3px;text-align:center}
+.d1l{display:flex;justify-content:space-between;width:100%;font-size:12px;color:var(--ink2)} .d1l b{color:var(--ink)} .d1l i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.d1s{font-size:11.5px;color:var(--ink2);text-align:center;margin-top:4px;line-height:1.5} .d1s b{color:var(--red)}
+@media (max-width:1100px){.d1row{flex-direction:column}.d1pie{width:auto}}
 .dsum{font-size:13px;color:var(--ink);margin:0 0 10px;line-height:1.55;background:var(--bg);border-radius:10px;padding:8px 12px}
 .dsum b{color:var(--navy)}
 .wrapx{overflow-x:auto}
@@ -2033,11 +2040,19 @@ function renderDash(){
   h += '<p class="dsum">Doanh thu ngày D <b>' + fmtV(T.rD) + '</b> ' + unitShort() + ' (' + '<span class="' + clsSg(ddT) + '">' + pctTxt(ddT) + '</span> vs D-1, ' + sgnV(T.rD - T.rD1) + ') · Lũy kế <b>' + fmtV(T.rLK) + '</b> · <b>' + up.length + '/' + gr.length + '</b> nhóm CTKM tăng.'
      + (up.length ? ' Tăng mạnh: <b>' + up.slice(0,3).map(g => esc(g.key) + ' (' + sgnV(g.dVal) + ')').join(', ') + '</b>.' : '')
      + (dn.length ? ' Giảm: <b>' + dn.slice(0,3).map(g => esc(g.key) + ' (' + sgnV(g.dVal) + ')').join(', ') + '</b>.' : '') + '</p>';
+  /* vòng tròn: tỷ trọng DT Top 10 SKU / tổng DT */
+  const shareOf = f => { const tot = T[f] || 0, top = rows.slice().sort((a,b) => (b[f] || 0) - (a[f] || 0)).slice(0, 10); const v = top.reduce((a,r) => a + (r[f] || 0), 0); return {v, tot, p: tot > 0 ? v / tot : 0, top}; };
+  const shL = shareOf('rLK'), shD = shareOf('rD');
+  const donut = (p, sz) => { const r = sz/2 - 9, c = 2 * Math.PI * r; return '<svg width="' + sz + '" height="' + sz + '" viewBox="0 0 ' + sz + ' ' + sz + '"><circle cx="' + sz/2 + '" cy="' + sz/2 + '" r="' + r + '" fill="none" stroke="#E9EDF3" stroke-width="16"/><circle cx="' + sz/2 + '" cy="' + sz/2 + '" r="' + r + '" fill="none" stroke="var(--red)" stroke-width="16" stroke-linecap="round" stroke-dasharray="' + (c * p).toFixed(1) + ' ' + c.toFixed(1) + '" transform="rotate(-90 ' + sz/2 + ' ' + sz/2 + ')"/><text x="50%" y="47%" text-anchor="middle" font-size="24" font-weight="800" fill="var(--ink)">' + nf1.format(p * 100) + '%</text><text x="50%" y="62%" text-anchor="middle" font-size="11" fill="var(--ink2)">Top 10 SKU</text></svg>'; };
+  const pieH = '<div class="d1pie" title="' + esc('Top 10 SKU theo DT lũy kế: ' + shL.top.map(r => r.art.name).join('; ')) + '"><div class="d1t">DT Top 10 SKU / Tổng DT</div>' + donut(shL.p, 170)
+    + '<div class="d1l"><span><i style="background:var(--red)"></i>Top 10 SKU</span><b>' + fmtV(shL.v) + '</b></div><div class="d1l"><span><i style="background:#E9EDF3"></i>' + fmtQ(Math.max(0, rows.length - 10)) + ' SKU còn lại</span><b>' + fmtV(shL.tot - shL.v) + '</b></div>'
+    + '<div class="d1s">Lũy kế · ' + unitShort() + '<br>Ngày D: Top 10 chiếm <b>' + nf1.format(shD.p * 100) + '%</b> (' + fmtV(shD.v) + ' / ' + fmtV(shD.tot) + ')</div></div>';
+  h += '<div class="d1row"><div class="d1tbl">';
   h += '<div class="wrapx"><table class="dt"><thead><tr><th class="l">Nhóm CTKM</th><th>Số mã</th><th>DT D</th><th class="l">DT tăng thêm vs D-1</th><th>%Δ DT</th><th>%Δ SL</th><th>DT lũy kế</th><th>% No sale</th><th>Độ phủ (DR)</th><th class="l">Xu hướng</th></tr></thead><tbody>';
   for (const g of gr){ const w = Math.round(Math.abs(g.dVal || 0) / mxD * 90);
     h += '<tr><td class="l"><b>' + esc(g.key) + '</b></td><td>' + fmtQ(g.nArt) + '</td><td>' + fmtV(g.rD) + '</td><td class="l"><span class="dbar" style="width:' + w + 'px;background:' + (g.dVal >= 0 ? 'var(--good)' : 'var(--bad)') + '"></span><span class="' + clsSg(g.dVal) + '">' + sgnV(g.dVal) + '</span></td><td class="' + clsSg(g.vVal) + '">' + pctTxt(g.vVal) + '</td><td class="' + clsSg(g.vQty) + '">' + pctTxt(g.vQty) + '</td><td>' + fmtV(g.rLK) + '</td><td class="' + (g.noSale > 0.3 ? 'cell-bad' : g.noSale > 0.1 ? 'cell-warn' : '') + '">' + fmtPct(g.noSale) + '</td><td class="' + (g.dr < 0.5 ? 'cell-bad' : g.dr < 0.8 ? 'cell-warn' : 'cell-good') + '">' + fmtPct(g.dr) + '</td><td class="l">' + lblHtml(g.trendLabel) + '</td></tr>'; }
   h += '<tr style="font-weight:800;background:#FFF7E6"><td class="l">Tổng</td><td>' + fmtQ(sk.nArtSel) + '</td><td>' + fmtV(T.rD) + '</td><td class="l ' + clsSg(T.rD - T.rD1) + '">' + sgnV(T.rD - T.rD1) + '</td><td class="' + clsSg(ddT) + '">' + pctTxt(ddT) + '</td><td>' + pctTxt(T.qD1 ? (T.qD - T.qD1) / T.qD1 * 100 : null) + '</td><td>' + fmtV(T.rLK) + '</td><td>' + fmtPct(T.pStock ? T.pNo / T.pStock : null) + '</td><td>' + fmtPct(T.dr) + '</td><td></td></tr>';
-  h += '</tbody></table></div></section>';
+  h += '</tbody></table></div></div>' + pieH + '</div></section>';
 
   /* ---------- 2. SKUs Trend → GĐV ---------- */
   const minCH = Math.max(0, Number(S.trMinCH) || 0);
