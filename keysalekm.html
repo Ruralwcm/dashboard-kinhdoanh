@@ -1388,7 +1388,7 @@ function computeTrend(list, down, bq){
   }
   list.forEach((m,i) => { m.trendScore = sc[i]; });
 }
-const trendLbl = (m, top) => { const d = m.dVal, p = m.vVal;   // nhãn theo số hiển thị (tuyệt đối) return top && d > 0 ? 'Top Trend' : (Number.isFinite(p) && Math.abs(p) < TREND_FLAT) ? 'Đi ngang' : d > 0 ? 'Tăng' : d < 0 ? 'Giảm' : 'Đi ngang'; };
+const trendLbl = (m, top) => { const d = m.dVal, p = m.vVal;   /* nhãn theo số hiển thị (tuyệt đối) */ return top && d > 0 ? 'Top Trend' : (Number.isFinite(p) && Math.abs(p) < TREND_FLAT) ? 'Đi ngang' : d > 0 ? 'Tăng' : d < 0 ? 'Giảm' : 'Đi ngang'; };
 /* xếp hạng xu hướng cho 1 danh sách cùng cấp (các tab ngoài Top/Flop Trend): 10% đầu & tăng = Top Trend */
 function applyTrend(list, bq){
   if (!list.length) return; computeTrend(list, false, bq);
