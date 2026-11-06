@@ -448,7 +448,7 @@ body.fullscreen .ptools{opacity:.9}
       <button data-v="1" aria-pressed="false">đ</button><button data-v="1000" aria-pressed="true">nghìn</button><button data-v="1000000" aria-pressed="false">triệu</button>
     </div>
     <button class="chip" id="btnViewInfo" aria-pressed="false" title="Hiện thông tin CTKM (Group, giá KM, điều kiện, thời gian, ngày còn lại) dưới tên mã — áp dụng mọi chiều xem có dòng SKU">👁 View CTKM</button>
-      <div class="seg" id="segFA" title="Lọc SKU theo ngành hàng (phân loại theo MCH3)"><button data-v="all" aria-pressed="true">Tất cả</button><button data-v="fresh" aria-pressed="false">Fresh</button><button data-v="ambient" aria-pressed="false">Ambient</button></div>
+      <div class="seg" id="segFA" title="Lọc SKU theo ngành hàng (phân loại theo MCH3)"><button data-v="all" aria-pressed="true">Tất cả</button><button data-v="fresh" aria-pressed="false">Fresh &amp; Chilled</button><button data-v="ambient" aria-pressed="false">Ambient</button></div>
     </div>
     <div class="ctl ctl-sec"><span class="tlbl">View Section</span><div class="seg segSec" id="secChips"></div></div>
     <div class="ctl ctl-sw"><span class="tlbl">Group SKUs</span>
@@ -1234,9 +1234,11 @@ function alertBox(msg){ const b = $('warnBox'); b.textContent = msg; b.hidden = 
 /* bộ lọc chọn nhiều: select ẩn ở chế độ multiple; không chọn gì / chọn "Tất cả" = không lọc */
 const selVals = id => [...$(id).selectedOptions].map(o => o.value).filter(v => v !== '');
 const selSet = id => { const a = selVals(id); return a.length ? new Set(a) : null; };
-/* Fresh = hàng tươi sống / mát / đông lạnh (theo tên MCH3, MCH2); còn lại Ambient */
-const FRESH_RE = /(bơ, sữa, trứng|thịt nguội|xúc xích|hàng chua|đông lạnh|đồ mát|hàng mát|tươi|rau|củ|quả|trái cây|thịt|cá tươi|thịt cá|hải sản|thủy sản|thuỷ sản|bánh mì|sữa chua|kem lạnh|kem que)/i;
-const isFresh = a => FRESH_RE.test(a.mch3 || '') || FRESH_RE.test(a.mch2 || '') && !/thực phẩm công nghệ|hoá mỹ phẩm|hóa mỹ phẩm|homeline/i.test(a.mch2 || '');
+/* Phân loại MCH3 theo quy định: Fresh & Chilled; MCH3 còn lại (Thực phẩm khô, Bánh kẹo, Đồ uống…, kể cả chưa rõ) = Ambient */
+const FRESH_MCH3 = ['Thịt nguội, xúc xích, hàng chua','Đông lạnh','Trái cây','Thịt','Thủy hải sản','Rau củ','Bánh mỳ','Thức ăn nấu sẵn','Bơ, sữa, trứng'];
+const mchKey = x => vnFold(x || '').replace(/\s+/g,' ').trim();
+let FRESH_SET = null;
+const isFresh = a => (FRESH_SET ||= new Set(FRESH_MCH3.map(mchKey))).has(mchKey(a.mch3));
 const MULTI_IDS = ['fGroup','fMch3','fRegion','fRm','fRsm','fAsm','fType'];
 const MULTI_TOUCH = matchMedia('(pointer: coarse)').matches;   // điện thoại: chạm = bật/tắt từng mục
 function cascade(){
@@ -1484,7 +1486,7 @@ function renderKpis(res){
   const _ed = effDim();
   const FL = [['q','Tìm'],['fStore','CH'],['fGroup','GROUP'],['fMch3','MCH3'],['fRegion','Miền'],['fRm','RM'],['fRsm','RSM'],['fAsm','QLKV'],['fType','Loại CH']];
   const act = FL.filter(([id]) => fltText(id)).map(([id,l]) => { const t = fltText(id), n = $(id).tagName === 'SELECT' ? selVals(id).length : 1; return '<button type="button" class="fchip" data-clr="' + id + '" title="' + esc(t) + ' — bấm để bỏ lọc này">' + l + ': ' + esc(n > 2 ? selVals(id).slice(0,2).join(', ') + ' +' + (n-2) : t) + ' ✕</button>'; });
-  if (S.fa !== 'all') act.push('<button type="button" class="fchip" data-clr="fa" title="Bỏ lọc này">' + (S.fa === 'fresh' ? 'Fresh' : 'Ambient') + ' ✕</button>');
+  if (S.fa !== 'all') act.push('<button type="button" class="fchip" data-clr="fa" title="Bỏ lọc này">' + (S.fa === 'fresh' ? 'Fresh & Chilled' : 'Ambient') + ' ✕</button>');
   if (S.keySel) act.push('<button type="button" class="fchip" data-clr="key" title="Bỏ lọc này">Key: ' + esc([...S.keySel].join(', ') || '(trống)') + ' ✕</button>');
   if (act.length > 1) act.push('<button type="button" class="fchip clr" data-clr="all">Xoá tất cả</button>');
   $('scopeInfo').innerHTML = '<b>' + fmtQ(res.nArtSel) + '</b> mã · <b>' + fmtQ(res.nAct) + '</b> CH hoạt động' + (_ed==='trend' ? ' · ' + (S.dim==='downtrend' ? '📉 Top ' + S.rows.length + ' giảm mạnh nhất' : '🔥 Top ' + S.rows.length + ' tăng mạnh nhất') : '') + act.join('');
@@ -1700,7 +1702,7 @@ function renderLogic(){
     <li>Mỗi thành phần được <b>xếp hạng 1 → N</b> trên toàn bộ SKU đủ điều kiện (Hot: tăng nhiều nhất = 1; Down: giảm nhiều nhất = 1; bằng nhau cùng hạng). <b>Điểm hạng</b> = Σ (hạng × trọng số) ÷ 100 — càng nhỏ càng tốt.</li>
     <li>D-1 = 0 mà ngày D có bán: %Δ tính là <b>“Mới ↑”</b> (cao nhất khi xếp hạng).</li>
     <li>Điều kiện: số CH có bán (D hoặc D-1) ≥ ngưỡng (mặc định 20). <b>Hot</b> chỉ lấy mã có DT tăng; <b>Down</b> chỉ lấy mã có DT giảm.</li>
-    <li><b>Fresh | Ambient</b>: Fresh = MCH3 hàng mát/đông/tươi sống (Bơ, sữa, trứng · Thịt nguội, xúc xích, hàng chua · Đông lạnh · rau củ quả, thịt cá…); còn lại là Ambient.</li>
+    <li><b>Fresh &amp; Chilled | Ambient</b> theo MCH3. Fresh &amp; Chilled: Thịt nguội, xúc xích, hàng chua · Đông lạnh · Trái cây · Thịt · Thủy hải sản · Rau củ · Bánh mỳ · Thức ăn nấu sẵn · Bơ, sữa, trứng. Các MCH3 còn lại là Ambient.</li>
     <li><b>Mọi tab</b> đều có cột Trending. Cấp <b>mã hàng</b>: DT/SL tăng thêm tuyệt đối. Cấp <b>nhóm</b> (Nhóm CTKM, RSM×ASM, Miền → GĐV → QLKV → CH): dùng <b>tăng trưởng BQ/CH</b> = DT (SL) ÷ số CH có bán của từng ngày (hoặc ÷ CH hoạt động khi chọn "TB mọi CH"); xếp hạng trong cùng cấp.</li>
     <li><b>Top Trend / Flop Trend</b>: bấm + ở mỗi mã để xem Miền → GĐV → QLKV.</li>
     <li>Nhãn xu hướng: 🔥 <b>Top Trend</b> (10% đầu danh sách Hot) · <span style="color:var(--good)">▲</span> <b>Tăng</b> · ▶ <b>Đi ngang</b> (|%Δ DT| &lt; 5%) · <span style="color:var(--bad)">▼</span> <b>Giảm</b>.</li>
