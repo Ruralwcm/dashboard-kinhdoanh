@@ -347,6 +347,10 @@ body.fullscreen .ptools{opacity:.9}
 .dt tr:hover td{background:#F7F9FD}
 .dt .nm2{max-width:260px;overflow:hidden;text-overflow:ellipsis}
 .dt .mech{max-width:170px;overflow:hidden;text-overflow:ellipsis}
+.gdvt th.pg{background:var(--navy);color:#fff;border-left:2px solid #fff;font-size:12px}
+.gdvt th.pgD{background:var(--red)} .gdvt th.pgT{background:#44546A}
+.gdvt .pgx{margin-left:4px;border:1px solid rgba(255,255,255,.5);background:transparent;color:#fff;border-radius:5px;padding:0 5px;cursor:pointer;font-size:11px;line-height:1.4}
+.gdvt td.rkc{border-left:2px solid var(--line);font-size:13px} .gdvt td.rkc.top b{color:var(--good)} .gdvt td.rkc.bot b{color:var(--bad)}
 .dt td.wkc{white-space:normal;text-align:left;min-width:320px}
 .dt .cd{font-weight:700;color:var(--navy)}
 .dbar{display:inline-block;height:8px;border-radius:4px;vertical-align:middle;margin-right:6px}
@@ -2062,8 +2066,24 @@ function renderDash(){
   const perfTbl = (rs, lbl) => '<div class="wrapx"><table class="dt"><thead><tr><th class="c">Rank D</th><th class="l">' + lbl + '</th><th>Rank D-1</th><th class="c">Lên/xuống</th><th>Rank Total</th><th>Index DT D</th><th>Index SL D</th><th>% CH×mã bán D</th><th>DT D</th><th>DT tăng thêm</th><th>%Δ DT</th><th class="l">Xu hướng</th><th class="l">Chỉ số yếu</th></tr></thead><tbody>'
     + rs.map(m => '<tr><td class="c"><b>#' + m.rankD + '</b></td><td class="l"><b>' + esc(m.key) + '</b></td><td>#' + m.rankD1 + '</td><td class="c">' + rkHtml(m.rkTrend) + '</td><td>#' + m.rankT + '</td><td class="' + (m.iV_D >= 110 ? 'cell-good' : m.iV_D < 90 ? 'cell-bad' : '') + '">' + (m.iV_D == null ? '—' : nf0.format(m.iV_D)) + '</td><td class="' + (m.iQ_D >= 110 ? 'cell-good' : m.iQ_D < 90 ? 'cell-bad' : '') + '">' + (m.iQ_D == null ? '—' : nf0.format(m.iQ_D)) + '</td><td>' + fmtPct(m.cov_D) + '</td><td>' + fmtV(m.rD) + '</td><td class="' + clsSg(m.dVal) + '">' + sgnV(m.dVal) + '</td><td class="' + clsSg(m.vVal) + '">' + pctTxt(m.vVal) + '</td><td class="l">' + lblHtml(m.trendLabel) + '</td><td class="wkc">' + wkHtml(m) + '</td></tr>').join('') + '</tbody></table></div>';
   const pG = perf('rsm'), pQ = perf('asm'); weakDiag(pG); weakDiag(pQ);
+  /* Bảng GĐV: Rank Full | Rank D-1 | Rank D (KPI chính ẩn/hiện) | Xu hướng – Chỉ số flop */
+  const exp = S.dashExp || (S.dashExp = {T:false, D1:false, D:true});
+  const idxTd = v => '<td class="' + (v >= 110 ? 'cell-good' : v < 90 ? 'cell-bad' : '') + '">' + (v == null ? '—' : nf0.format(v)) + '</td>';
+  const PERS = [['T','Rank Full','rLK','DT lũy kế'],['D1','Rank D-1','rD1','DT D-1'],['D','Rank D','rD','DT D']];
+  const KPI = (p, fr, dl) => [[dl, m => '<td>' + fmtV(m[fr]) + '</td>'], ['Index DT', m => idxTd(m['iV_' + p])], ['Index SL', m => idxTd(m['iQ_' + p])], ['% CH×mã bán', m => '<td>' + fmtPct(m['cov_' + p]) + '</td>'], ['Sell-through', m => '<td>' + fmtPct(m['st_' + p]) + '</td>'], ['DR', m => '<td class="' + (m.dr < 0.5 ? 'cell-bad' : m.dr < 0.8 ? 'cell-warn' : '') + '">' + fmtPct(m.dr) + '</td>']];
+  const rkTd = (v, n) => '<td class="c rkc' + (v <= 3 ? ' top' : v > n - 3 ? ' bot' : '') + '"><b>#' + v + '</b></td>';
+  const gdvTbl = rs => { const n = rs.length;
+    let t = '<div class="wrapx"><table class="dt gdvt"><thead><tr><th class="l" rowspan="2">GĐV</th>';
+    for (const [p, l] of PERS) t += '<th class="c pg ' + (p === 'D' ? 'pgD' : '') + '" colspan="' + (1 + (exp[p] ? 6 : 0)) + '">' + l + ' <button type="button" class="pgx" data-dexp="' + p + '" title="' + (exp[p] ? 'Ẩn' : 'Hiện') + ' KPI chính">' + (exp[p] ? '▾' : '▸') + '</button></th>';
+    t += '<th class="c pg pgT" colspan="3">Xu hướng</th></tr><tr>';
+    for (const [p, , fr, dl] of PERS){ t += '<th class="c">Rank</th>'; if (exp[p]) t += KPI(p, fr, dl).map(k => '<th>' + k[0] + '</th>').join(''); }
+    t += '<th class="c">D vs D-1</th><th>DT tăng thêm</th><th class="l">Chỉ số flop</th></tr></thead><tbody>';
+    for (const m of rs){ t += '<tr><td class="l"><b>' + esc(m.key) + '</b></td>';
+      for (const [p, , fr, dl] of PERS){ t += rkTd(m['rank' + p], n); if (exp[p]) t += KPI(p, fr, dl).map(k => k[1](m)).join(''); }
+      t += '<td class="c">' + rkHtml(m.rkTrend) + '</td><td class="' + clsSg(m.dVal) + '">' + sgnV(m.dVal) + '</td><td class="wkc">' + wkHtml(m) + '</td></tr>'; }
+    return t + '</tbody></table></div>'; };
   const imp = pG.filter(m => m.rkTrend > 0).length, dec = pG.filter(m => m.rkTrend < 0).length;
-  h += '<h4>🏆 Performance CTKM theo GĐV</h4><p class="dsum">Xếp hạng theo 5 tiêu chí (Index DT/SL so với CH cùng nhóm MCH3, % CH bán, sell-through, DR). <b>' + imp + '</b> GĐV lên hạng, <b>' + dec + '</b> GĐV xuống hạng so với D-1.' + (pG.length ? ' Dẫn đầu: <b>' + esc(pG[0].key) + '</b>.' : '') + '</p>' + perfTbl(pG, 'GĐV');
+  h += '<h4>🏆 Performance CTKM theo GĐV</h4><p class="dsum">Xếp hạng theo 5 tiêu chí (Index DT/SL so với CH cùng nhóm MCH3, % CH bán, sell-through, DR). <b>' + imp + '</b> GĐV lên hạng, <b>' + dec + '</b> GĐV xuống hạng so với D-1.' + (pG.length ? ' Dẫn đầu: <b>' + esc(pG[0].key) + '</b>.' : '') + ' Bấm ▸ / ▾ ở tiêu đề Rank để hiện / ẩn KPI chính của kỳ.</p>' + gdvTbl(pG);
   const qTbl = rs => '<div class="wrapx"><table class="dt"><thead><tr><th class="c">Rank D</th><th class="l">QLKV</th><th class="l">GĐV</th><th class="c">vs D-1</th><th>Index DT</th><th>DT tăng thêm</th><th class="l">Chỉ số yếu</th></tr></thead><tbody>'
     + rs.map(m => { const g = M.stores.find(x => x.asm === m.key)?.rsm || ''; return '<tr><td class="c"><b>#' + m.rankD + '</b></td><td class="l"><b>' + esc(m.key) + '</b></td><td class="l">' + esc(g) + '</td><td class="c">' + rkHtml(m.rkTrend) + '</td><td class="' + (m.iV_D >= 110 ? 'cell-good' : m.iV_D < 90 ? 'cell-bad' : '') + '">' + (m.iV_D == null ? '—' : nf0.format(m.iV_D)) + '</td><td class="' + clsSg(m.dVal) + '">' + sgnV(m.dVal) + '</td><td class="wkc">' + wkHtml(m, 3) + '</td></tr>'; }).join('') + '</tbody></table></div>';
   const qDown = pQ.filter(m => m.rkTrend != null).sort((a,b) => a.rkTrend - b.rkTrend).slice(0, 10);
@@ -2124,6 +2144,7 @@ function renderDash(){
   $('dash').innerHTML = h;
   $('rowinfo').textContent = '';
   const mb = $('dashUpcMore'); if (mb) mb.onclick = () => { S.dashAllUpc = !S.dashAllUpc; renderDash(); };
+  $('dash').querySelectorAll('[data-dexp]').forEach(b => b.onclick = () => { const y = window.scrollY; S.dashExp[b.dataset.dexp] = !S.dashExp[b.dataset.dexp]; renderDash(); window.scrollTo(0, y); });
 }
 function updateTabUI(){
   const ed = effDim();
