@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Key Sale KM v4.19.0 — Win Rural</title>
+<title>Key Sale KM v4.19.1 — Win Rural</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 [hidden]{display:none!important}
@@ -472,7 +472,7 @@ body.dashOn .ctlBar .ctl:first-child,body.dashOn .ctl-sec,body.dashOn .ctl-sw{di
 <header class="hd">
   <div class="hd-in">
     <img id="lg" class="lg" alt="WinMart+">
-    <div class="tt">Key Sale KM <span>v4.19.0 · Win Rural · Theo dõi CTKM</span></div>
+    <div class="tt">Key Sale KM <span>v4.19.1 · Win Rural · Theo dõi CTKM</span></div>
     <div class="mt">
       <span class="pill" id="fileinfo" title="">Chưa có dữ liệu</span>
       <div class="ts hd-ts" title="Cỡ chữ">
@@ -2158,23 +2158,28 @@ function renderDash(){
   h += '</tbody></table></div></div>' + pieH + '</div></section>';
 
   /* ---------- 2. SKUs Trend → GĐV ---------- */
-  const minCH = Math.max(0, Number(S.trMinCH) || 0);
+  const nActF = M.stores.reduce((a, st, si) => a + (flt.storeOK[si] && st.active ? 1 : 0), 0);
+  /* lọc hẹp (GĐV/QLKV) thì ngưỡng số CH bán tự hạ: tối đa 25% số CH trong phạm vi */
+  const minCH = Math.min(Math.max(0, Number(S.trMinCH) || 0), Math.max(1, Math.round(nActF * 0.25)));
   const base = rows.filter(r => (r.qD || r.qD1) && Math.max(r.nD, r.nD1) >= minCH);
   const upL = base.map(r => ({...r})); computeTrend(upL, false); const upAll = upL.filter(r => r.dVal > 0).sort((a,b) => a.trendScore - b.trendScore);
   const dnL = base.map(r => ({...r})); computeTrend(dnL, true); const dnAll = dnL.filter(r => r.dVal < 0).sort((a,b) => a.trendScore - b.trendScore);
   const lkAll = rows.filter(r => r.rLK > 0).sort((a,b) => b.rLK - a.rLK);
   const top5 = upAll.slice(0, 5), flop5 = dnAll.slice(0, 5);
   const DN = S.dashN || (S.dashN = {lk:5, up:5, dn:5});
-  const gMap = new Map(); M.stores.forEach((st, si) => { if (flt.storeOK[si] && st.active && st.rsm && st.rsm !== '(Trống)') gMap.set(st.rsm, st.rm || ''); });
-  const gdvs = [...gMap.keys()].sort((a,b) => String(gMap.get(a)).localeCompare(String(gMap.get(b)), 'vi') || a.localeCompare(b, 'vi'));
+  /* cột của heatmap: mặc định GĐV; lọc GĐV → QLKV; lọc QLKV → từng CH */
+  const hmDim = selSet('fAsm') ? 'code' : selSet('fRsm') ? 'asm' : 'rsm', hmLbl = {rsm:'GĐV', asm:'QLKV', code:'CH'}[hmDim];
+  const gMap = new Map(); M.stores.forEach((st, si) => { const k = st[hmDim]; if (flt.storeOK[si] && st.active && k && k !== '(Trống)') gMap.set(k, hmDim === 'code' ? (st.name || '') : hmDim === 'asm' ? (st.rsm || '') : (st.rm || '')); });
+  const gdvs = [...gMap.keys()].sort((a,b) => hmDim === 'code' ? a.localeCompare(b, 'vi', {numeric:true}) : String(gMap.get(a)).localeCompare(String(gMap.get(b)), 'vi') || a.localeCompare(b, 'vi'));
+  const hmHead = g => hmDim === 'code' ? esc(g) + '<br><span style="font-weight:500">' + esc(gMap.get(g)) + '</span>' : esc(g);
   /* mode 'lk': ô = Index DT BQ/CH lũy kế của GĐV so với TB của SKU (100 = bằng TB); mode trend: ô = %Δ DT D vs D-1 */
   const heat = (all, title, bk, mode) => {
     const list = all.slice(0, DN[bk]);
     if (!list.length) return '<h4>' + title + '</h4><div class="dnone">Không có mã phù hợp.</div>';
     const lk = mode === 'lk';
-    let t = '<h4>' + title + ' <span style="text-transform:none;font-weight:500">(' + list.length + '/' + all.length + ')</span></h4><div class="wrapx"><table class="dt hm"><thead><tr><th class="l">SKU</th>' + (lk ? '<th>DT lũy kế</th><th>DT BQ/CH</th><th>% CH bán</th>' : '<th>DT D</th><th>DT tăng thêm</th><th>%Δ DT</th>') + gdvs.map(g => '<th class="hc" title="' + esc(gMap.get(g)) + '">' + esc(g) + '</th>').join('') + '</tr></thead><tbody>';
+    let t = '<h4>' + title + ' <span style="text-transform:none;font-weight:500">(' + list.length + '/' + all.length + ')</span></h4><div class="wrapx"><table class="dt hm"><thead><tr><th class="l">SKU</th>' + (lk ? '<th>DT lũy kế</th><th>DT BQ/CH</th><th>% CH bán</th>' : '<th>DT D</th><th>DT tăng thêm</th><th>%Δ DT</th>') + gdvs.map(g => '<th class="hc" title="' + esc((hmDim === 'code' ? g + ' - ' : '') + gMap.get(g)) + '">' + hmHead(g) + '</th>').join('') + '</tr></thead><tbody>';
     for (const r of list){ const mask = new Uint8Array(M.arts.length); mask[r.ai] = 1;
-      const byG = new Map(aggregate(M, {...flt, artOK:mask}, 'rsm').rows.map(g => [g.key, g]));
+      const byG = new Map(aggregate(M, {...flt, artOK:mask}, hmDim).rows.map(g => [g.key, g]));
       r.gdvWorst = [...byG.values()].filter(g => g.key && g.key !== '(Trống)').map(g => [g.key, g.f[F.rD] - g.f[F.rD1]]).sort((a,b) => a[1] - b[1]).slice(0, 2).filter(x => x[1] < 0);
       r.gdvBest = [...byG.values()].filter(g => g.key && g.key !== '(Trống)').map(g => [g.key, g.f[F.rD] - g.f[F.rD1]]).sort((a,b) => b[1] - a[1]).slice(0, 2).filter(x => x[1] > 0);
       const bqAll = r.nAct ? r.rLK / r.nAct : 0;
@@ -2189,7 +2194,7 @@ function renderDash(){
     if (all.length > list.length) t += '<div class="dmore"><button class="btn" data-dmore="' + bk + '">View more (+5) · còn ' + (all.length - list.length) + '</button>' + (DN[bk] > 5 ? ' <button class="btn" data-dless="' + bk + '">Thu gọn</button>' : '') + '</div>';
     else if (DN[bk] > 5) t += '<div class="dmore"><button class="btn" data-dless="' + bk + '">Thu gọn</button></div>';
     return t; };
-  h += '<section class="dsec"><h3><span class="n">2</span>Top SKUs review → GĐV</h3><p class="dsum"><b>Top sale lũy kế</b>: ô = Index DT BQ/CH của GĐV so với trung bình của SKU (100 = bằng TB; &lt; 100 đỏ = địa bàn bán kém). <b>Top / Flop Trend</b>: xếp theo Điểm hạng Trend D vs D-1 (mã có ≥ ' + minCH + ' CH bán); ô = %Δ DT tại từng GĐV — <span style="color:var(--good);font-weight:700">xanh tăng</span> · <span style="color:var(--bad);font-weight:700">đỏ giảm</span>. Rê chuột xem số; bấm <b>View more</b> để thêm 5 mã.</p>';
+  h += '<section class="dsec"><h3><span class="n">2</span>Top SKUs review → ' + hmLbl + '</h3><p class="dsum"><b>Top sale lũy kế</b>: ô = Index DT BQ/CH của ' + hmLbl + ' so với trung bình của SKU (100 = bằng TB; &lt; 100 đỏ = địa bàn bán kém). <b>Top / Flop Trend</b>: xếp theo Điểm hạng Trend D vs D-1 (mã có ≥ ' + minCH + ' CH bán); ô = %Δ DT tại từng ' + hmLbl + ' — <span style="color:var(--good);font-weight:700">xanh tăng</span> · <span style="color:var(--bad);font-weight:700">đỏ giảm</span>. Rê chuột xem số; bấm <b>View more</b> để thêm 5 mã.</p>';
   h += heat(lkAll, '💰 Top sale lũy kế', 'lk', 'lk') + heat(upAll, '🔥 Top Trend D vs D-1', 'up') + heat(dnAll, '📉 Flop Trend D vs D-1', 'dn');
 
   /* Performance GĐV / QLKV */
