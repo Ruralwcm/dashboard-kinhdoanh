@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Key Sale KM v4.21.0 — Win Rural</title>
+<title>Key Sale KM v4.21.1 — Win Rural</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 [hidden]{display:none!important}
@@ -478,7 +478,7 @@ body.dashOn .ctlBar .ctl:first-child,body.dashOn .ctl-sec,body.dashOn .ctl-sw{di
 <header class="hd">
   <div class="hd-in">
     <img id="lg" class="lg" alt="WinMart+">
-    <div class="tt">Key Sale KM <span>v4.21.0 · Win Rural · Theo dõi CTKM</span></div>
+    <div class="tt">Key Sale KM <span>v4.21.1 · Win Rural · Theo dõi CTKM</span></div>
     <div class="mt">
       <span class="pill" id="fileinfo" title="">Chưa có dữ liệu</span>
       <div class="ts hd-ts" title="Cỡ chữ">
@@ -2179,28 +2179,32 @@ function renderDash(){
   const gdvs = [...gMap.keys()].sort((a,b) => hmDim === 'code' ? a.localeCompare(b, 'vi', {numeric:true}) : String(gMap.get(a)).localeCompare(String(gMap.get(b)), 'vi') || a.localeCompare(b, 'vi'));
   const hmHead = g => hmDim === 'code' ? esc(g) + '<br><span style="font-weight:500">' + esc(gMap.get(g)) + '</span>' : esc(g);
   /* mode 'lk': ô = Index DT BQ/CH lũy kế của GĐV so với TB của SKU (100 = bằng TB); mode trend: ô = %Δ DT D vs D-1 */
+  /* DIO 2 ngày = SL tồn ÷ SL bán TB của ngày D và D-1 */
+  const dio2 = (sq, a, b) => { const v = ((a || 0) + (b || 0)) / 2; return v > 0 ? (sq || 0) / v : null; };
+  const dioTd = v => '<td class="' + (v > 60 ? 'cell-bad' : v > 30 ? 'cell-warn' : '') + '">' + (v == null ? '—' : nf0.format(v)) + '</td>';
   const heat = (all, title, bk, mode) => {
     const list = all.slice(0, DN[bk]);
     if (!list.length) return '<h4>' + title + '</h4><div class="dnone">Không có mã phù hợp.</div>';
     const lk = mode === 'lk';
-    let t = '<h4>' + title + ' <span style="text-transform:none;font-weight:500">(' + list.length + '/' + all.length + ')</span></h4><div class="wrapx"><table class="dt hm"><thead><tr><th class="l">SKU</th>' + (lk ? '<th>DT lũy kế</th><th>DT BQ/CH</th><th>% CH bán</th>' : '<th>DT D</th><th>DT tăng thêm</th><th>%Δ DT</th>') + gdvs.map(g => '<th class="hc" title="' + esc((hmDim === 'code' ? g + ' - ' : '') + gMap.get(g)) + '">' + hmHead(g) + '</th>').join('') + '</tr></thead><tbody>';
+    let t = '<h4>' + title + ' <span style="text-transform:none;font-weight:500">(' + list.length + '/' + all.length + ')</span></h4><div class="wrapx"><table class="dt hm"><thead><tr><th class="l">SKU</th>' + (lk ? '<th>DT lũy kế</th><th>DT BQ/CH</th><th>% CH bán</th><th>GT tồn</th><th title="Tồn ÷ giá vốn bán TB/ngày 30 ngày">DIO</th>' : '<th>DT D</th><th>DT tăng thêm</th><th>%Δ DT</th><th>GT tồn</th><th title="SL tồn ÷ SL bán TB 2 ngày gần nhất (D, D-1)">DIO 2N</th>') + gdvs.map(g => '<th class="hc" title="' + esc((hmDim === 'code' ? g + ' - ' : '') + gMap.get(g)) + '">' + hmHead(g) + '</th>').join('') + '</tr></thead><tbody>';
     for (const r of list){ const mask = new Uint8Array(M.arts.length); mask[r.ai] = 1;
       const byG = new Map(aggregate(M, {...flt, artOK:mask}, hmDim).rows.map(g => [g.key, g]));
       r.gdvWorst = [...byG.values()].filter(g => g.key && g.key !== '(Trống)').map(g => [g.key, g.f[F.rD] - g.f[F.rD1]]).sort((a,b) => a[1] - b[1]).slice(0, 2).filter(x => x[1] < 0);
       r.gdvBest = [...byG.values()].filter(g => g.key && g.key !== '(Trống)').map(g => [g.key, g.f[F.rD] - g.f[F.rD1]]).sort((a,b) => b[1] - a[1]).slice(0, 2).filter(x => x[1] > 0);
       const bqAll = r.nAct ? r.rLK / r.nAct : 0;
-      t += '<tr>' + skuCell(r) + (lk ? '<td>' + fmtV(r.rLK) + '</td><td>' + fmtV(bqAll) + '</td><td>' + fmtPct(r.nAct ? Math.min(1, r.nSale / r.nAct) : null) + '</td>' : '<td>' + fmtV(r.rD) + '</td><td class="' + clsSg(r.dVal) + '">' + sgnV(r.dVal) + '</td><td class="' + clsSg(r.vVal) + '">' + pctTxt(r.vVal) + '</td>');
+      t += '<tr>' + skuCell(r) + (lk ? '<td>' + fmtV(r.rLK) + '</td><td>' + fmtV(bqAll) + '</td><td>' + fmtPct(r.nAct ? Math.min(1, r.nSale / r.nAct) : null) + '</td><td>' + fmtV(r.sV) + '</td>' + dioTd(r.dio) : '<td>' + fmtV(r.rD) + '</td><td class="' + clsSg(r.dVal) + '">' + sgnV(r.dVal) + '</td><td class="' + clsSg(r.vVal) + '">' + pctTxt(r.vVal) + '</td><td>' + fmtV(r.sV) + '</td>' + dioTd(dio2(r.sQ, r.qD, r.qD1)));
       for (const g of gdvs){ const x = byG.get(g); if (!x){ t += '<td class="hc" style="background:#F1F3F7">·</td>'; continue; }
         if (lk){ const bq = x.nAct ? x.f[F.rLK] / x.nAct : 0, ix = bqAll > 0 ? bq / bqAll * 100 : null;
-          t += '<td class="hc" style="background:' + heatBg(ix == null ? null : (ix - 100)) + '" title="' + esc(g) + ': DT lũy kế ' + fmtV(x.f[F.rLK]) + ' · DT BQ/CH ' + fmtV(bq) + ' · ' + fmtQ(x.nAct) + ' CH">' + (ix == null ? '·' : nf0.format(ix)) + '</td>'; continue; }
+          const xm = metrics(x, S.tb);
+          t += '<td class="hc" style="background:' + heatBg(ix == null ? null : (ix - 100)) + '" title="' + esc(g + (hmDim === 'code' ? ' ' + (gMap.get(g) || '') : '') + '\nDT lũy kế: ' + fmtV(x.f[F.rLK]) + '\nDT BQ/CH: ' + fmtV(bq) + ' (Index ' + (ix == null ? '—' : nf0.format(ix)) + ' so với TB SKU)\nTổng tồn: ' + fmtV(x.f[F.sV]) + ' · SL ' + fmtQ(x.f[F.sQ]) + '\nDIO: ' + (xm.dio == null ? '—' : nf0.format(xm.dio) + ' ngày') + '\n' + fmtQ(x.nAct) + ' CH') + '">' + (ix == null ? '·' : fmtV(bq)) + '</td>'; continue; }
         const rD = x.f[F.rD], rD1 = x.f[F.rD1], pc = rD1 > 0 ? (rD - rD1) / rD1 * 100 : (rD > 0 ? Infinity : null);
-        t += '<td class="hc" style="background:' + heatBg(pc) + '" title="' + esc(g) + ': DT D ' + fmtV(rD) + ' · D-1 ' + fmtV(rD1) + ' · ' + sgnV(rD - rD1) + '">' + (pc == null ? '·' : pctTxt(pc).replace(',0%','%')) + '</td>'; }
+        t += '<td class="hc" style="background:' + heatBg(pc) + '" title="' + esc(g + (hmDim === 'code' ? ' ' + (gMap.get(g) || '') : '') + '\nDT D: ' + fmtV(rD) + ' · D-1: ' + fmtV(rD1) + ' · ' + sgnV(rD - rD1) + '\nTổng tồn: ' + fmtV(x.f[F.sV]) + ' · SL ' + fmtQ(x.f[F.sQ]) + '\nDIO 2 ngày: ' + (function(v){ return v == null ? '—' : nf0.format(v) + ' ngày'; })(dio2(x.f[F.sQ], x.f[F.qD], x.f[F.qD1]))) + '">' + (pc == null ? '·' : pctTxt(pc).replace(',0%','%')) + '</td>'; }
       t += '</tr>'; }
     t += '</tbody></table></div>';
     if (all.length > list.length) t += '<div class="dmore"><button class="btn" data-dmore="' + bk + '">View more (+5) · còn ' + (all.length - list.length) + '</button>' + (DN[bk] > 5 ? ' <button class="btn" data-dless="' + bk + '">Thu gọn</button>' : '') + '</div>';
     else if (DN[bk] > 5) t += '<div class="dmore"><button class="btn" data-dless="' + bk + '">Thu gọn</button></div>';
     return t; };
-  h += '<section class="dsec"><h3><span class="n">2</span>Top SKUs review → ' + hmLbl + '</h3><p class="dsum"><b>Top sale lũy kế</b>: ô = Index DT BQ/CH của ' + hmLbl + ' so với trung bình của SKU (100 = bằng TB; &lt; 100 đỏ = địa bàn bán kém). <b>Top / Flop Trend</b>: xếp theo Điểm hạng Trend D vs D-1 (mã có ≥ ' + minCH + ' CH bán); ô = %Δ DT tại từng ' + hmLbl + ' — <span style="color:var(--good);font-weight:700">xanh tăng</span> · <span style="color:var(--bad);font-weight:700">đỏ giảm</span>. Rê chuột xem số; bấm <b>View more</b> để thêm 5 mã.</p>';
+  h += '<section class="dsec"><h3><span class="n">2</span>Top SKUs review → ' + hmLbl + '</h3><p class="dsum"><b>Top sale lũy kế</b>: ô = DT BQ/CH lũy kế của ' + hmLbl + ' (màu so với TB của SKU: đỏ thấp hơn · xanh cao hơn); rê chuột xem DT lũy kế, tổng tồn, DIO. <b>Top / Flop Trend</b>: xếp theo Điểm hạng Trend D vs D-1 (mã có ≥ ' + minCH + ' CH bán); ô = %Δ DT tại từng ' + hmLbl + ' — <span style="color:var(--good);font-weight:700">xanh tăng</span> · <span style="color:var(--bad);font-weight:700">đỏ giảm</span>. Rê chuột xem số; bấm <b>View more</b> để thêm 5 mã.</p>';
   h += heat(lkAll, '💰 Top sale lũy kế', 'lk', 'lk') + heat(upAll, '🔥 Top Trend D vs D-1', 'up') + heat(dnAll, '📉 Flop Trend D vs D-1', 'dn');
 
   /* Performance GĐV / QLKV */
