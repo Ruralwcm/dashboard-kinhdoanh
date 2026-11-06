@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Key Sale KM v4.20.0 — Win Rural</title>
+<title>Key Sale KM v4.21.0 — Win Rural</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 [hidden]{display:none!important}
@@ -417,6 +417,8 @@ table.ctt{border-collapse:separate;border-spacing:0;font-size:12.5px;width:max-c
 .gdvt .pgx{margin-left:4px;border:1px solid rgba(255,255,255,.5);background:transparent;color:#fff;border-radius:5px;padding:0 5px;cursor:pointer;font-size:11px;line-height:1.4}
 .gdvt td.rkc{border-left:2px solid var(--line);font-size:13px} .gdvt td.rkc.top b{color:var(--good)} .gdvt td.rkc.bot b{color:var(--bad)}
 .upt tr.upk td{background:#F6F9FE;font-size:12px}
+.hlg{display:inline-block;border-radius:999px;padding:0 7px;font-size:10.5px;font-weight:700;white-space:nowrap;margin:1px 2px 1px 0}
+.hlg.sale{background:#E8F0FF;color:#1D4ED8} .hlg.trend{background:#FFF1E6;color:#C2410C} .hlg.upc{background:#EDE9FE;color:#6D28D9}
 .upk.lv2 td{background:#FBFCFE} .upk.lv3 td{background:#fff;font-size:11.5px}
 .upt th.srt{cursor:pointer;user-select:none} .upt th.srt:hover{text-decoration:underline}
 .upt .tg{width:18px;height:18px;border:1px solid var(--line);background:#fff;border-radius:5px;font-weight:700;cursor:pointer;color:var(--ink2);padding:0;line-height:1}
@@ -476,7 +478,7 @@ body.dashOn .ctlBar .ctl:first-child,body.dashOn .ctl-sec,body.dashOn .ctl-sw{di
 <header class="hd">
   <div class="hd-in">
     <img id="lg" class="lg" alt="WinMart+">
-    <div class="tt">Key Sale KM <span>v4.20.0 · Win Rural · Theo dõi CTKM</span></div>
+    <div class="tt">Key Sale KM <span>v4.21.0 · Win Rural · Theo dõi CTKM</span></div>
     <div class="mt">
       <span class="pill" id="fileinfo" title="">Chưa có dữ liệu</span>
       <div class="ts hd-ts" title="Cỡ chữ">
@@ -2246,31 +2248,40 @@ function renderDash(){
     .filter(m => m.km && norm(m.km.status) === 'chưa km').sort((a,b) => (a.dl ?? 999) - (b.dl ?? 999) || b.fcQ - a.fcQ);
   for (const m of upc) if (m.dr != null) m.dr = Math.min(1, m.dr);
   const rdy = m => { const dr = m.dr ?? 0; return dr >= 0.8 ? ['ok','✅ Sẵn sàng'] : dr >= 0.5 || (m.ndQ || 0) > 0 ? ['mid','🟡 Cần bổ sung'] : ['bad','🔴 Thiếu hàng']; };
-  h += '<section class="dsec"><h3><span class="n">3</span>SKUs highlight sắp KM</h3>';
-  if (!upc.length) h += '<div class="dnone">Không có mã ở trạng thái "Chưa KM" trong phạm vi lọc.</div>';
+  h += '<section class="dsec"><h3><span class="n">3</span>SKUs highlight · Top sale · Top trend · Sắp chạy KM</h3>';
+  /* danh sách highlight: Top N mỗi nhóm — Top sale (DT lũy kế), Top trend (điểm hạng Trend D vs D-1), Sắp chạy KM (max GT tồn, GT FC) */
+  const UN = S.upN || (S.upN = 10), UG = S.upG || (S.upG = 'all'), GO = {sale:0, trend:1, upc:2}, GL = {sale:'💰 Top sale', trend:'🔥 Top trend', upc:'⏳ Sắp chạy KM'};
+  const hl = new Map(), addH = (m, g, rk, f) => { let it = hl.get(m.ai); if (!it){ it = {...m, f, tags:[], ord:9e9}; if (it.dr != null) it.dr = Math.min(1, it.dr); it.dl = it.km ? (norm(it.km.status) === 'chưa km' ? daysLeft(it.km.d0) : daysLeft(it.km.d1)) : null; hl.set(m.ai, it); } it.tags.push(g); it.ord = Math.min(it.ord, GO[g] * 1000 + rk); };
+  lkAll.slice(0, UN).forEach((m, i) => addH(m, 'sale', i, flt)); upAll.slice(0, UN).forEach((m, i) => addH(m, 'trend', i, flt));
+  upc.slice().sort((a, b) => Math.max(b.sV || 0, b.fcV || 0) - Math.max(a.sV || 0, a.fcV || 0)).slice(0, UN).forEach((m, i) => addH(m, 'upc', i, f2));
+  const hlist = [...hl.values()].filter(it => UG === 'all' || it.tags.includes(UG));
+  h += '<div class="ctbar"><div class="seg" title="Số mã mỗi nhóm">' + [5,10,20].map(n => '<button data-upn="' + n + '" aria-pressed="' + (UN === n) + '">Top ' + n + '</button>').join('') + '</div>'
+    + '<div class="seg">' + [['all','Tất cả'],['sale',GL.sale],['trend',GL.trend],['upc',GL.upc]].map(([k, l]) => '<button data-upg="' + k + '" aria-pressed="' + (UG === k) + '">' + l + '</button>').join('') + '</div>'
+    + '<span class="ctinfo">Top sale: DT lũy kế · Top trend: điểm hạng Trend D vs D-1 · Sắp chạy KM: max(GT tồn, GT FC) · "Còn": tới ngày bắt đầu (sắp KM) / ngày kết thúc (đang KM)</span></div>';
+  if (!hlist.length) h += '<div class="dnone">Không có mã phù hợp trong phạm vi lọc.</div>';
   else { const c7 = upc.filter(m => m.dl != null && m.dl <= 7).length, bad = upc.filter(m => rdy(m)[0] === 'bad').length;
     h += '<p class="dsum"><b>' + upc.length + '</b> mã sắp chạy KM · <b>' + c7 + '</b> mã bắt đầu trong 7 ngày · <b style="color:var(--bad)">' + bad + '</b> mã thiếu hàng (độ phủ Min TB &lt; 50%, chưa có PO chờ giao).</p>';
     /* cột chung cho dòng SKU và dòng GĐV (khi mở rộng) */
     const upCells = m => { const r = rdy(m); return '<td>' + fmtQ(m.sQ) + '</td><td>' + fmtV(m.sV) + '</td><td>' + fmtQ(Math.min(Math.round(m.nDR), m.nAct)) + ' / ' + fmtQ(m.nAct) + '</td><td class="' + (m.dr < 0.5 ? 'cell-bad' : m.dr < 0.8 ? 'cell-warn' : 'cell-good') + '">' + fmtPct(m.dr) + '</td><td>' + fmtQ(m.ndQ) + '</td><td>' + fmtV(m.ndV) + '</td><td>' + fmtQ(m.fcQ) + '</td><td>' + fmtV(m.fcV) + '</td><td>' + fmtQ(m.vQ) + '</td><td>' + fmtV(m.vV) + '</td><td class="l"><span class="rdy ' + r[0] + '">' + r[1] + '</span></td>'; };
     const upOpen = S.dashUpOpen || (S.dashUpOpen = new Set());
     const UPL = ['rsm', 'asm', 'code'], UPN = {rsm:'GĐV', asm:'QLKV', code:'CH'};
-    const us = S.upSort || (S.upSort = {k:'dl', asc:true});
+    const us = S.upSort || (S.upSort = {k:'grp', asc:true});
     const upVal = (m, k) => k === 'code' ? m.art?.code : k === 'group' ? m.km?.group : k === 'mech' ? m.km?.mech : k === 'p1' ? m.km?.p1 : k === 'd0' ? +m.km?.d0 : k === 'minTB' ? m.art?.minTB : k === 'rdy' ? {bad:0, mid:1, ok:2}[rdy(m)[0]] : k === 'name' ? m.key : m[k];
     const upCmp = (a, b) => { const x = upVal(a, us.k), y = upVal(b, us.k); if (x == null && y == null) return 0; if (x == null) return 1; if (y == null) return -1; const c = typeof x === 'string' || typeof y === 'string' ? String(x).localeCompare(String(y), 'vi', {numeric:true}) : x - y; return us.asc ? c : -c; };
-    upc.sort(upCmp);
-    const upKids = (m, path) => { const mask = new Uint8Array(M.arts.length); mask[m.ai] = 1; const dim = UPL[path.length];
-      const so = path.length ? Uint8Array.from(f2.storeOK, (v, si) => v && path.every((p, j) => M.stores[si][UPL[j]] === p) ? 1 : 0) : f2.storeOK;
-      const ks = aggregate(M, {...f2, artOK:mask, storeOK:so}, dim).rows.filter(g => g.key && g.key !== '(Trống)').map(g => { const k = metrics(g, S.tb); k.key = g.key; if (k.dr != null) k.dr = Math.min(1, k.dr); if (dim === 'code') k.nm = M.stores.find(x => x.code === g.key)?.name || ''; return k; });
-      const kk = ['code','group','mech','p1','d0','dl','minTB'].includes(us.k) ? 'dr' : us.k; return ks.sort((a, b) => { const x = kk === 'dr' ? a.dr ?? 0 : kk === 'rdy' ? {bad:0, mid:1, ok:2}[rdy(a)[0]] : a[kk] ?? 0, y = kk === 'dr' ? b.dr ?? 0 : kk === 'rdy' ? {bad:0, mid:1, ok:2}[rdy(b)[0]] : b[kk] ?? 0; return (kk === 'dr' || kk === 'rdy' ? 1 : us.asc ? 1 : -1) * (x - y); }); };
+    hlist.sort((a, b) => us.k === 'grp' ? (us.asc ? 1 : -1) * (a.ord - b.ord) : upCmp(a, b));
+    const upKids = (m, path) => { const mask = new Uint8Array(M.arts.length); mask[m.ai] = 1; const dim = UPL[path.length], ff = m.f || f2;
+      const so = path.length ? Uint8Array.from(ff.storeOK, (v, si) => v && path.every((p, j) => M.stores[si][UPL[j]] === p) ? 1 : 0) : ff.storeOK;
+      const ks = aggregate(M, {...ff, artOK:mask, storeOK:so}, dim).rows.filter(g => g.key && g.key !== '(Trống)').map(g => { const k = metrics(g, S.tb); k.key = g.key; if (k.dr != null) k.dr = Math.min(1, k.dr); if (dim === 'code') k.nm = M.stores.find(x => x.code === g.key)?.name || ''; return k; });
+      const kk = ['grp','code','group','mech','p1','d0','dl','minTB'].includes(us.k) ? 'dr' : us.k; return ks.sort((a, b) => { const x = kk === 'dr' ? a.dr ?? 0 : kk === 'rdy' ? {bad:0, mid:1, ok:2}[rdy(a)[0]] : a[kk] ?? 0, y = kk === 'dr' ? b.dr ?? 0 : kk === 'rdy' ? {bad:0, mid:1, ok:2}[rdy(b)[0]] : b[kk] ?? 0; return (kk === 'dr' || kk === 'rdy' ? 1 : us.asc ? 1 : -1) * (x - y); }); };
     const kidRows = (m, path) => upKids(m, path).map(k => { const p2 = path.concat([k.key]), id = m.ai + '|' + p2.join('|'), lv = p2.length, leaf = lv >= UPL.length, op = !leaf && upOpen.has(id);
-      return '<tr class="upk lv' + lv + '"><td class="l" style="padding-left:' + (14 + lv * 18) + 'px">' + (leaf ? '' : '<button type="button" class="tg" data-upx="' + esc(id) + '" title="Xem theo ' + UPN[UPL[lv]] + '">' + (op ? '−' : '+') + '</button> ') + esc(k.key) + (k.nm ? ' <span class="na">' + esc(k.nm) + '</span>' : '') + '</td><td colspan="6" class="l na">' + UPN[UPL[lv - 1]] + '</td>' + upCells(k) + '</tr>' + (op ? kidRows(m, p2) : ''); }).join('');
+      return '<tr class="upk lv' + lv + '"><td class="l" style="padding-left:' + (14 + lv * 18) + 'px">' + (leaf ? '' : '<button type="button" class="tg" data-upx="' + esc(id) + '" title="Xem theo ' + UPN[UPL[lv]] + '">' + (op ? '−' : '+') + '</button> ') + esc(k.key) + (k.nm ? ' <span class="na">' + esc(k.nm) + '</span>' : '') + '</td><td colspan="7" class="l na">' + UPN[UPL[lv - 1]] + '</td>' + upCells(k) + '</tr>' + (op ? kidRows(m, p2) : ''); }).join('');
     const uth = (k, l, c) => '<th class="' + (c || '') + ' srt" data-ups="' + k + '">' + l + (us.k === k ? (us.asc ? ' ▲' : ' ▼') : '') + '</th>';
-    h += '<div class="wrapx"><table class="dt upt"><thead><tr>' + uth('code','SKU','l') + uth('group','Nhóm CTKM','l') + uth('mech','Cơ chế','l') + uth('p1','Giá KM') + uth('d0','Bắt đầu') + uth('dl','Còn') + uth('minTB','Min TB') + uth('sQ','SL tồn') + uth('sV','GT tồn') + uth('nDR','CH đạt Min / CH') + uth('dr','DR') + uth('ndQ','SL chờ giao') + uth('ndV','GT chờ giao') + uth('fcQ','SL FC') + uth('fcV','GT FC') + uth('vQ','SL Validate') + uth('vV','GT Validate') + uth('rdy','Đánh giá','l') + '</tr></thead><tbody>'
-      + upc.map((m, i) => { const hid = i >= 20 && !S.dashAllUpc ? ' hidden' : '', op = upOpen.has(String(m.ai));
-        let t = '<tr' + hid + '><td class="l nm2" title="' + esc(m.art.code + ' - ' + m.art.name) + '"><button type="button" class="tg" data-upx="' + m.ai + '" title="Xem theo GĐV → QLKV → CH">' + (op ? '−' : '+') + '</button> <span class="cd">' + esc(m.art.code) + '</span> ' + esc(m.art.name) + '</td><td class="l">' + esc(m.km.group) + '</td><td class="l mech" title="' + esc(m.km.mech) + '">' + esc(m.km.mech || '—') + '</td><td>' + (m.km.p1 ? nf0.format(m.km.p1) : '—') + '</td><td>' + fmtDate(m.km.d0) + '</td><td class="' + (m.dl != null && m.dl <= 3 ? 'cell-bad' : '') + '">' + (m.dl == null ? '—' : m.dl + ' ngày') + '</td><td>' + (m.art.minTB || '—') + '</td>' + upCells(m) + '</tr>';
+    h += '<div class="wrapx"><table class="dt upt"><thead><tr>' + uth('code','SKU','l') + uth('grp','Nhóm','l') + uth('group','Nhóm CTKM','l') + uth('mech','Cơ chế','l') + uth('p1','Giá KM') + uth('d0','Bắt đầu') + uth('dl','Còn') + uth('minTB','Min TB') + uth('sQ','SL tồn') + uth('sV','GT tồn') + uth('nDR','CH đạt Min / CH') + uth('dr','DR') + uth('ndQ','SL chờ giao') + uth('ndV','GT chờ giao') + uth('fcQ','SL FC') + uth('fcV','GT FC') + uth('vQ','SL Validate') + uth('vV','GT Validate') + uth('rdy','Đánh giá','l') + '</tr></thead><tbody>'
+      + hlist.map((m, i) => { const hid = '', op = upOpen.has(String(m.ai));
+        let t = '<tr' + hid + '><td class="l nm2" title="' + esc(m.art.code + ' - ' + m.art.name) + '"><button type="button" class="tg" data-upx="' + m.ai + '" title="Xem theo GĐV → QLKV → CH">' + (op ? '−' : '+') + '</button> <span class="cd">' + esc(m.art.code) + '</span> ' + esc(m.art.name) + (m.art.qdMembers ? ' <span class="qdb">×' + m.art.qdMembers.length + '</span>' : '') + '</td><td class="l">' + m.tags.sort((a, b) => GO[a] - GO[b]).map(g => '<span class="hlg ' + g + '">' + GL[g] + '</span>').join(' ') + '</td><td class="l">' + esc(m.km?.group || '—') + '</td><td class="l mech" title="' + esc(m.km?.mech) + '">' + esc(m.km?.mech || '—') + '</td><td>' + (m.km?.p1 ? nf0.format(m.km?.p1) : '—') + '</td><td>' + fmtDate(m.km?.d0) + '</td><td class="' + (m.dl != null && m.dl <= 3 ? 'cell-bad' : '') + '">' + (m.dl == null ? '—' : m.dl + ' ngày') + '</td><td>' + (m.art.minTB || '—') + '</td>' + upCells(m) + '</tr>';
         if (op && !hid) t += kidRows(m, []);
         return t; }).join('') + '</tbody></table></div>'
-      + (upc.length > 20 ? '<div class="dmore"><button class="btn" id="dashUpcMore">' + (S.dashAllUpc ? 'Thu gọn' : 'Xem tất cả ' + upc.length + ' mã') + '</button></div>' : ''); }
+; }
   h += '</section>';
 
   /* ---------- 4. Total CTKM & Focus ---------- */
@@ -2312,7 +2323,8 @@ function renderDash(){
   $('dash').innerHTML = h;
   rkNhomInfo();
   $('rowinfo').textContent = '';
-  const mb = $('dashUpcMore'); if (mb) mb.onclick = () => { S.dashAllUpc = !S.dashAllUpc; renderDash(); };
+  $('dash').querySelectorAll('[data-upn]').forEach(b => b.onclick = () => { const y = window.scrollY; S.upN = +b.dataset.upn; renderDash(); window.scrollTo(0, y); });
+  $('dash').querySelectorAll('[data-upg]').forEach(b => b.onclick = () => { const y = window.scrollY; S.upG = b.dataset.upg; renderDash(); window.scrollTo(0, y); });
   const pieInfo = k => { const P = S._pie, el = $('pieInfo'); if (!P || !el) return;
     $('dash').querySelectorAll('.pseg,.pl').forEach(x => x.classList.toggle('on', x.dataset.pi === String(k)));
     if (k === 'rest'){ el.innerHTML = '<div class="pih"><i style="background:#CBD3DF"></i><b>' + fmtQ(P.rest.n) + ' SKU còn lại</b></div><div class="pig"><span>Tỷ trọng DT lũy kế</span><b>' + nf1.format(P.rest.p * 100) + '%</b><span>DT lũy kế</span><b>' + fmtV(P.rest.v) + '</b></div>'; return; }
