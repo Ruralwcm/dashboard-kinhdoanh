@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Key Sale KM v4.10.0 — Win Rural</title>
+<title>Key Sale KM v4.10.1 — Win Rural</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 [hidden]{display:none!important}
@@ -93,7 +93,12 @@ th:hover .sec-view,th:focus-within .sec-view{display:flex}
 .ts button{width:26px;height:26px;border:0;background:transparent;border-radius:6px;font-weight:700;cursor:pointer;color:var(--ink2)}
 .ts button:hover{background:var(--bg)}
 .ts .lbl{font-size:11px;color:var(--ink2);min-width:30px;text-align:center}
-#tabs{display:flex;gap:4px;flex-wrap:wrap;margin:10px 0 6px}
+#tabs{display:flex;gap:4px;flex-wrap:wrap;margin:0}
+.tabRow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:10px 0 6px}
+.qTop{margin-left:auto;display:flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:0 6px 0 12px;min-width:260px;max-width:380px;flex:0 1 320px}
+.qTop:focus-within{border-color:var(--mid);box-shadow:0 0 0 3px var(--midbg)}
+.qTop span{font-size:13px;opacity:.6}
+.qTop input{border:0;outline:0;background:transparent;font-size:13px;padding:8px 4px;width:100%;color:var(--ink)}
 #tabs button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 14px;font-size:13px;font-weight:600;color:var(--ink2);cursor:pointer}
 #tabs button[aria-selected="true"]{background:var(--red);border-color:var(--red);color:#fff}
 
@@ -319,7 +324,8 @@ body.fullscreen .ptools{opacity:.9}
   #fileinfo{display:none}
   main{padding:10px}
   .kpi .v{font-size:16px}
-  #tabs{flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px} #tabs button{flex:none}
+  #tabs{flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px;max-width:100%} #tabs button{flex:none}
+  .qTop{margin-left:0;flex:1 1 100%;max-width:none;min-width:0}
   .ctlBar{gap:8px} .ctl-sec{flex-basis:100%;order:3} .ctl-sec .seg{flex-wrap:nowrap;overflow-x:auto} .ctl-sw{margin-left:auto}
   .recapBox #kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
   #tblWrap{max-height:calc(100vh - 150px)}
@@ -334,7 +340,7 @@ body.fullscreen .ptools{opacity:.9}
 <header class="hd">
   <div class="hd-in">
     <img id="lg" class="lg" alt="WinMart+">
-    <div class="tt">Key Sale KM <span>v4.10.0 · Win Rural · Theo dõi CTKM</span></div>
+    <div class="tt">Key Sale KM <span>v4.10.1 · Win Rural · Theo dõi CTKM</span></div>
     <div class="mt">
       <span class="pill" id="fileinfo" title="">Chưa có dữ liệu</span>
       <div class="ts hd-ts" title="Cỡ chữ">
@@ -445,7 +451,10 @@ body.fullscreen .ptools{opacity:.9}
   </div>
 
   <!-- Tab view -->
-  <div id="tabs" role="tablist"></div>
+  <div class="tabRow">
+    <div id="tabs" role="tablist"></div>
+    <label class="qTop" title="Tìm theo mã SP hoặc tên SP (không cần gõ dấu)"><span>🔍</span><input type="search" id="qTop" placeholder="Tìm mã SP / tên SP…" autocomplete="off"></label>
+  </div>
 
 
   <!-- Ranking config -->
@@ -1279,9 +1288,9 @@ function countFilters(){ return ['q','fStore','fGroup','fMch3','fRegion','fRm','
 function keyLabel(){ const vals = S.keyVals || []; $('msKeyBtn').textContent = !S.keySel ? 'Tất cả' : S.keySel.size ? vals.filter(v => S.keySel.has(v)).join(', ') : '(Chưa chọn)'; }
 
 function buildFilter(){
-  { const n = countFilters(); $('fCount').textContent = n ? '(' + n + ')' : ''; }
+  { const n = countFilters(); $('fCount').textContent = n ? '(' + n + ')' : ''; if (document.activeElement !== $('qTop')) $('qTop').value = $('q').value; }
   const M = S.M;
-  const q = $('q').value.trim().toLowerCase(), g = $('fGroup').value, m3 = $('fMch3').value;
+  const q = vnFold($('q').value.trim()), g = $('fGroup').value, m3 = $('fMch3').value;
   const reg = $('fRegion').value, rm = $('fRm').value, rsm = $('fRsm').value, asm = $('fAsm').value, ty = $('fType').value, sq = $('fStore').value.trim().toLowerCase();
   const storeOK = new Uint8Array(M.stores.length), artOK = new Uint8Array(M.arts.length), kmOf = new Array(M.arts.length).fill(null);
   M.stores.forEach((s,i) => { storeOK[i] = (!reg || s.region===reg) && (!rm || s.rm===rm) && (!rsm || s.rsm===rsm) && (!asm || s.asm===asm) && (!ty || s.type===ty) && (!sq || s.code.toLowerCase().includes(sq)) ? 1 : 0; });
@@ -1294,7 +1303,7 @@ function buildFilter(){
     if (S.scope === 'km' && !km) return;
     if (S.scope === 'all' && (g || S.keySel) && !km) return;
     if (m3 && a.mch3 !== m3) return;
-    if (q && !(a.code.toLowerCase().includes(q) || a.name.toLowerCase().includes(q))) return;
+    if (q && !(vnFold(a.code).includes(q) || vnFold(a.name).includes(q))) return;
     artOK[i] = 1; kmOf[i] = km || a.km;
   });
   const cgParts = CG_ATTRS.filter(([k]) => S.cg.has(k));
@@ -1791,6 +1800,9 @@ function initUI(){
 
   let tmr; const deb = () => { clearTimeout(tmr); tmr = setTimeout(() => { S.page = 200; render(); }, 220); };
   ['q','fStore'].forEach(id => $(id).addEventListener('input', deb));
+  $('qTop').addEventListener('input', () => { $('q').value = $('qTop').value; deb(); });
+  $('q').addEventListener('input', () => { $('qTop').value = $('q').value; });
+  $('qTop').addEventListener('keydown', e => { if (e.key === 'Escape' && $('qTop').value){ e.stopPropagation(); $('qTop').value = $('q').value = ''; S.page = 200; render(); } });
   ['fGroup','fMch3','fRegion','fRm','fRsm','fAsm','fType'].forEach(id => $(id).addEventListener('change', () => { S.page = 200; if (id==='fRegion' || id==='fRm' || id==='fRsm') cascade(); render(); }));
   document.querySelectorAll('.filters select').forEach(cbMake);
 
