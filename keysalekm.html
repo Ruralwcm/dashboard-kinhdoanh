@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Key Sale KM v4.28.8 — Win Rural</title>
+<title>Key Sale KM v4.28.9 — Win Rural</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 [hidden]{display:none!important}
@@ -537,7 +537,7 @@ body.dashOn .ctlBar .ctl:first-child,body.dashOn .ctl-sec,body.dashOn .ctl-sw{di
 <header class="hd">
   <div class="hd-in">
     <img id="lg" class="lg" alt="WinMart+">
-    <div class="tt">Key Sale KM <span id="fileinfo" title="">v4.28.8 · Win Rural · Theo dõi CTKM</span></div>
+    <div class="tt">Key Sale KM <span id="fileinfo" title="">v4.28.9 · Win Rural · Theo dõi CTKM</span></div>
     <div class="mainTabs hdTabs" id="mainTabs" role="tablist"></div>
     <div class="mt">
       <div class="ts hd-ts" title="Cỡ chữ">
@@ -1405,7 +1405,7 @@ function fmtCell(type, v){
     case 'tv': return [fmtV(v), ''];
     case 'dio': return [v===null?'—':nf0.format(v), v===null?'na': v>60?'cell-bad': v>30?'cell-warn':''];
     case 'pct': return [fmtPct(v), v===null?'na': v<0.5?'cell-bad': v<0.8?'cell-warn':'cell-good'];
-    case 'rank': { const N = S.curRankN ?? S.rankN; return [v==null?'—':'<span class="rk' + (v<=3?' top':'') + (N > 6 && v > N - 3 ? ' bot':'') + '">#' + v + (S.curRankN ? '<small>/' + N + '</small>' : '') + '</span>', '']; }
+    case 'rank': { const N = S.curRankN ?? S.rankN; return [v==null?'—':'<span class="rk' + (v<=3?' top':'') + (N > 6 && v > N - 3 ? ' bot':'') + '">' + v + (S.curRankN ? '<small>/' + N + '</small>' : '') + '</span>', '']; }
     case 'rkt': { if (v==null) return ['—','']; if (v > 0) return ['<span class="trb tb-up">▲</span>' + v, 'cell-good']; if (v < 0) return ['<span class="trb tb-down">▼</span>' + (-v), 'cell-bad']; return ['<span class="trb tb-flat">▶</span>0','na']; }
     case 'idx': return [v==null||!isFinite(v)?'—':nf0.format(v), v==null?'na': v>=110?'cell-good': v<90?'cell-bad':''];
     case 't2': return [v==null||Number.isNaN(v)?'—':(Math.abs(v) < 10 ? nf2.format(v) : nf1.format(v)), ''];
@@ -2209,7 +2209,7 @@ function skuPop(ai){
     rankHQ(rs, m => ({arts:[ai], st: si => so[si] && M.stores[si][dim] === m.key})); applyTrend(rs, true);
     rs.sort((a, b) => dim === 'rm' ? String(a.key).localeCompare(String(b.key), 'vi') : (a.rankT || 0) - (b.rankT || 0)); return rs; };
   const tot = metrics(aggregate(M, {...flt, artOK:mask}, 'rm').total, S.tb);
-  const C0 = [['Số CH', m => fmtQ(m.nAct)], ['Rank LK', m => m.rankT ? '#' + m.rankT : ''], ['DT lũy kế', m => fmtV(m.rLK)], ['DT BQ/CH', m => fmtV(m.trLK)], ['% CH bán', m => fmtPct(m.nAct ? Math.min(1, m.nSale / m.nAct) : null)], ['SL lũy kế', m => fmtQ(m.qLK)],
+  const C0 = [['Số CH', m => fmtQ(m.nAct)], ['Rank LK', m => m.rankT ? '' + m.rankT : ''], ['DT lũy kế', m => fmtV(m.rLK)], ['DT BQ/CH', m => fmtV(m.trLK)], ['% CH bán', m => fmtPct(m.nAct ? Math.min(1, m.nSale / m.nAct) : null)], ['SL lũy kế', m => fmtQ(m.qLK)],
     ['DT D-1', m => fmtV(m.rD1)], ['DT D', m => fmtV(m.rD)], ['Tăng thêm', m => { const d = (m.rD || 0) - (m.rD1 || 0); return '<span class="' + clsSg(d) + '">' + sgnV(d) + '</span>'; }], ['%Δ', m => { const v = m.rD1 > 0 ? (m.rD - m.rD1) / m.rD1 * 100 : null; return v == null ? '—' : '<span class="' + clsSg(v) + '">' + pctTxt(v) + '</span>'; }],
     ['GT tồn', m => fmtV(m.sV)], ['DIO', m => m.dio == null ? '—' : '<span class="' + (m.dio > 60 ? 'cell-bad' : m.dio > 30 ? 'cell-warn' : '') + '">' + nf0.format(m.dio) + '</span>'], ['DR', m => '<span class="' + (m.dr < 0.5 ? 'cell-bad' : m.dr < 0.8 ? 'cell-warn' : 'cell-good') + '">' + fmtPct(m.dr == null ? null : Math.min(1, m.dr)) + '</span>'], ['% No sale', m => fmtPct(m.noSale)], ['Xu hướng', m => m.trendLabel ? lblHtml(m.trendLabel) : '']];
   /* 4 vùng cột: 1 Phạm vi (tên, Số CH, Rank) · 2 Lũy kế · 3 Ngày D vs D-1 · 4 Tồn kho / độ phủ / xu hướng */
@@ -2378,7 +2378,7 @@ function renderDash(){
   const perf = dim => { const rs = aggregate(M, flt, dim).rows.filter(g => g.key && g.key !== '(Trống)').map(g => { const m = metrics(g, S.tb); m.key = g.key; return m; });
     rankHQ(rs, m => ({st: si => M.stores[si][dim] === m.key})); applyTrend(rs, true); rs.sort((a,b) => a.rankT - b.rankT); return rs; };
   const perfTbl = (rs, lbl) => '<div class="wrapx"><table class="dt"><thead><tr><th class="c">Rank D</th><th class="l">' + lbl + '</th><th>Rank D-1</th><th class="c">Lên/xuống</th><th>Rank Total</th><th>Index DT D</th><th>Index SL D</th><th>% CH×mã bán D</th><th>DT D</th><th>DT tăng thêm</th><th>%Δ DT</th><th class="l">Xu hướng</th><th class="l">Chỉ số yếu</th></tr></thead><tbody>'
-    + rs.map(m => '<tr><td class="c"><b>#' + m.rankD + '</b></td><td class="l"><b>' + esc(m.key) + '</b></td><td>#' + m.rankD1 + '</td><td class="c">' + rkHtml(m.rkTrend) + '</td><td>#' + m.rankT + '</td><td class="' + (m.iV_D >= 110 ? 'cell-good' : m.iV_D < 90 ? 'cell-bad' : '') + '">' + (m.iV_D == null ? '—' : nf0.format(m.iV_D)) + '</td><td class="' + (m.iQ_D >= 110 ? 'cell-good' : m.iQ_D < 90 ? 'cell-bad' : '') + '">' + (m.iQ_D == null ? '—' : nf0.format(m.iQ_D)) + '</td><td>' + fmtPct(m.cov_D) + '</td><td>' + fmtV(m.rD) + '</td><td class="' + clsSg(m.dVal) + '">' + sgnV(m.dVal) + '</td><td class="' + clsSg(m.vVal) + '">' + pctTxt(m.vVal) + '</td><td class="l">' + lblHtml(m.trendLabel) + '</td><td class="wkc">' + wkHtml(m) + '</td></tr>').join('') + '</tbody></table></div>';
+    + rs.map(m => '<tr><td class="c"><b>' + m.rankD + '</b></td><td class="l"><b>' + esc(m.key) + '</b></td><td>' + m.rankD1 + '</td><td class="c">' + rkHtml(m.rkTrend) + '</td><td>' + m.rankT + '</td><td class="' + (m.iV_D >= 110 ? 'cell-good' : m.iV_D < 90 ? 'cell-bad' : '') + '">' + (m.iV_D == null ? '—' : nf0.format(m.iV_D)) + '</td><td class="' + (m.iQ_D >= 110 ? 'cell-good' : m.iQ_D < 90 ? 'cell-bad' : '') + '">' + (m.iQ_D == null ? '—' : nf0.format(m.iQ_D)) + '</td><td>' + fmtPct(m.cov_D) + '</td><td>' + fmtV(m.rD) + '</td><td class="' + clsSg(m.dVal) + '">' + sgnV(m.dVal) + '</td><td class="' + clsSg(m.vVal) + '">' + pctTxt(m.vVal) + '</td><td class="l">' + lblHtml(m.trendLabel) + '</td><td class="wkc">' + wkHtml(m) + '</td></tr>').join('') + '</tbody></table></div>';
   const pG = perf('rsm'), pQ = perf('asm');
   { const med = (L, f) => { const v = L.map(m => m[f]).filter(x => x != null && isFinite(x)).sort((a,b) => a - b); return v.length ? v[v.length >> 1] : null; }; S._kmMed = {T: med(pG, 'kmS_T'), D1: med(pG, 'kmS_D1'), D: med(pG, 'kmS_D')}; }
   weakDiag(pG); weakDiag(pQ);
@@ -2390,7 +2390,7 @@ function renderDash(){
   const bqOf = (m, p, fr) => { const n = S.tb === 'ps' ? (m[NCH[p]] || 0) : (m.nAct || 0); return n ? (m[fr] || 0) / n : null; };
   const BASE = (p, fr) => [['Total Sale', m => '<td>' + fmtV(m[fr]) + '</td>'], ['Sale BQ', m => { const v = bqOf(m, p, fr); return '<td>' + (v == null ? '—' : fmtV(v)) + '</td>'; }], ['% No sale', m => { const v = m[NSF[p]]; return '<td class="' + (v > 0.85 ? 'cell-bad' : v > 0.7 ? 'cell-warn' : '') + '">' + fmtPct(v) + '</td>'; }], ['% KM / Total', m => { const v = m['kmS_' + p], md = S._kmMed && S._kmMed[p]; return '<td class="' + (v != null && md ? (v < md * 0.85 ? 'cell-bad' : v > md * 1.15 ? 'cell-good' : '') : '') + '" title="DT KM ÷ Tổng DT CH (SPD)">' + (v == null ? '—' : fmtPct(v)) + '</td>'; }]];
   const KPI = (p, fr, dl) => [['Index DT', m => idxTd(m['iV_' + p])], ['Index SL', m => idxTd(m['iQ_' + p])], ['% CH×mã bán', m => '<td>' + fmtPct(m['cov_' + p]) + '</td>'], ['Sell-through', m => '<td>' + fmtPct(m['st_' + p]) + '</td>'], ['DR', m => '<td class="' + (m.dr < 0.5 ? 'cell-bad' : m.dr < 0.8 ? 'cell-warn' : '') + '">' + fmtPct(m.dr) + '</td>']];
-  const rkTd = (v, n) => '<td class="c rkc' + (v <= 3 ? ' top' : v > n - 3 ? ' bot' : '') + '"><b>#' + v + '</b></td>';
+  const rkTd = (v, n) => '<td class="c rkc' + (v <= 3 ? ' top' : v > n - 3 ? ' bot' : '') + '"><b>' + v + '</b></td>';
   const gdvTbl = (rs, lbl, N, withGdv) => { const n = N || rs.length; lbl = lbl || 'GĐV';
     /* độ rộng cột cố định → bảng GĐV và QLKV thẳng cột nhau */
     /* độ rộng theo tỷ lệ (vừa khung, không cuộn ngang); 2 bảng cùng tỷ lệ → thẳng cột */
@@ -2408,7 +2408,7 @@ function renderDash(){
   const imp = pG.filter(m => m.rkTrend > 0).length, dec = pG.filter(m => m.rkTrend < 0).length;
   h += '<h4>🏆 Performance CTKM theo GĐV</h4><p class="dsum">Xếp hạng theo 6 tiêu chí (Index DT/SL so với CH cùng nhóm MCH3, % CH×mã bán, sell-through, DR, tỷ trọng Sale KM/Total). <b>' + imp + '</b> GĐV lên hạng, <b>' + dec + '</b> GĐV xuống hạng so với D-1.' + (pG.length ? ' Dẫn đầu: <b>' + esc(pG[0].key) + '</b>.' : '') + ' Mỗi kỳ luôn hiện Rank · Total Sale · Sale BQ · % No sale; bấm ▸ / ▾ để hiện thêm Index DT/SL, % CH×mã bán, Sell-through, DR.</p>' + gdvTbl(pG);
   const qTbl = rs => '<div class="wrapx"><table class="dt"><thead><tr><th class="c">Rank D</th><th class="l">QLKV</th><th class="l">GĐV</th><th class="c">vs D-1</th><th>Index DT</th><th>DT tăng thêm</th><th class="l">Chỉ số yếu</th></tr></thead><tbody>'
-    + rs.map(m => { const g = M.stores.find(x => x.asm === m.key)?.rsm || ''; return '<tr><td class="c"><b>#' + m.rankD + '</b></td><td class="l"><b>' + esc(m.key) + '</b></td><td class="l">' + esc(g) + '</td><td class="c">' + rkHtml(m.rkTrend) + '</td><td class="' + (m.iV_D >= 110 ? 'cell-good' : m.iV_D < 90 ? 'cell-bad' : '') + '">' + (m.iV_D == null ? '—' : nf0.format(m.iV_D)) + '</td><td class="' + clsSg(m.dVal) + '">' + sgnV(m.dVal) + '</td><td class="wkc">' + wkHtml(m, 3) + '</td></tr>'; }).join('') + '</tbody></table></div>';
+    + rs.map(m => { const g = M.stores.find(x => x.asm === m.key)?.rsm || ''; return '<tr><td class="c"><b>' + m.rankD + '</b></td><td class="l"><b>' + esc(m.key) + '</b></td><td class="l">' + esc(g) + '</td><td class="c">' + rkHtml(m.rkTrend) + '</td><td class="' + (m.iV_D >= 110 ? 'cell-good' : m.iV_D < 90 ? 'cell-bad' : '') + '">' + (m.iV_D == null ? '—' : nf0.format(m.iV_D)) + '</td><td class="' + clsSg(m.dVal) + '">' + sgnV(m.dVal) + '</td><td class="wkc">' + wkHtml(m, 3) + '</td></tr>'; }).join('') + '</tbody></table></div>';
   const qDown = pQ.filter(m => m.rkTrend != null).sort((a,b) => a.rkTrend - b.rkTrend).slice(0, 10);
   if (selSet('fRsm') || selSet('fAsm') || pQ.length <= 20) h += '<h4>👥 Performance CTKM theo QLKV · ' + pQ.length + ' QLKV (Rank lũy kế)</h4>' + gdvTbl(pQ, 'QLKV', pQ.length, true);
   else { h += '<h4>👥 Performance CTKM theo QLKV · 🏅 Top 10 (Rank lũy kế / ' + pQ.length + ' QLKV)</h4>' + gdvTbl(pQ.slice(0, 10), 'QLKV', pQ.length, true);
@@ -2482,8 +2482,8 @@ function renderDash(){
   const tg = m => (m.weak || []).slice(0, 3).map(x => x[0]).join(' · ');
   const li = [];
   if (dn.length) li.push('Nhóm CTKM giảm: ' + dn.slice(0, 3).map(g => '<b>' + esc(g.key) + '</b> ' + sgnV(g.dVal) + ' (' + pctTxt(g.vVal) + ')').join(', ') + '.');
-  const gBot = pG.slice().sort((a,b) => b.rankD - a.rankD).slice(0, 3); if (gBot.length) li.push('GĐV xếp cuối (Rank D): ' + gBot.map(m => '<b>' + esc(m.key) + '</b> #' + m.rankD + (tg(m) ? ' — ' + esc(tg(m)) : '')).join('; ') + '.');
-  const gDown = pG.filter(m => m.rkTrend < 0).sort((a,b) => a.rkTrend - b.rkTrend).slice(0, 3); if (gDown.length) li.push('GĐV tụt hạng vs D-1: ' + gDown.map(m => '<b>' + esc(m.key) + '</b> ▼' + (-m.rkTrend) + ' (#' + m.rankD1 + ' → #' + m.rankD + ')').join(', ') + '.');
+  const gBot = pG.slice().sort((a,b) => b.rankD - a.rankD).slice(0, 3); if (gBot.length) li.push('GĐV xếp cuối (Rank D): ' + gBot.map(m => '<b>' + esc(m.key) + '</b> ' + m.rankD + (tg(m) ? ' — ' + esc(tg(m)) : '')).join('; ') + '.');
+  const gDown = pG.filter(m => m.rkTrend < 0).sort((a,b) => a.rkTrend - b.rkTrend).slice(0, 3); if (gDown.length) li.push('GĐV tụt hạng vs D-1: ' + gDown.map(m => '<b>' + esc(m.key) + '</b> ▼' + (-m.rkTrend) + ' (' + m.rankD1 + ' → ' + m.rankD + ')').join(', ') + '.');
   const qBot = pQ.slice().sort((a,b) => b.rankD - a.rankD).slice(0, 5); if (qBot.length) li.push('QLKV yếu nhất: ' + qBot.map(m => '<b>' + esc(m.key) + '</b>' + (tg(m) ? ' (' + esc(tg(m)) + ')' : '')).join('; ') + '.');
   if (flop5.length) li.push('SKU giảm mạnh: ' + flop5.slice(0, 3).map(r => '<b>' + esc(r.art.name) + '</b> ' + sgnV(r.dVal) + (r.gdvWorst && r.gdvWorst.length ? ' — kéo giảm chủ yếu tại ' + r.gdvWorst.map(x => esc(x[0]) + ' ' + sgnV(x[1])).join(', ') : '')).join('; ') + '.');
   const upBad = upc.filter(m => m.dl != null && m.dl <= 7 && rdy(m)[0] === 'bad'); if (upBad.length) li.push('<b>' + upBad.length + '</b> mã sắp KM trong 7 ngày đang thiếu hàng: ' + upBad.slice(0, 4).map(m => esc(m.art.name) + ' (' + fmtDate(m.km.d0) + ')').join(', ') + (upBad.length > 4 ? '…' : '') + '.');
@@ -2503,7 +2503,7 @@ function renderDash(){
     $('dash').querySelectorAll('.pseg,.pl').forEach(x => x.classList.toggle('on', x.dataset.pi === String(k)));
     if (k === 'rest'){ el.innerHTML = '<div class="pih"><i style="background:#CBD3DF"></i><b>' + fmtQ(P.rest.n) + ' SKU còn lại</b></div><div class="pig"><span>Tỷ trọng DT lũy kế</span><b>' + nf1.format(P.rest.p * 100) + '%</b><span>DT lũy kế</span><b>' + fmtV(P.rest.v) + '</b></div>'; return; }
     const it = P.items[k]; if (!it){ el.innerHTML = '<div class="na" style="font-size:12px">Bấm vào từng phần màu hoặc tên mã để xem chi tiết.</div>'; return; }
-    el.innerHTML = '<div class="pih"><i style="background:' + it.c + '"></i><span class="skl" data-sku="' + it.ai + '"><b>' + esc(it.code) + '</b> ' + esc(it.name) + '</span> <button class="btn" style="padding:1px 8px;font-size:11px" data-sku="' + it.ai + '">Chi tiết ⤢</button></div><div class="na" style="font-size:11.5px;margin-bottom:4px">' + esc(it.grp) + ' · #' + (k + 1) + ' theo DT lũy kế · ' + fmtQ(it.ch) + ' CH bán' + (it.mem ? ' · <b>gộp ' + it.mem.length + ' mã</b>: ' + esc(it.mem.join(', ')) : '') + '</div>'
+    el.innerHTML = '<div class="pih"><i style="background:' + it.c + '"></i><span class="skl" data-sku="' + it.ai + '"><b>' + esc(it.code) + '</b> ' + esc(it.name) + '</span> <button class="btn" style="padding:1px 8px;font-size:11px" data-sku="' + it.ai + '">Chi tiết ⤢</button></div><div class="na" style="font-size:11.5px;margin-bottom:4px">' + esc(it.grp) + ' · hạng ' + (k + 1) + ' theo DT lũy kế · ' + fmtQ(it.ch) + ' CH bán' + (it.mem ? ' · <b>gộp ' + it.mem.length + ' mã</b>: ' + esc(it.mem.join(', ')) : '') + '</div>'
       + '<div class="pig"><span>Tỷ trọng DT lũy kế</span><b>' + nf1.format(it.p * 100) + '%</b><span>DT lũy kế · ' + unitShort() + '</span><b>' + fmtV(it.rLK) + '</b><span>SL bán lũy kế</span><b>' + fmtQ(it.qLK) + '</b>'
       + '<span>Tỷ trọng DT ngày D</span><b>' + nf1.format(it.pD * 100) + '%</b><span>DT ngày D</span><b>' + fmtV(it.rD) + '</b><span>SL bán ngày D</span><b>' + fmtQ(it.qD) + '</b></div>'; };
   { let pop = $('gPop'); if (!pop){ pop = document.createElement('div'); pop.id = 'gPop'; pop.hidden = true; document.body.appendChild(pop); }
