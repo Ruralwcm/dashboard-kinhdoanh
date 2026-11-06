@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Key Sale KM v4.28.10 — Win Rural</title>
+<title>Key Sale KM v4.28.11 — Win Rural</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 [hidden]{display:none!important}
@@ -537,7 +537,7 @@ body.dashOn .ctlBar .ctl:first-child,body.dashOn .ctl-sec,body.dashOn .ctl-sw{di
 <header class="hd">
   <div class="hd-in">
     <img id="lg" class="lg" alt="WinMart+">
-    <div class="tt">Key Sale KM <span id="fileinfo" title="">v4.28.10 · Win Rural · Theo dõi CTKM</span></div>
+    <div class="tt">Key Sale KM <span id="fileinfo" title="">v4.28.11 · Win Rural · Theo dõi CTKM</span></div>
     <div class="mainTabs hdTabs" id="mainTabs" role="tablist"></div>
     <div class="mt">
       <div class="ts hd-ts" title="Cỡ chữ">
@@ -2472,8 +2472,8 @@ function renderDash(){
     const uth = (k, l, c) => '<th class="' + (c || '') + ' srt" data-ups="' + k + '">' + l + (us.k === k ? (us.asc ? ' ▲' : ' ▼') : '') + '</th>';
     h += '<div class="wrapx"><table class="dt upt' + ((S.upView || 'compact') === 'compact' ? ' cmp' : '') + '"><thead><tr>' + uth('grp','Nhóm','l') + uth('code','SKU','l') + uth('p1','Giá KM') + uth('mech','Cơ chế','l') + uth('area','Miền AD') + uth('d0','Ngày bắt đầu') + uth('d1','Ngày kết thúc') + uth('dl','Còn') + uth('minTB','Min TB') + uth('sQ','SL tồn') + uth('sV','GT tồn') + uth('noMin','#Store không đạt Min') + uth('dr','DR') + uth('ndQ','SL chờ giao') + uth('ndV','GT chờ giao') + uth('fcQ','SL FC','fcv') + uth('fcV','GT FC','fcv') + uth('vQ','SL Validate','fcv') + uth('vV','GT Validate','fcv') + uth('rdy','Đánh giá','l') + '</tr></thead><tbody>'
       + hlist.map((m, i) => { const hid = '', op = upOpen.has(String(m.ai));
-        let t = '<tr' + hid + '><td class="l">' + m.tags.sort((a, b) => GO[a] - GO[b]).map(g => '<span class="hlg ' + g + '">' + GL[g] + '</span>').join(' ') + '</td><td class="l nm2" title="' + esc(m.art.code + ' - ' + m.art.name + (m.km?.group ? ' · ' + m.km.group : '')) + '"><button type="button" class="tg" data-upx="' + m.ai + '" title="Xem theo GĐV → QLKV → CH">' + (op ? '−' : '+') + '</button> <span class="skl" data-sku="' + m.ai + '"><span class="cd">' + esc(m.art.code) + '</span> ' + esc(m.art.name) + '</span>' + (m.art.qdMembers ? ' <span class="qdb">×' + m.art.qdMembers.length + '</span>' : '') + '</td><td class="pc">' + (m.km?.p1 ? nf0.format(m.km.p1) : '—') + pxHtml(m) + '</td><td class="l mech" title="' + esc(m.km?.mech) + '">' + esc(m.km?.mech || '—') + '</td><td class="c" title="' + esc(m.km?.area || '') + '">' + areaHtml(m.km?.area) + '</td><td>' + fmtDate(m.km?.d0) + '</td><td>' + fmtDate(m.km?.d1) + '</td><td class="' + (m.dl != null && m.dl <= 3 ? 'cell-bad' : '') + '">' + (m.dl == null ? '—' : m.dl + ' ngày') + '</td><td>' + (m.art.minTB || '—') + '</td>' + upCells(m) + '</tr>';
-        if (op && !hid) t += kidRows(m, []);
+        let t = '<tr' + hid + '><td class="l">' + m.tags.sort((a, b) => GO[a] - GO[b]).map(g => '<span class="hlg ' + g + '">' + GL[g] + '</span>').join(' ') + '</td><td class="l nm2" title="' + esc(m.art.code + ' - ' + m.art.name + (m.km?.group ? ' · ' + m.km.group : '')) + '"><span class="skl" data-sku=""' + m.ai + '"><span class="cd">' + esc(m.art.code) + '</span> ' + esc(m.art.name) + '</span>' + (m.art.qdMembers ? ' <span class="qdb">×' + m.art.qdMembers.length + '</span>' : '') + '</td><td class="pc">' + (m.km?.p1 ? nf0.format(m.km.p1) : '—') + pxHtml(m) + '</td><td class="l mech" title="' + esc(m.km?.mech) + '">' + esc(m.km?.mech || '—') + '</td><td class="c" title="' + esc(m.km?.area || '') + '">' + areaHtml(m.km?.area) + '</td><td>' + fmtDate(m.km?.d0) + '</td><td>' + fmtDate(m.km?.d1) + '</td><td class="' + (m.dl != null && m.dl <= 3 ? 'cell-bad' : '') + '">' + (m.dl == null ? '—' : m.dl + ' ngày') + '</td><td>' + (m.art.minTB || '—') + '</td>' + upCells(m) + '</tr>';
+        /* chi tiết theo GĐV → QLKV: bấm tên SP để mở popup */
         return t; }).join('') + '</tbody></table></div>'
 ; }
   h += '</section>';
