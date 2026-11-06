@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Key Sale KM v4.23.3 — Win Rural</title>
+<title>Key Sale KM v4.23.4 — Win Rural</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 [hidden]{display:none!important}
@@ -429,6 +429,7 @@ table.ctt{border-collapse:separate;border-spacing:0;font-size:12.5px;width:max-c
 .gdvt .pgx{margin-left:4px;border:1px solid rgba(255,255,255,.5);background:transparent;color:#fff;border-radius:5px;padding:0 5px;cursor:pointer;font-size:11px;line-height:1.4}
 .gdvt td.rkc{border-left:2px solid var(--line);font-size:13px} .gdvt td.rkc.top b{color:var(--good)} .gdvt td.rkc.bot b{color:var(--bad)}
 .upt tr.upk td{background:#F6F9FE;font-size:12px}
+.pxa{display:inline-block;cursor:help;font-size:12px;font-weight:800;margin-left:2px}.pxa.up{color:var(--bad)}.pxa.dn{color:var(--good)}
 .pxw{display:inline-block;margin-top:2px;border-radius:6px;padding:0 5px;font-size:10.5px;font-weight:700;white-space:nowrap}
 .pxw.up{background:var(--badbg);color:var(--bad)} .pxw.dn{background:#E7F6EE;color:var(--good)}
 .upt td.pc{white-space:nowrap}
@@ -502,7 +503,7 @@ body.dashOn .ctlBar .ctl:first-child,body.dashOn .ctl-sec,body.dashOn .ctl-sw{di
 <header class="hd">
   <div class="hd-in">
     <img id="lg" class="lg" alt="WinMart+">
-    <div class="tt">Key Sale KM <span>v4.23.3 · Win Rural · Theo dõi CTKM</span></div>
+    <div class="tt">Key Sale KM <span>v4.23.4 · Win Rural · Theo dõi CTKM</span></div>
     <div class="mt">
       <span class="pill" id="fileinfo" title="">Chưa có dữ liệu</span>
       <div class="ts hd-ts" title="Cỡ chữ">
@@ -2347,10 +2348,15 @@ function renderDash(){
     const pxOf = m => { const A = m.art, k = m.km; if (!A || !k || !k.p1) return [];
       const ks = (A.kms || []).filter(x => x !== k && x.p1 && x.d0 && x.d1 && k.d0 && k.d1), out = [], D = 864e5;
       for (const x of ks){ if (x.p1 === k.p1) continue;
-        if (+x.d1 < +k.d0 && +k.d0 - +x.d1 <= 1.5 * D) out.push({dir: k.p1 > x.p1 ? 'up' : 'dn', from: x.p1, to: k.p1, when: k.d0, ref: x});        /* đợt trước kết thúc ngay trước đợt này */
-        else if (+x.d0 > +k.d1 && +x.d0 - +k.d1 <= 1.5 * D) out.push({dir: x.p1 > k.p1 ? 'up' : 'dn', from: k.p1, to: x.p1, when: x.d0, ref: x}); }  /* đợt sau bắt đầu ngay sau đợt này */
+        if (+x.d1 < +k.d0 && +k.d0 - +x.d1 <= 1.5 * D) out.push({dir: k.p1 > x.p1 ? 'up' : 'dn', from: x.p1, to: k.p1, when: k.d0, a: x, b: k});        /* đợt trước kết thúc ngay trước đợt này */
+        else if (+x.d0 > +k.d1 && +x.d0 - +k.d1 <= 1.5 * D) out.push({dir: x.p1 > k.p1 ? 'up' : 'dn', from: k.p1, to: x.p1, when: x.d0, a: k, b: x}); }  /* đợt sau bắt đầu ngay sau đợt này */
       const seen = new Set(); return out.filter(x => { const key = x.dir + x.from + '|' + x.to + '|' + +x.when; if (seen.has(key)) return false; seen.add(key); return true; }); };
-    const pxHtml = m => pxOf(m).map(x => '<br><span class="pxw ' + x.dir + '" title="CTKM nối tiếp: ' + esc((x.ref.group || '') + ' ' + fmtDate(x.ref.d0) + '–' + fmtDate(x.ref.d1)) + ' · giá ' + nf0.format(x.from) + ' → ' + nf0.format(x.to) + ' từ ' + fmtDate(x.when) + '">' + (x.dir === 'up' ? '▲ Tăng giá ' : '▼ Giảm giá ') + nf0.format(x.from) + '→' + nf0.format(x.to) + '</span>').join('');
+    const pxHtml = m => { const L = pxOf(m); if (!L.length) return '';
+      const per = k => (k.group || '—') + ': ' + fmtDate(k.d0) + ' → ' + fmtDate(k.d1) + ' · giá KM ' + nf0.format(k.p1) + (k.p0 ? ' (thường ' + nf0.format(k.p0) + ')' : '');
+      return L.map(x => { const d = x.to - x.from, pc = x.from ? d / x.from * 100 : 0;
+        const tip = (x.dir === 'up' ? '▲ TĂNG GIÁ' : '▼ GIẢM GIÁ') + ' ' + (d > 0 ? '+' : '') + nf0.format(d) + 'đ (' + (pc > 0 ? '+' : '') + nf1.format(pc) + '%) từ ' + fmtDate(x.when)
+          + '\n• Giá cũ ' + nf0.format(x.from) + ' — ' + per(x.a) + '\n• Giá mới ' + nf0.format(x.to) + ' — ' + per(x.b) + '\nHiệu lực giá mới: ' + fmtDate(x.b.d0) + ' → ' + fmtDate(x.b.d1);
+        return ' <span class="pxa ' + x.dir + '" title="' + esc(tip) + '">' + (x.dir === 'up' ? '▲' : '▼') + '</span>'; }).join(''); };
     const uth = (k, l, c) => '<th class="' + (c || '') + ' srt" data-ups="' + k + '">' + l + (us.k === k ? (us.asc ? ' ▲' : ' ▼') : '') + '</th>';
     h += '<div class="wrapx"><table class="dt upt"><thead><tr>' + uth('grp','Nhóm','l') + uth('code','SKU','l') + uth('p1','Giá KM') + uth('mech','Cơ chế','l') + uth('d0','Ngày bắt đầu') + uth('d1','Ngày kết thúc') + uth('dl','Còn') + uth('minTB','Min TB') + uth('sQ','SL tồn') + uth('sV','GT tồn') + uth('nDR','CH đạt Min / CH') + uth('dr','DR') + uth('ndQ','SL chờ giao') + uth('ndV','GT chờ giao') + uth('fcQ','SL FC') + uth('fcV','GT FC') + uth('vQ','SL Validate') + uth('vV','GT Validate') + uth('rdy','Đánh giá','l') + '</tr></thead><tbody>'
       + hlist.map((m, i) => { const hid = '', op = upOpen.has(String(m.ai));
