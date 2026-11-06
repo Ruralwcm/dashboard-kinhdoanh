@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Key Sale KM v4.21.2 — Win Rural</title>
+<title>Key Sale KM v4.21.3 — Win Rural</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 [hidden]{display:none!important}
@@ -411,8 +411,12 @@ table.ctt{border-collapse:separate;border-spacing:0;font-size:12.5px;width:max-c
 .dt .nm2{max-width:260px;overflow:hidden;text-overflow:ellipsis}
 .dt .mech{max-width:170px;overflow:hidden;text-overflow:ellipsis}
 .gdvt th.pg{background:var(--navy);color:#fff;border-left:2px solid #fff;font-size:12px}
-.gdvt{table-layout:fixed;width:max-content}
-.gdvt td.nmc{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gdvt{table-layout:fixed;width:100%}
+.gdvt th{white-space:normal!important;line-height:1.25;vertical-align:middle}
+.gdvt td{white-space:nowrap;font-size:12.5px;padding-left:4px;padding-right:4px}
+.gdvt td.nmc,.gdvt td.wkc{white-space:normal!important}
+.gdvt td.wkc{min-width:0!important}
+.gdvt .wk{white-space:normal}
 .gdvt th.pgD{background:var(--red)} .gdvt th.pgT{background:#44546A}
 .gdvt .pgx{margin-left:4px;border:1px solid rgba(255,255,255,.5);background:transparent;color:#fff;border-radius:5px;padding:0 5px;cursor:pointer;font-size:11px;line-height:1.4}
 .gdvt td.rkc{border-left:2px solid var(--line);font-size:13px} .gdvt td.rkc.top b{color:var(--good)} .gdvt td.rkc.bot b{color:var(--bad)}
@@ -478,7 +482,7 @@ body.dashOn .ctlBar .ctl:first-child,body.dashOn .ctl-sec,body.dashOn .ctl-sw{di
 <header class="hd">
   <div class="hd-in">
     <img id="lg" class="lg" alt="WinMart+">
-    <div class="tt">Key Sale KM <span>v4.21.2 · Win Rural · Theo dõi CTKM</span></div>
+    <div class="tt">Key Sale KM <span>v4.21.3 · Win Rural · Theo dõi CTKM</span></div>
     <div class="mt">
       <span class="pill" id="fileinfo" title="">Chưa có dữ liệu</span>
       <div class="ts hd-ts" title="Cỡ chữ">
@@ -2008,7 +2012,7 @@ function renderLogic(){
     <li>Điều kiện: số CH có bán (D hoặc D-1) ≥ ngưỡng (mặc định 20). <b>Hot</b> chỉ lấy mã có DT tăng; <b>Down</b> chỉ lấy mã có DT giảm.</li>
     <li><b>Fresh &amp; Chilled | Ambient</b> theo MCH3. Fresh &amp; Chilled: Thịt nguội, xúc xích, hàng chua · Đông lạnh · Trái cây · Thịt · Thủy hải sản · Rau củ · Bánh mỳ · Thức ăn nấu sẵn · Bơ, sữa, trứng. Các MCH3 còn lại là Ambient.</li>
     <li><b>Tab Danh mục CTKM</b>: danh sách CTKM theo cấu trúc file Danh sách CTKM (STT · Mã SP · Tên SP · BUM · CTKM · Giá thường · Giá KM · Ngày bắt đầu/kết thúc · GROUP KM · Min · Mã/Tên quy đổi · Nhóm SKUs Key · Zone Display); sửa trực tiếp, thêm/nhân bản/xoá dòng, nhập/xuất Excel, tự lưu trên trình duyệt. <b>Check SKUs tương đương</b>: cùng thương hiệu, cùng GROUP KM, giá KM lệch ≤ 3%, size lệch ≤ 15%, tên giống ≥ 40% → đề xuất mã quy đổi (mã bán tốt nhất) và tên quy đổi. <b>Áp dụng vào báo cáo</b>: cập nhật nhóm, giá, ngày, Min, mã quy đổi cho các tab.</li>
-    <li><b>Tab Dashboard</b>: khung <b>Cần xử lý hôm nay</b> tự tổng hợp nhóm/GĐV/QLKV/SKU yếu kém và chỉ số yếu (so với trung vị cùng cấp: DT/SL thấp vs nhóm &lt; 90, ít CH bán, bán chậm, thiếu trưng bày, tụt ≥ 3 hạng) · (1) Overall CTKM &amp; xu hướng theo nhóm CTKM · (2) Top/Flop 5 SKU × GĐV (%Δ DT) + Performance GĐV/QLKV theo Rank D · (3) SKU sắp KM &amp; mức sẵn sàng hàng (DR ≥ 80% sẵn sàng; &lt; 50% và chưa có PO chờ giao = thiếu hàng) · (4) Tổng CTKM &amp; danh sách focus.</li>
+    <li><b>Tab Dashboard</b>: khung <b>Cần xử lý hôm nay</b> tự tổng hợp nhóm/GĐV/QLKV/SKU yếu kém và chỉ số yếu (so với trung vị cùng cấp: DT/SL thấp vs nhóm &lt; 90, ít CH bán, bán chậm, thiếu trưng bày, tụt ≥ 3 hạng) · (1) Overall CTKM &amp; xu hướng theo nhóm CTKM · (2) Top/Flop 5 SKU × GĐV (%Δ DT) + Performance GĐV/QLKV theo Rank D · (3) SKU sắp KM &amp; mức sẵn sàng hàng (DR ≥ 80% sẵn sàng; &lt; 50% và chưa có PO chờ giao = thiếu hàng).</li>
     <li><b>Tab MCH3</b>: Fresh &amp; Chilled / Ambient → MCH3 → SKU → Miền → GĐV.</li>
     <li><b>Mọi tab</b> đều có cột Trending. Cấp <b>mã hàng</b>: DT/SL tăng thêm tuyệt đối. Cấp <b>nhóm</b> (Nhóm CTKM, RSM×ASM, Miền → GĐV → QLKV → CH): <b>điểm xếp hạng</b> tính theo <b>tăng trưởng BQ/CH</b> = DT (SL) ÷ số CH có bán của từng ngày (hoặc ÷ CH hoạt động khi chọn "TB mọi CH"), so trong cùng cấp. Các cột DT/SL tăng thêm, %Δ luôn hiển thị số tuyệt đối — cộng các cấp con bằng cấp cha.</li>
     <li><b>Top Trend / Flop Trend</b>: bấm + ở mỗi mã để xem Miền → GĐV → QLKV.</li>
@@ -2221,12 +2225,14 @@ function renderDash(){
   const PERS = [['T','Rank Full','rLK','DT lũy kế'],['D1','Rank D-1','rD1','DT D-1'],['D','Rank D','rD','DT D']];
   const NSF = {T:'nsT', D1:'nsD1', D:'nsD'}, NCH = {T:'nSale', D1:'nSaleD1', D:'nSaleD'};
   const bqOf = (m, p, fr) => { const n = S.tb === 'ps' ? (m[NCH[p]] || 0) : (m.nAct || 0); return n ? (m[fr] || 0) / n : null; };
-  const BASE = (p, fr) => [['Total Sale', m => '<td>' + fmtV(m[fr]) + '</td>'], ['Sale BQ', m => { const v = bqOf(m, p, fr); return '<td>' + (v == null ? '—' : fmtV(v)) + '</td>'; }], ['% No sale', m => { const v = m[NSF[p]]; return '<td class="' + (v > 0.85 ? 'cell-bad' : v > 0.7 ? 'cell-warn' : '') + '">' + fmtPct(v) + '</td>'; }], ['% KM/Total', m => { const v = m['kmS_' + p], md = S._kmMed && S._kmMed[p]; return '<td class="' + (v != null && md ? (v < md * 0.85 ? 'cell-bad' : v > md * 1.15 ? 'cell-good' : '') : '') + '" title="DT KM ÷ Tổng DT CH (SPD)">' + (v == null ? '—' : fmtPct(v)) + '</td>'; }]];
+  const BASE = (p, fr) => [['Total Sale', m => '<td>' + fmtV(m[fr]) + '</td>'], ['Sale BQ', m => { const v = bqOf(m, p, fr); return '<td>' + (v == null ? '—' : fmtV(v)) + '</td>'; }], ['% No sale', m => { const v = m[NSF[p]]; return '<td class="' + (v > 0.85 ? 'cell-bad' : v > 0.7 ? 'cell-warn' : '') + '">' + fmtPct(v) + '</td>'; }], ['% KM / Total', m => { const v = m['kmS_' + p], md = S._kmMed && S._kmMed[p]; return '<td class="' + (v != null && md ? (v < md * 0.85 ? 'cell-bad' : v > md * 1.15 ? 'cell-good' : '') : '') + '" title="DT KM ÷ Tổng DT CH (SPD)">' + (v == null ? '—' : fmtPct(v)) + '</td>'; }]];
   const KPI = (p, fr, dl) => [['Index DT', m => idxTd(m['iV_' + p])], ['Index SL', m => idxTd(m['iQ_' + p])], ['% CH×mã bán', m => '<td>' + fmtPct(m['cov_' + p]) + '</td>'], ['Sell-through', m => '<td>' + fmtPct(m['st_' + p]) + '</td>'], ['DR', m => '<td class="' + (m.dr < 0.5 ? 'cell-bad' : m.dr < 0.8 ? 'cell-warn' : '') + '">' + fmtPct(m.dr) + '</td>']];
   const rkTd = (v, n) => '<td class="c rkc' + (v <= 3 ? ' top' : v > n - 3 ? ' bot' : '') + '"><b>#' + v + '</b></td>';
   const gdvTbl = (rs, lbl, N, withGdv) => { const n = N || rs.length; lbl = lbl || 'GĐV';
     /* độ rộng cột cố định → bảng GĐV và QLKV thẳng cột nhau */
-    let cg = '<col style="width:200px"><col style="width:56px">'; for (const [p] of PERS){ cg += '<col style="width:50px"><col style="width:92px"><col style="width:72px"><col style="width:72px"><col style="width:76px">'; if (exp[p]) cg += '<col style="width:70px">'.repeat(5); } cg += '<col style="width:72px"><col style="width:92px"><col style="width:260px">';
+    /* độ rộng theo tỷ lệ (vừa khung, không cuộn ngang); 2 bảng cùng tỷ lệ → thẳng cột */
+    const nExp = PERS.filter(([p]) => exp[p]).length, U = 10 + 3.5 + 3 * 23.5 + nExp * 5 * 4.2 + 4.5 + 6 + 14, pc = v => (v / U * 100).toFixed(3) + '%';
+    let cg = '<col style="width:' + pc(10) + '"><col style="width:' + pc(3.5) + '">'; for (const [p] of PERS){ cg += [3, 6.5, 5, 4.5, 4.5].map(v => '<col style="width:' + pc(v) + '">').join(''); if (exp[p]) cg += ('<col style="width:' + pc(4.2) + '">').repeat(5); } cg += '<col style="width:' + pc(4.5) + '"><col style="width:' + pc(6) + '"><col style="width:' + pc(14) + '">';
     let t = '<div class="wrapx"><table class="dt gdvt"><colgroup>' + cg + '</colgroup><thead><tr><th class="l" rowspan="2">' + lbl + (withGdv ? '<br><span style="font-weight:500">GĐV</span>' : '') + '</th><th rowspan="2">Số CH</th>';
     for (const [p, l] of PERS) t += '<th class="c pg ' + (p === 'D' ? 'pgD' : '') + '" colspan="' + (5 + (exp[p] ? 5 : 0)) + '">' + l + ' <button type="button" class="pgx" data-dexp="' + p + '" title="' + (exp[p] ? 'Ẩn' : 'Hiện') + ' KPI chính">' + (exp[p] ? '▾' : '▸') + '</button></th>';
     t += '<th class="c pg pgT" colspan="3">Xu hướng</th></tr><tr>';
