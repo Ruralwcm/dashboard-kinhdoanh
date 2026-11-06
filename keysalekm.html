@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Key Sale KM v4.13.0 — Win Rural</title>
+<title>Key Sale KM v4.13.1 — Win Rural</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 [hidden]{display:none!important}
@@ -362,7 +362,7 @@ body.fullscreen .ptools{opacity:.9}
 <header class="hd">
   <div class="hd-in">
     <img id="lg" class="lg" alt="WinMart+">
-    <div class="tt">Key Sale KM <span>v4.13.0 · Win Rural · Theo dõi CTKM</span></div>
+    <div class="tt">Key Sale KM <span>v4.13.1 · Win Rural · Theo dõi CTKM</span></div>
     <div class="mt">
       <span class="pill" id="fileinfo" title="">Chưa có dữ liệu</span>
       <div class="ts hd-ts" title="Cỡ chữ">
@@ -663,11 +663,16 @@ function buildModel(sale, ctkm, fc){
     } }
   // STORELIST (v4: thêm cột "Nhóm DT")
   { const c = B.sl, h = headerRow(sale, c, 1); let cnt = 0;
-    const hd = {}; for (let k = 0; k < 15; k++){ const t = norm(sale.get(h, c+k)); if (t && !(t in hd)) hd[t] = c+k; }
+    const hd = {}; for (let k = 0; k < 20; k++){ const t = norm(sale.get(h, c+k)); if (t && !(t in hd)) hd[t] = c+k; }
     const col = (names, def) => { for (const nm of names) if (hd[nm] !== undefined) return hd[nm]; return def; };
     const cSt = col(['store status'], c+1), cTy = col(['store type'], c+2), cPv = col(['province/city'], c+3), cRg = col(['region'], c+4),
           cRm = col(['region manager','rm'], c+5), cRsm = col(['rsm'], -1), cAsm = col(['asm','qlkv'], -1),
-          cNd = col(['nhóm dt','nhom dt','phân nhóm dt','phan nhom dt','nhóm doanh thu','nhom doanh thu'], -1);
+          cNd = (() => { const c0 = col(['nhóm dt','nhom dt','phân nhóm dt','phan nhom dt','nhóm doanh thu','nhom doanh thu','nhóm ch','nhom ch','phân nhóm ch','phân nhóm','phan nhom','nhóm','nhom','group dt','nhóm dt ch'], -1); if (c0 >= 0) return c0;
+            /* dò cột có tiêu đề chứa "nhóm"/"group" hoặc giá trị dạng N1…N8 */
+            const fold = t => String(t).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d').toLowerCase();
+            for (const t in hd) if (/nhom|group|phan loai dt/.test(fold(t))) return hd[t];
+            for (let k = 1; k < 20; k++){ let hit = 0, tot = 0; for (let r = h+1; r < Math.min(sale.n, h+200); r++){ const v = String(sale.get(r, c+k) ?? '').trim(); if (!v) continue; tot++; if (/^N\s*\d{1,2}$/i.test(v)) hit++; } if (tot > 20 && hit / tot > 0.8) return c+k; }
+            return -1; })();
     const txt = (r, cc) => cc < 0 ? '' : String(sale.get(r, cc) ?? '').trim();
     for (let r = h+1; r < sale.n; r++){
       const s = code(sale.get(r,c)); if (!s || isJunk(s)) continue;
@@ -678,7 +683,8 @@ function buildModel(sale, ctkm, fc){
       o.nhomDt = cNd >= 0 ? (txt(r,cNd) || 'NSO') : 'NSO';
       o.active = norm(o.status) === 'hoạt động';
     }
-    if (!cnt) warn.push('Không tìm thấy dữ liệu STORELIST trong sheet SALE.'); }
+    if (!cnt) warn.push('Không tìm thấy dữ liệu STORELIST trong sheet SALE.');
+    else if (cNd < 0) warn.push('STORELIST không có cột Nhóm DT — Index xếp hạng sẽ so với toàn bộ CH.'); }
   // FC
   if (fc){ const h = (() => { for (let r=0;r<5;r++) for (let c=0;c<10;c++) if (norm(fc.get(r,c))==='mã hàng') return r; return 0; })();
     const C = findCols(fc, h, {st:[['Mã CH'],0], stn:[['Tên Ch','Tên CH'],1], a:[['Mã hàng'],2], nm:[['Tên sản phẩm'],3], fq:[['SL FC'],5], fv:[['GT FC'],6], vq:[['SL Validate'],7], vv:[['GT Validate'],8]});
