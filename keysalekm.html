@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Key Sale KM v4.28.5 — Win Rural</title>
+<title>Key Sale KM v4.28.6 — Win Rural</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 [hidden]{display:none!important}
@@ -536,7 +536,7 @@ body.dashOn .ctlBar .ctl:first-child,body.dashOn .ctl-sec,body.dashOn .ctl-sw{di
 <header class="hd">
   <div class="hd-in">
     <img id="lg" class="lg" alt="WinMart+">
-    <div class="tt">Key Sale KM <span id="fileinfo" title="">v4.28.5 · Win Rural · Theo dõi CTKM</span></div>
+    <div class="tt">Key Sale KM <span id="fileinfo" title="">v4.28.6 · Win Rural · Theo dõi CTKM</span></div>
     <div class="mainTabs hdTabs" id="mainTabs" role="tablist"></div>
     <div class="mt">
       <div class="ts hd-ts" title="Cỡ chữ">
@@ -2423,10 +2423,12 @@ function renderDash(){
   /* danh sách highlight: Top N mỗi nhóm — Top sale (DT lũy kế), Top trend (điểm hạng Trend D vs D-1), Sắp chạy KM (max GT tồn, GT FC) */
   const UN = S.upN || (S.upN = 10), UG = S.upG || (S.upG = 'all'), GO = {sale:0, trend:1, upc:2}, GL = {sale:'💰 Top sale', trend:'🔥 Top trend', upc:'⏳ Sắp chạy KM'};
   const hl = new Map(), addH = (m, g, rk, f) => { let it = hl.get(m.ai); if (!it){ it = {...m, f, tags:[], ord:9e9}; if (it.dr != null) it.dr = Math.min(1, it.dr); it.dl = it.km ? (norm(it.km.status) === 'chưa km' ? daysLeft(it.km.d0) : daysLeft(it.km.d1)) : null; hl.set(m.ai, it); } it.tags.push(g); it.ord = Math.min(it.ord, GO[g] * 1000 + rk); };
-  lkAll.slice(0, UN).forEach((m, i) => addH(m, 'sale', i, flt)); upAll.slice(0, UN).forEach((m, i) => addH(m, 'trend', i, flt));
-  upc.slice().sort((a, b) => Math.max(b.sV || 0, b.fcV || 0) - Math.max(a.sV || 0, a.fcV || 0)).slice(0, UN).forEach((m, i) => addH(m, 'upc', i, f2));
+  const UFA = S.upFA || 'all', faOK = m => UFA === 'all' || (UFA === 'fresh') === isFresh(m.art);
+  lkAll.filter(faOK).slice(0, UN).forEach((m, i) => addH(m, 'sale', i, flt)); upAll.filter(faOK).slice(0, UN).forEach((m, i) => addH(m, 'trend', i, flt));
+  upc.filter(faOK).sort((a, b) => Math.max(b.sV || 0, b.fcV || 0) - Math.max(a.sV || 0, a.fcV || 0)).slice(0, UN).forEach((m, i) => addH(m, 'upc', i, f2));
   const hlist = [...hl.values()].filter(it => UG === 'all' || it.tags.includes(UG));
   h += '<div class="ctbar"><div class="seg" title="Compact: ẩn FC, Validate">' + [['compact','Compact'],['full','Full']].map(([k, l]) => '<button data-upv="' + k + '" aria-pressed="' + ((S.upView || 'compact') === k) + '">' + l + '</button>').join('') + '</div><div class="seg" title="Số mã mỗi nhóm">' + [5,10,20].map(n => '<button data-upn="' + n + '" aria-pressed="' + (UN === n) + '">Top ' + n + '</button>').join('') + '</div>'
+    + '<div class="seg" title="Ngành hàng (theo MCH3)">' + [['all','Tất cả'],['fresh','Fresh & Chilled'],['ambient','Ambient']].map(([k, l]) => '<button data-upfa="' + k + '" aria-pressed="' + (UFA === k) + '">' + l + '</button>').join('') + '</div>'
     + '<div class="seg">' + [['all','Tất cả'],['sale',GL.sale],['trend',GL.trend],['upc',GL.upc]].map(([k, l]) => '<button data-upg="' + k + '" aria-pressed="' + (UG === k) + '">' + l + '</button>').join('') + '</div>'
     + '<span class="ctinfo">Top sale: DT lũy kế · Top trend: điểm hạng Trend D vs D-1 · Sắp chạy KM: max(GT tồn, GT FC) · "Còn": tới ngày bắt đầu (sắp KM) / ngày kết thúc (đang KM)</span></div>';
   if (!hlist.length) h += '<div class="dnone">Không có mã phù hợp trong phạm vi lọc.</div>';
@@ -2486,6 +2488,7 @@ function renderDash(){
   $('dash').innerHTML = h;
   rkNhomInfo();
   $('rowinfo').textContent = '';
+  $('dash').querySelectorAll('[data-upfa]').forEach(b => b.onclick = () => { const y = window.scrollY; S.upFA = b.dataset.upfa; renderDash(); window.scrollTo(0, y); });
   $('dash').querySelectorAll('[data-upv]').forEach(b => b.onclick = () => { const y = window.scrollY; S.upView = b.dataset.upv; renderDash(); window.scrollTo(0, y); });
   $('dash').querySelectorAll('[data-upn]').forEach(b => b.onclick = () => { const y = window.scrollY; S.upN = +b.dataset.upn; renderDash(); window.scrollTo(0, y); });
   $('dash').querySelectorAll('[data-upg]').forEach(b => b.onclick = () => { const y = window.scrollY; S.upG = b.dataset.upg; renderDash(); window.scrollTo(0, y); });
