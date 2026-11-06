@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Key Sale KM v4.23.2 — Win Rural</title>
+<title>Key Sale KM v4.23.3 — Win Rural</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 [hidden]{display:none!important}
@@ -502,7 +502,7 @@ body.dashOn .ctlBar .ctl:first-child,body.dashOn .ctl-sec,body.dashOn .ctl-sw{di
 <header class="hd">
   <div class="hd-in">
     <img id="lg" class="lg" alt="WinMart+">
-    <div class="tt">Key Sale KM <span>v4.23.2 · Win Rural · Theo dõi CTKM</span></div>
+    <div class="tt">Key Sale KM <span>v4.23.3 · Win Rural · Theo dõi CTKM</span></div>
     <div class="mt">
       <span class="pill" id="fileinfo" title="">Chưa có dữ liệu</span>
       <div class="ts hd-ts" title="Cỡ chữ">
@@ -2291,12 +2291,12 @@ function renderDash(){
     /* độ rộng theo tỷ lệ (vừa khung, không cuộn ngang); 2 bảng cùng tỷ lệ → thẳng cột */
     const nExp = PERS.filter(([p]) => exp[p]).length, pc = v => Math.round(v * 12.5) + 'px';   /* px cố định → 2 bảng thẳng cột; chỉ số flop 1 dòng, cuộn ngang khi rộng */
     let cg = '<col style="width:' + pc(10) + '"><col style="width:' + pc(3.5) + '">'; for (const [p] of PERS){ cg += [3, 6.5, 5, 4.5, 4.5].map(v => '<col style="width:' + pc(v) + '">').join(''); if (exp[p]) cg += ('<col style="width:' + pc(4.2) + '">').repeat(5); } cg += '<col style="width:' + pc(4.5) + '"><col style="width:' + pc(6) + '"><col style="width:' + Math.max(220, Math.min(900, 20 + Math.max(0, ...pG.concat(pQ).map(m => (m.weak || []).reduce((a, w) => a + 14 + w[0].length * 6.6, 0))))) + 'px">';
-    let t = '<div class="wrapx"><table class="dt gdvt"><colgroup>' + cg + '</colgroup><thead><tr><th class="l" rowspan="2">' + lbl + (withGdv ? '<br><span style="font-weight:500">GĐV</span>' : '') + '</th><th rowspan="2">Số CH</th>';
+    let t = '<div class="wrapx"><table class="dt gdvt"><colgroup>' + cg + '</colgroup><thead><tr><th class="l" rowspan="2">' + lbl + '</th><th rowspan="2">Số CH</th>';
     for (const [p, l] of PERS) t += '<th class="c pg ' + (p === 'D' ? 'pgD' : '') + '" colspan="' + (5 + (exp[p] ? 5 : 0)) + '">' + l + ' <button type="button" class="pgx" data-dexp="' + p + '" title="' + (exp[p] ? 'Ẩn' : 'Hiện') + ' KPI chính">' + (exp[p] ? '▾' : '▸') + '</button></th>';
     t += '<th class="c pg pgT" colspan="3">Xu hướng</th></tr><tr>';
     for (const [p, , fr, dl] of PERS){ t += '<th class="c">Rank</th>' + BASE(p, fr).map(k => '<th>' + k[0] + '</th>').join(''); if (exp[p]) t += KPI(p, fr, dl).map(k => '<th>' + k[0] + '</th>').join(''); }
     t += '<th class="c">D vs D-1</th><th>DT tăng thêm</th><th class="l">Chỉ số flop</th></tr></thead><tbody>';
-    for (const m of rs){ t += '<tr><td class="l nmc"><b>' + esc(m.key) + '</b>' + (withGdv ? '<br><span class="na" style="font-size:11px">' + esc(M.stores.find(x => x.asm === m.key)?.rsm || '') + '</span>' : '') + '</td><td>' + fmtQ(m.nAct) + '</td>';
+    for (const m of rs){ t += '<tr><td class="l nmc"' + (withGdv ? ' title="GĐV: ' + esc(M.stores.find(x => x.asm === m.key)?.rsm || '') + '"' : '') + '><b>' + esc(m.key) + '</b></td><td>' + fmtQ(m.nAct) + '</td>';
       for (const [p, , fr, dl] of PERS){ t += rkTd(m['rank' + p], n) + BASE(p, fr).map(k => k[1](m)).join(''); if (exp[p]) t += KPI(p, fr, dl).map(k => k[1](m)).join(''); }
       t += '<td class="c">' + rkHtml(m.rkTrend) + '</td><td class="' + clsSg(m.dVal) + '">' + sgnV(m.dVal) + '</td><td class="wkc">' + wkHtml(m) + '</td></tr>'; }
     return t + '</tbody></table></div>'; };
