@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Key Sale KM v4.28.3 — Win Rural</title>
+<title>Key Sale KM v4.28.4 — Win Rural</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 [hidden]{display:none!important}
@@ -391,11 +391,10 @@ table.ctt{border-collapse:separate;border-spacing:0;font-size:12.5px;width:max-c
 .spt thead tr.spH th{top:27px}.spt thead tr.spH th.z1{background:#E6EBF2}.spt thead tr.spH th.z2{background:#E5EEFA}.spt thead tr.spH th.z3{background:#FBE7EA}.spt thead tr.spH th.z4{background:#ECEFF3}
 .spt td.zs,.spt th.zs{border-left:2px solid #D9E0EA}
 .spSeg{margin-right:6px}
-.dt th.zh1{background:#0F2A4A!important;color:#fff!important}.dt th.zh2{background:#1E5AA8!important;color:#fff!important}.dt th.zh3{background:#C8102E!important;color:#fff!important}.dt th.zh4{background:#44546A!important;color:#fff!important}
-.dt th.zh1 span,.dt th.zh3 span{color:#fff!important}
-.dt th.zs2{background:#E5EEFA!important}.dt th.zs3{background:#FBE7EA!important}.dt th.zs4{background:#ECEFF3!important}
-.hm thead tr:first-child th{position:sticky;top:0;text-align:center!important;font-size:11.5px;border-left:2px solid #fff}
-.hm thead tr:nth-child(2) th{top:26px}.spSeg button{font-size:12px;padding:3px 10px}
+.dt th.zh1{background:#D3DCE8!important;color:var(--navy)!important}.dt th.zh2{background:#CFE0F6!important;color:#1E4F8F!important}.dt th.zh3{background:#F6D3D9!important;color:#A30D26!important}.dt th.zh4{background:#DDE2E9!important;color:#34404F!important}
+.dt th.zs1{background:#E6EBF2!important}.dt th.zs2{background:#E5EEFA!important}.dt th.zs3{background:#FBE7EA!important}.dt th.zs4{background:#ECEFF3!important}
+.grt thead th,.hm thead th{text-align:center!important;vertical-align:middle!important}
+.hm thead th{border-left:1px solid #fff}.spSeg button{font-size:12px;padding:3px 10px}
 .spInfo{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--ink2)}.spInfo span{max-width:420px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.spInfo b{color:var(--ink)}
 .spT{overflow:auto;border:1px solid var(--line);border-radius:10px;flex:1;min-height:200px}
 .spt{width:100%;font-size:12.5px}
@@ -536,7 +535,7 @@ body.dashOn .ctlBar .ctl:first-child,body.dashOn .ctl-sec,body.dashOn .ctl-sw{di
 <header class="hd">
   <div class="hd-in">
     <img id="lg" class="lg" alt="WinMart+">
-    <div class="tt">Key Sale KM <span id="fileinfo" title="">v4.28.3 · Win Rural · Theo dõi CTKM</span></div>
+    <div class="tt">Key Sale KM <span id="fileinfo" title="">v4.28.4 · Win Rural · Theo dõi CTKM</span></div>
     <div class="mainTabs hdTabs" id="mainTabs" role="tablist"></div>
     <div class="mt">
       <div class="ts hd-ts" title="Cỡ chữ">
@@ -2331,6 +2330,12 @@ function renderDash(){
   const hmDim = selSet('fAsm') ? 'code' : selSet('fRsm') ? 'asm' : 'rsm', hmLbl = {rsm:'GĐV', asm:'QLKV', code:'CH'}[hmDim];
   const gMap = new Map(); M.stores.forEach((st, si) => { const k = st[hmDim]; if (flt.storeOK[si] && st.active && k && k !== '(Trống)') gMap.set(k, hmDim === 'code' ? (st.name || '') : hmDim === 'asm' ? (st.rsm || '') : (st.rm || '')); });
   const gdvs = [...gMap.keys()].sort((a,b) => hmDim === 'code' ? a.localeCompare(b, 'vi', {numeric:true}) : String(gMap.get(a)).localeCompare(String(gMap.get(b)), 'vi') || a.localeCompare(b, 'vi'));
+  /* màu tiêu đề cột: GĐV theo Miền (RM) · QLKV / CH theo Tỉnh */
+  const HPAL = ['#DCE8F8','#FBE3D5','#DDF1E4','#EFE2F7','#FFF1C9','#D9F0F3','#F8DCE6','#E6E9EF'];
+  const hGrp = new Map(); M.stores.forEach((st, si) => { const k = st[hmDim]; if (!flt.storeOK[si] || !st.active || !k || k === '(Trống)') return; const gk = hmDim === 'rsm' ? (st.rm || '') : (st.province || ''); const m = hGrp.get(k) || new Map(); m.set(gk, (m.get(gk) || 0) + 1); hGrp.set(k, m); });
+  const gOf = g => { const m = hGrp.get(g); if (!m) return ''; return [...m.entries()].sort((a, b) => b[1] - a[1])[0][0]; };
+  const gList = [...new Set(gdvs.map(gOf))], hcBg = g => HPAL[gList.indexOf(gOf(g)) % HPAL.length];
+  if (hmDim !== 'rsm') gdvs.sort((a, b) => gList.indexOf(gOf(a)) - gList.indexOf(gOf(b)));
   const hmHead = g => hmDim === 'code' ? esc(g) + '<br><span style="font-weight:500">' + esc(gMap.get(g)) + '</span>' : esc(g);
   /* mode 'lk': ô = Index DT BQ/CH lũy kế của GĐV so với TB của SKU (100 = bằng TB); mode trend: ô = %Δ DT D vs D-1 */
   /* DIO 2 ngày = SL tồn ÷ SL bán TB của ngày D và D-1 */
@@ -2340,7 +2345,7 @@ function renderDash(){
     const list = all.slice(0, DN[bk]);
     if (!list.length) return '<h4>' + title + '</h4><div class="dnone">Không có mã phù hợp.</div>';
     const lk = mode === 'lk';
-    let t = '<h4>' + title + ' <span style="text-transform:none;font-weight:500">(' + list.length + '/' + all.length + ')</span></h4><div class="wrapx"><table class="dt hm" style="min-width:' + (300 + 5 * 62 + gdvs.length * 42) + 'px"><colgroup><col style="width:300px">' + '<col style="width:62px">'.repeat(5) + '<col>'.repeat(gdvs.length) + '</colgroup><thead><tr class="zt"><th class="l zh1" rowspan="2">SKU</th><th class="c ' + (lk ? 'zh2' : 'zh3') + '" colspan="3">' + (lk ? 'Lũy kế' : 'Ngày D vs D-1') + '</th><th class="c zh4" colspan="2">Tồn kho</th><th class="c zh1" colspan="' + gdvs.length + '">' + (lk ? 'DT BQ/CH lũy kế' : '%Δ DT D vs D-1') + ' theo ' + hmLbl + '</th></tr><tr>' + (lk ? '<th class="zs2">DT lũy kế</th><th class="zs2">DT BQ/CH</th><th class="zs2">% CH bán</th><th class="zs4">GT tồn</th><th class="zs4" title="Tồn ÷ giá vốn bán TB/ngày 30 ngày">DIO</th>' : '<th class="zs3">DT D</th><th class="zs3">DT tăng thêm</th><th class="zs3">%Δ DT</th><th class="zs4">GT tồn</th><th class="zs4" title="SL tồn ÷ SL bán TB 2 ngày gần nhất (D, D-1)">DIO 2N</th>') + gdvs.map(g => '<th class="hc" title="' + esc((hmDim === 'code' ? g + ' - ' : '') + gMap.get(g)) + '">' + hmHead(g) + '</th>').join('') + '</tr></thead><tbody>';
+    let t = '<h4>' + title + ' <span style="text-transform:none;font-weight:500">(' + list.length + '/' + all.length + ')</span></h4><div class="wrapx"><table class="dt hm" style="min-width:' + (300 + 5 * 62 + gdvs.length * 42) + 'px"><colgroup><col style="width:300px">' + '<col style="width:62px">'.repeat(5) + '<col>'.repeat(gdvs.length) + '</colgroup><thead><tr><th class="zs1">SKU</th>' + (lk ? '<th class="zs2">DT lũy kế</th><th class="zs2">DT BQ/CH</th><th class="zs2">% CH bán</th><th class="zs4">GT tồn</th><th class="zs4" title="Tồn ÷ giá vốn bán TB/ngày 30 ngày">DIO</th>' : '<th class="zs3">DT D</th><th class="zs3">DT tăng thêm</th><th class="zs3">%Δ DT</th><th class="zs4">GT tồn</th><th class="zs4" title="SL tồn ÷ SL bán TB 2 ngày gần nhất (D, D-1)">DIO 2N</th>') + gdvs.map(g => '<th class="hc" style="background:' + hcBg(g) + '!important" title="' + esc((hmDim === 'code' ? g + ' - ' : '') + gMap.get(g) + ' · ' + (hmDim === 'rsm' ? 'Miền: ' : 'Tỉnh: ') + gOf(g)) + '">' + hmHead(g) + '</th>').join('') + '</tr></thead><tbody>';
     for (const r of list){ const mask = new Uint8Array(M.arts.length); mask[r.ai] = 1;
       const byG = new Map(aggregate(M, {...flt, artOK:mask}, hmDim).rows.map(g => [g.key, g]));
       r.gdvWorst = [...byG.values()].filter(g => g.key && g.key !== '(Trống)').map(g => [g.key, g.f[F.rD] - g.f[F.rD1]]).sort((a,b) => a[1] - b[1]).slice(0, 2).filter(x => x[1] < 0);
