@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Key Sale KM v4.17.0 — Win Rural</title>
+<title>Key Sale KM v4.18.0 — Win Rural</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 [hidden]{display:none!important}
@@ -354,6 +354,7 @@ table.ctt{border-collapse:separate;border-spacing:0;font-size:12.5px;width:max-c
 .ctt td.act{white-space:nowrap;padding:2px 4px}
 .ctt td.act button{border:1px solid var(--line);background:#fff;border-radius:6px;cursor:pointer;padding:1px 6px;margin-right:2px}
 .ctt .w-code{width:96px} .ctt .w-name{width:300px} .ctt .w-sm{width:64px} .ctt .w-md{width:120px} .ctt .w-lg{width:220px} .ctt .w-date{width:128px}
+.qdb{display:inline-block;background:var(--midbg);color:var(--navy);border-radius:999px;padding:0 6px;font-size:10.5px;font-weight:700;margin-left:3px}
 .eqg{border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin:8px 0;background:#fff}
 .eqg.done{opacity:.6}
 .eqh{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:12.5px;margin-bottom:6px}
@@ -460,7 +461,7 @@ body.dashOn .ctlBar .ctl:first-child,body.dashOn .ctl-sec,body.dashOn .ctl-sw{di
 <header class="hd">
   <div class="hd-in">
     <img id="lg" class="lg" alt="WinMart+">
-    <div class="tt">Key Sale KM <span>v4.17.0 · Win Rural · Theo dõi CTKM</span></div>
+    <div class="tt">Key Sale KM <span>v4.18.0 · Win Rural · Theo dõi CTKM</span></div>
     <div class="mt">
       <span class="pill" id="fileinfo" title="">Chưa có dữ liệu</span>
       <div class="ts hd-ts" title="Cỡ chữ">
@@ -1430,6 +1431,7 @@ function start(M, demo){
   S.M = M; $('staticNote').hidden = true;
   for (const st of M.stores) st.rsmasm = (st.rsm || '(Trống)') + ' | ' + (st.asm || '(Trống)');
   try { if (ctLoad().applied) ctApplyToReport(); } catch(e){ console.warn(e); }
+  try { applyQuyDoi(M); } catch(e){ console.warn('Gộp mã quy đổi lỗi', e); }
   if (S.nhomSrc) applyNhom(M); else if (S.nhomState !== 'loading') setTimeout(loadNhomSrc, 0);
   $('drop').hidden = true; $('app').hidden = false; $('btnExport').hidden = false; $('btnSnap').hidden = !!demo;
   $('demoBanner').hidden = !demo;
@@ -1462,6 +1464,7 @@ function buildFilter(){
   const storeOK = new Uint8Array(M.stores.length), artOK = new Uint8Array(M.arts.length), kmOf = new Array(M.arts.length).fill(null);
   M.stores.forEach((s,i) => { storeOK[i] = (!reg || reg.has(s.region)) && (!rm || rm.has(s.rm)) && (!rsm || rsm.has(s.rsm)) && (!asm || asm.has(s.asm)) && (!ty || ty.has(s.type)) && (!sq || s.code.toLowerCase().includes(sq)) ? 1 : 0; });
   M.arts.forEach((a,i) => {
+    if (a.merged) return;
     let km = null;
     if (a.kms.length){
       const cand = a.kms.filter(k => (S.scope==='all' || S.status.has(k.status)) && (!g || g.has(k.group)) && (!S.keySel || S.keySel.has(k.key)));
@@ -1753,7 +1756,7 @@ function visibleGroups(){
   return [[TREND_GROUP[0], TREND_GROUP[1], tcols], ...base];
 }
 function kmTip(a, k){
-  let h = '<div class="tt-h">' + esc(a.code) + ' - ' + esc(a.name) + '</div><div class="tt-s">' + esc(a.mch3) + (a.maQuyDoi?' · Quy đổi: '+esc(a.maQuyDoi):'') + '</div>';
+  let h = '<div class="tt-h">' + esc(a.code) + ' - ' + esc(a.name) + '</div><div class="tt-s">' + esc(a.mch3) + (a.maQuyDoi?' · Quy đổi: '+esc(a.maQuyDoi):'') + (a.qdMembers ? ' · Gộp ' + a.qdMembers.length + ' mã: ' + esc(a.qdMembers.join(', ')) : '') + '</div>';
   if (!k) return h + '<div class="tt-r">Không có trong CTKM</div>';
   const cls = ST_CLS[k.status.toLowerCase()] || 'st-end';
   const row = (l, v) => v ? '<div class="tt-r"><span>' + l + '</span><b>' + v + '</b></div>' : '';
@@ -2013,16 +2016,17 @@ async function saveSnapshot(){
   showOverlay('Đang tạo bản xem…'); await new Promise(r => setTimeout(r, 30));
   try {
     const savedAt = new Date().toLocaleString('vi-VN');
-    const meta = { v:4, n:M.n, warn:M.warn, stores:M.stores, label:(S.fileName || '') + ' · bản xem lưu lúc ' + savedAt,
-      arts: M.arts.map(a => ({...a, km:null, kms:a.kms.map(k => ({...k, d0:k.d0 ? +k.d0 : null, d1:k.d1 ? +k.d1 : null}))})),
-      kmIdx: M.arts.map(a => a.km ? a.kms.indexOf(a.km) : -1) };
+    const X = M._orig || M;   /* lưu số liệu gốc (chưa gộp mã quy đổi) — khi mở lại sẽ gộp lại theo danh mục */
+    const meta = { v:4, n:X.n, warn:M.warn, stores:M.stores, label:(S.fileName || '') + ' · bản xem lưu lúc ' + savedAt,
+      arts: M.arts.map(a => { const kms = a.kms0 || a.kms, o = {...a, name: a.name0 ?? a.name, km:null, kms:kms.map(k => ({...k, d0:k.d0 ? +k.d0 : null, d1:k.d1 ? +k.d1 : null}))}; delete o.name0; delete o.kms0; delete o.merged; delete o.qdMembers; return o; }),
+      kmIdx: M.arts.map(a => { const kms = a.kms0 || a.kms; return a.km ? kms.indexOf(a.km) : -1; }) };
     const js = new TextEncoder().encode(JSON.stringify(meta));
-    const n = M.n, buf = new Uint8Array(4 + js.length + n*8 + n*NF*4);
+    const n = X.n, buf = new Uint8Array(4 + js.length + n*8 + n*NF*4);
     new DataView(buf.buffer).setUint32(0, js.length, true); buf.set(js, 4);
     let o = 4 + js.length;
-    buf.set(new Uint8Array(M.fs.slice().buffer), o); o += n*4;
-    buf.set(new Uint8Array(M.fa.slice().buffer), o); o += n*4;
-    buf.set(new Uint8Array(M.fv.slice().buffer), o);
+    buf.set(new Uint8Array(Int32Array.from(X.fs).buffer), o); o += n*4;
+    buf.set(new Uint8Array(Int32Array.from(X.fa).buffer), o); o += n*4;
+    buf.set(new Uint8Array(Float32Array.from(X.fv).buffer), o);
     const b64 = bytesToB64(await gz(buf));
     const doc = PAGE_CLONE.cloneNode(true);
     doc.querySelector('#snapshot')?.remove();
@@ -2074,7 +2078,7 @@ const clsSg = v => v > 0 ? 'cell-good' : v < 0 ? 'cell-bad' : 'na';
 const lblHtml = v => { const ic = TREND_ICON[v]; return ic ? '<span class="trb ' + ic[1] + '">' + ic[0] + '</span>' + esc(v) : esc(v || '—'); };
 const rkHtml = v => v == null ? '—' : v > 0 ? '<span class="cell-good">▲' + v + '</span>' : v < 0 ? '<span class="cell-bad">▼' + (-v) + '</span>' : '<span class="na">▶0</span>';
 function heatBg(p){ if (p == null) return '#F1F3F7'; if (p === Infinity) return 'rgba(14,159,110,.55)'; const a = Math.min(1, Math.abs(p) / 50); return p >= 0 ? 'rgba(14,159,110,' + (0.10 + 0.5*a).toFixed(2) + ')' : 'rgba(220,38,38,' + (0.10 + 0.5*a).toFixed(2) + ')'; }
-const skuCell = m => '<td class="l nm2" title="' + esc(m.art.code + ' - ' + m.art.name) + '"><span class="cd">' + esc(m.art.code) + '</span> ' + esc(m.art.name) + '</td>';
+const skuCell = m => '<td class="l nm2" title="' + esc(m.art.code + ' - ' + m.art.name + (m.art.qdMembers ? ' · gộp ' + m.art.qdMembers.join(', ') : '')) + '"><span class="cd">' + esc(m.art.code) + '</span> ' + esc(m.art.name) + (m.art.qdMembers ? ' <span class="qdb">×' + m.art.qdMembers.length + '</span>' : '') + '</td>';
 /* gắn nhãn chỉ số yếu cho 1 dòng so với trung vị các dòng cùng cấp (ngày D) */
 function weakDiag(list){
   const med = f => { const v = list.map(m => m[f]).filter(x => x != null && isFinite(x)).sort((a,b) => a - b); return v.length ? v[v.length >> 1] : null; };
@@ -2323,7 +2327,8 @@ function ctEquiv(){
   for (const it of items){ const f = vnFold(it.name).replace(/^demo\s+/, ''); it.brand = f.split(/\s+/)[0] || ''; it.size = ctSize(it.name);
     it.tok = new Set(f.replace(/(\d+(?:[.,]\d+)?)\s*(kg|gr|g|ml|lit|l|m|cuon|goi|vien|hop|chai)\b/g, ' ').replace(/[^a-z0-9]+/g, ' ').split(' ').filter(w => w.length > 1 && w !== it.brand && !/^\d+$/.test(w)));
     const lk = S.M ? S.M.arts.find(a => a.code === it.code) : null; it.ai = lk ? S.M.arts.indexOf(lk) : -1; }
-  const rLK = it => { if (!S.M || it.ai < 0) return 0; let x = 0; for (let p = S.M.aOff[it.ai]; p < S.M.aOff[it.ai+1]; p++) x += S.M.fv[S.M.aIdx[p]*NF + F.rLK]; return x; };
+  const _O = S.M && (S.M._orig || {n: S.M.n, fa: S.M.fa, fv: S.M.fv}), _lk = new Map(); if (_O) for (let i = 0; i < _O.n; i++){ const a = _O.fa[i]; _lk.set(a, (_lk.get(a) || 0) + _O.fv[i*NF + F.rLK]); }
+  const rLK = it => it.ai < 0 ? 0 : _lk.get(it.ai) || 0;
   const par = items.map((_, i) => i), find = i => par[i] === i ? i : (par[i] = find(par[i]));
   const jac = (a, b) => { let n = 0; for (const x of a) if (b.has(x)) n++; const u = a.size + b.size - n; return u ? n / u : 0; };
   for (let i = 0; i < items.length; i++) for (let j = i + 1; j < items.length; j++){ const a = items[i], b = items[j];
@@ -2347,6 +2352,33 @@ function ctEquiv(){
   }
   out.sort((a,b) => a.done - b.done || b.mem.length - a.mem.length || b.mem[0].rlk - a.mem[0].rlk);
   return out;
+}
+/* ===== Gộp số liệu theo Mã quy đổi: mọi chỉ số SKU tính trên mã quy đổi =====
+   Các mã cùng "Mã quy đổi" được cộng dồn (theo từng CH) vào 1 mã đại diện = mã trùng với Mã quy đổi (nếu có), nếu không là mã bán tốt nhất.
+   Tên hiển thị = "Tên quy đổi" trong Danh mục CTKM. Luôn tính lại từ số liệu gốc nên gộp/bỏ gộp nhiều lần vẫn đúng. */
+function applyQuyDoi(M){
+  if (!M._orig) M._orig = {n: M.n, fs: M.fs.slice(), fa: M.fa.slice(), fv: M.fv.slice()};
+  const O = M._orig, A = M.arts, idx = new Map(A.map((a, i) => [a.code, i]));
+  const tq = new Map(); try { for (const r of ctLoad().r){ const c = String(r.v[1] || '').trim(), q = String(r.v[11] || '').trim(), t = String(r.v[12] || '').trim(); if (c){ if (q && idx.has(c)) A[idx.get(c)].maQuyDoi = q; if (t && !tq.has(q || c)) tq.set(q || c, t); } } } catch(e){}
+  for (const a of A){ if (a.name0 === undefined) a.name0 = a.name; else a.name = a.name0; if (a.kms0 === undefined) a.kms0 = a.kms; else a.kms = a.kms0; a.merged = false; a.qdMembers = null; }
+  const rLK = new Float64Array(A.length); for (let i = 0; i < O.n; i++) rLK[O.fa[i]] += O.fv[i*NF + F.rLK];
+  const grp = new Map(); A.forEach((a, i) => { const q = String(a.maQuyDoi || '').trim(); if (!q || q === a.code && !grp.has(q)) { if (q) grp.set(q, [i]); return; } if (!grp.has(q)) grp.set(q, []); grp.get(q).push(i); });
+  const to = new Int32Array(A.length).map((_, i) => i); let nG = 0;
+  for (const [q, mem] of grp){ if (mem.length < 2) continue; nG++;
+    const own = idx.get(q), r = own !== undefined && mem.includes(own) ? own : mem.slice().sort((x, y) => rLK[y] - rLK[x])[0], R = A[r];
+    R.qdMembers = mem.map(i => A[i].code); if (tq.get(q)) R.name = tq.get(q);
+    const kms = mem.flatMap(i => A[i].kms0 || []).sort((x, y) => x.rank - y.rank); R.kms = R.kms0.length ? R.kms0.concat(kms.filter(k => !R.kms0.includes(k))) : kms; R.kms.sort((x, y) => x.rank - y.rank); R.km = R.kms[0] || R.km;
+    for (const i of mem) if (i !== r){ to[i] = r; A[i].merged = true; } }
+  /* gộp facts theo (CH, mã đại diện) */
+  const key = new Map(); let n = 0; const fs = new Int32Array(O.n), fa = new Int32Array(O.n), fv = new Float32Array(O.n * NF);
+  for (let i = 0; i < O.n; i++){ const a = to[O.fa[i]], k = O.fs[i] * A.length + a; let j = key.get(k);
+    if (j === undefined){ j = n++; key.set(k, j); fs[j] = O.fs[i]; fa[j] = a; }
+    for (let f = 0; f < NF; f++) fv[j*NF + f] += O.fv[i*NF + f]; }
+  M.n = n; M.fs = fs.subarray(0, n); M.fa = fa.subarray(0, n); M.fv = fv.subarray(0, n * NF);
+  const aOff = new Int32Array(A.length + 1); for (let i = 0; i < n; i++) aOff[M.fa[i] + 1]++; for (let i = 0; i < A.length; i++) aOff[i + 1] += aOff[i];
+  const aIdx = new Int32Array(n), pos = aOff.slice(0, A.length); for (let i = 0; i < n; i++) aIdx[pos[M.fa[i]]++] = i;
+  M.aOff = aOff; M.aIdx = aIdx; M.qdGroups = nG; S._lkFor = null;
+  return nG;
 }
 function ctApplyEquiv(code, name, codes){ const set = new Set(codes); let n = 0; for (const r of ctLoad().r) if (set.has(String(r.v[1]).trim())){ r.v[11] = code; r.v[12] = name; r.dirty = 1; n++; } ctSave(); return n; }
 /* đưa danh mục vào báo cáo: cập nhật CTKM của từng mã (nhóm, giá, ngày, Min, mã quy đổi) */
@@ -2385,7 +2417,7 @@ function renderCtkm(){
   $('ctAdd').onclick = () => { C.r.unshift({id: C.seq++, v: CT_COLS.map(() => ''), isNew: 1}); ctSave(); S.ctQ = ''; renderCtkm(); setTimeout(() => $('ctkmView').querySelector('tbody tr input[data-c="1"]')?.focus(), 30); };
   $('ctEq').onclick = () => { S.ctEqOn = true; renderCtkm(); };
   const cl = $('ctEqClose'); if (cl) cl.onclick = e => { e.preventDefault(); S.ctEqOn = false; renderCtkm(); };
-  $('ctApply').onclick = () => { const r = ctApplyToReport(); C.applied = true; ctSave(); if (r){ fillSelect($('fGroup'), uniq(S.M.arts.filter(a => a.kms.length).flatMap(a => a.kms.map(k => k.group))), 'Tất cả'); } if (r) alert('Đã áp dụng danh mục cho ' + r.n + ' mã trong báo cáo.' + (r.add ? ' ' + r.add + ' mã chưa có số liệu bán/tồn nên chưa hiện trong báo cáo.' : '')); };
+  $('ctApply').onclick = () => { const r = ctApplyToReport(); C.applied = true; ctSave(); if (r){ r.g = applyQuyDoi(S.M); fillSelect($('fGroup'), uniq(S.M.arts.filter(a => a.kms.length).flatMap(a => a.kms.map(k => k.group))), 'Tất cả'); } if (r) alert('Đã áp dụng danh mục cho ' + r.n + ' mã trong báo cáo; ' + (r.g || 0) + ' nhóm mã quy đổi được gộp số liệu.' + (r.add ? ' ' + r.add + ' mã chưa có số liệu bán/tồn nên chưa hiện trong báo cáo.' : '')); };
   $('ctReset').onclick = () => { if (!confirm('Bỏ toàn bộ chỉnh sửa và nạp lại danh sách CTKM gốc?')) return; try { localStorage.removeItem(CT_KEY); } catch(e){} S.ct = null; renderCtkm(); };
   $('ctExp').onclick = () => { if (typeof XLSX === 'undefined') return alert('Chưa tải được thư viện Excel.'); const aoa = [CT_COLS.map(c => c[0]).concat(['Trạng thái'])].concat(ctLoad().r.map(r => r.v.map((x, i) => CT_COLS[i][2] === 'n' && x !== '' ? Number(x) : x).concat([ctStatus(r.v)[0]]))); const ws = XLSX.utils.aoa_to_sheet(aoa), wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Danh sách CTKM'); XLSX.writeFile(wb, 'Danh_sach_CTKM_' + new Date().toISOString().slice(0,10) + '.xlsx'); };
   $('ctImp').onchange = async e => { const f = e.target.files[0]; if (!f) return; if (typeof XLSX === 'undefined') return alert('Chưa tải được thư viện Excel.');
@@ -2404,7 +2436,7 @@ function renderCtkm(){
     if (d){ const r = C.r.find(x => x.id === +d.dataset.del); if (r && confirm('Xoá dòng ' + (r.v[1] || '') + ' ' + (r.v[2] || '') + '?')){ C.r = C.r.filter(x => x !== r); ctSave(); re(); } }
     if (u){ const k = C.r.findIndex(x => x.id === +u.dataset.dup); if (k >= 0){ C.r.splice(k + 1, 0, {id: C.seq++, v: C.r[k].v.slice(), isNew: 1}); ctSave(); re(); } } };
   el.querySelectorAll('[data-eqa]').forEach(b => b.onclick = () => { const gi = +b.dataset.eqa, g = S._eq[gi], code = el.querySelector('[data-eqc="' + gi + '"]').value.trim(), name = el.querySelector('[data-eqn="' + gi + '"]').value.trim();
-    if (!code) return alert('Nhập Mã quy đổi.'); const n = ctApplyEquiv(code, name, g.mem.map(m => m.code)); alert('Đã gộp ' + g.mem.length + ' mã (' + n + ' dòng) về mã quy đổi ' + code + '.'); renderCtkm(); });
+    if (!code) return alert('Nhập Mã quy đổi.'); const n = ctApplyEquiv(code, name, g.mem.map(m => m.code)); for (const c of g.mem.map(m => m.code)){ const A = S.M && S.M.arts.find(a => a.code === c); if (A) A.maQuyDoi = code; } if (S.M) applyQuyDoi(S.M); alert('Đã gộp ' + g.mem.length + ' mã (' + n + ' dòng) về mã quy đổi ' + code + ' — số liệu báo cáo đã tính theo mã quy đổi.'); renderCtkm(); });
 }
 function syncTabs(){ const m = mainOf(S.dim); $('mainTabs').querySelectorAll('button').forEach(x => x.setAttribute('aria-selected', String(x.dataset.k === m))); if (m === 'detail') $('tabs').querySelectorAll('button').forEach(x => x.setAttribute('aria-selected', String(x.dataset.k === S.dim))); }
 function updateTabUI(){
