@@ -170,11 +170,16 @@ table#tbl{border-collapse:separate;border-spacing:0;font-size:var(--fs);width:ma
 #tbl td.gs{border-left:1px solid var(--line)}
 #tbl thead th.gs{border-left:1px solid rgba(255,255,255,.25)}
 #tbl td.tl,#tbl th.tl{text-align:left}
-#tbl td.hl{background:#FFF6DA;font-weight:700}
-#tbl tbody tr:not(.total) td.hl{box-shadow:inset 1px 0 0 #F6E2A8,inset -1px 0 0 #F6E2A8}
-#tbl tr.total td.hl{background:#FFE9B0}
-#tbl thead tr.c th.hl{background:#FFF0C2;color:var(--ink)}
-#tbl tbody tr:hover td.hl{background:#FCEBB5}
+/* highlight dạng viên màu theo giá trị */
+.pv{display:inline-block;min-width:54px;text-align:right;padding:1px 8px;border-radius:999px;font-weight:700;border:1px solid transparent;line-height:1.45}
+.pv-g{background:#E7F7EF;color:#0B8A5C;border-color:#BFE8D3}
+.pv-b{background:#EAF1FF;color:#2456C8;border-color:#C9DAFB}
+.pv-y{background:#FFF4DF;color:#B76E00;border-color:#F6DDAE}
+.pv-r{background:#FDECEC;color:#C42222;border-color:#F6C7C7}
+.pv-n{background:#F1F3F7;color:var(--ink2);border-color:#E1E5EC}
+#tbl tr.total .pv{background:var(--navy);border-color:var(--navy)}
+#tbl tr.total .pv-g{color:#6EE7B7} #tbl tr.total .pv-r{color:#FCA5A5} #tbl tr.total .pv-b{color:#A9C4FF} #tbl tr.total .pv-y{color:#FCD58A} #tbl tr.total .pv-n{color:#E5E9F0}
+#tbl thead tr.c th.hl{color:var(--ink)}
 .trb{display:inline-block;width:18px;text-align:center;margin-right:4px;font-size:11px}
 .tb-up{color:var(--good)} .tb-flat{color:var(--ink2);font-size:9px} .tb-down{color:var(--bad)} .tb-top{font-size:12px}
 #tbl tr.total td{font-weight:800;background:#FFF7E6;border-bottom:2px solid #F3D9A6}
@@ -1571,10 +1576,18 @@ const HEAT = {q:1, v:1, t:1, tv:1, t1:1};
 function heatScale(rows){ const mx = {}; for (const [, , cols] of visibleGroups()) for (const [k, , t] of cols) if (HEAT[t]){ let m = 0; for (const r of rows){ const v = r[k]; if (v > m) m = v; } mx[k] = m; } return mx; }
 function bandOf(gk){ return (S._vg || visibleGroups()).findIndex(g => g[0]===gk) % 2 ? 'gB' : 'gA'; }
 const HL_COLS = new Set(['dVal','tqLK','tqD','tqD1','tsQ']);   /* cột nhấn mạnh */
+/* màu: DT tăng thêm theo dấu; các cột TBCH theo vị trí so với các dòng chính trong bảng (P25 / trung vị / P75) */
+function hlQuantiles(rows){ const q = {}; for (const k of HL_COLS){ if (k === 'dVal') continue; const v = rows.map(r => r[k]).filter(x => x != null && Number.isFinite(x)).sort((a,b) => a - b); const at = p => v.length ? v[Math.min(v.length - 1, Math.floor(p * (v.length - 1)))] : null; q[k] = [at(.25), at(.5), at(.75)]; } S._hlq = q; }
+function pvClass(k, v){
+  if (k === 'dVal') return v > 0 ? 'pv-g' : v < 0 ? 'pv-r' : 'pv-n';
+  const q = S._hlq?.[k]; if (!q || q[0] == null) return 'pv-n';
+  return v >= q[2] ? 'pv-g' : v >= q[1] ? 'pv-b' : v >= q[0] ? 'pv-y' : 'pv-r';
+}
 function cellsHtml(m, mx){
   let h = ''; S.curRankN = m.rankN;
   (S._vg || visibleGroups()).forEach(([gk, , cols], gi) => { const band = gi % 2 ? 'gB' : 'gA'; cols.forEach(([k, , t], i) => {
-    const [txt, cls] = fmtCell(t, m[k]);
+    let [txt, cls] = fmtCell(t, m[k]);
+    if (HL_COLS.has(k) && m[k] != null && !Number.isNaN(m[k])){ txt = '<span class="pv ' + pvClass(k, m[k]) + '">' + txt + '</span>'; cls = cls.replace(/cell-\w+/g, '').replace('na',''); }
     h += '<td class="' + band + (i===0?' gs ':' ') + (HL_COLS.has(k) ? 'hl ' : '') + cls + '">' + txt + '</td>';
   }); });
   return h;
@@ -1624,7 +1637,7 @@ function rowHtml(r, isTotal, mx, asSku, trCls){
 function syncX(){}   /* bảng dùng thanh cuộn gốc của #tblWrap — đã bỏ thanh cuộn phụ */
 function dimLabel(){ const l = TABS.find(t => t[0]===S.dim)[1]; return effDim() === 'cg' ? l + ' · gộp cùng tính chất' : l; }
 function renderTable(){
-  const gs = visibleGroups(); S._vg = gs; const _ed2 = effDim();
+  const gs = visibleGroups(); S._vg = gs; const _ed2 = effDim(); hlQuantiles(S.rows);
   const dimLbl = dimLabel();
   const firstLbl = (_ed2==='sku'||_ed2==='trend') ? 'Mã hàng / CTKM' : _ed2==='cg' ? 'Nhóm SKU cùng tính chất' : esc(dimLbl);
   let g = '<tr class="g"><th rowspan="2" data-k="key" class="sticky' + (S.sort.k==='key' ? ' sorted' + (S.sort.asc?' asc':'') : '') + '">' + firstLbl + '</th>';
