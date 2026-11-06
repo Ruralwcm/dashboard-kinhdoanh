@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Key Sale KM v4.23.4 — Win Rural</title>
+<title>Key Sale KM v4.24.0 — Win Rural</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 [hidden]{display:none!important}
@@ -366,6 +366,10 @@ table.ctt{border-collapse:separate;border-spacing:0;font-size:12.5px;width:max-c
 .qdL table{width:100%;border-collapse:collapse;font-size:12.5px}.qdL th{position:sticky;top:0;background:#F4F6FA;color:var(--ink2);font-weight:600;padding:6px;text-align:center}
 .qdL td{padding:4px 6px;border-bottom:1px solid #EEF1F5;text-align:center;white-space:nowrap}.qdL .l{text-align:left;white-space:normal}.qdL tr.on td{background:#EFF5FF}
 .qdA{display:flex;gap:8px;align-items:center}
+.grt tr.gsel{cursor:pointer}.grt tr.gsel:hover td{background:#F5F9FF}.grt tr.gsel.on td{background:#E8F0FF}.grt tr.gsel.on td:first-child{box-shadow:inset 3px 0 0 var(--mid)}
+.grt tr.ksep td{border-top:2px solid #D9E0EA;padding-top:10px;font-size:11.5px;font-weight:700;color:var(--ink2);text-transform:uppercase;letter-spacing:.3px;background:#fff}
+.grt tr.ksep2 td{padding:0;height:4px;border-bottom:2px solid #D9E0EA}
+.dselbar{display:flex;align-items:center;gap:8px;background:#E8F0FF;border:1px solid #C8D8F5;border-radius:10px;padding:6px 10px;margin:6px 0 8px;font-size:12.5px}.dselbar .btn{padding:2px 10px;font-size:12px}
 .spBox{width:min(1500px,97vw)}
 .spInfo{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--ink2)}.spInfo span{max-width:420px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.spInfo b{color:var(--ink)}
 .spT{overflow:auto;border:1px solid var(--line);border-radius:10px;flex:1;min-height:200px}
@@ -503,7 +507,7 @@ body.dashOn .ctlBar .ctl:first-child,body.dashOn .ctl-sec,body.dashOn .ctl-sw{di
 <header class="hd">
   <div class="hd-in">
     <img id="lg" class="lg" alt="WinMart+">
-    <div class="tt">Key Sale KM <span>v4.23.4 · Win Rural · Theo dõi CTKM</span></div>
+    <div class="tt">Key Sale KM <span>v4.24.0 · Win Rural · Theo dõi CTKM</span></div>
     <div class="mt">
       <span class="pill" id="fileinfo" title="">Chưa có dữ liệu</span>
       <div class="ts hd-ts" title="Cỡ chữ">
@@ -2189,8 +2193,18 @@ function renderDash(){
   applyTrend(gr, true); gr.sort((a,b) => ((b.rD || 0) - (b.rD1 || 0)) - ((a.rD || 0) - (a.rD1 || 0)));   /* sắp theo DT tăng thêm D vs D-1 */
   const up = gr.filter(g => g.dVal > 0).sort((a,b) => b.dVal - a.dVal), dn = gr.filter(g => g.dVal < 0).sort((a,b) => a.dVal - b.dVal);
   const mxD = Math.max(1, ...gr.map(g => Math.abs(g.dVal || 0)));
-  S._grSku = new Map(); for (const r of rows){ const k = r.km?.group || '(Không có KM)'; if (!S._grSku.has(k)) S._grSku.set(k, []); S._grSku.get(k).push(r); }
-  S._grTot = new Map(gr.map(g => [g.key, g]));
+  /* Nhóm SKUs (cột "Nhóm SKUs Key" của Danh mục CTKM; dự phòng Phân loại key của file) */
+  const ctKey = new Map(); try { for (const r of ctLoad().r){ const c = String(r.v[1] || '').trim(), k = String(r.v[13] || '').trim(); if (c && k && !ctKey.has(c)) ctKey.set(c, k); } } catch(e){}
+  const KEY0 = '(Chưa phân nhóm)', keyOf = ai => { const A = M.arts[ai]; for (const c of (A.qdMembers || [A.code])){ const k = ctKey.get(c); if (k) return k; } return KEY0; };
+  const fltK = {...flt, kmOf: flt.kmOf.map((k, ai) => k ? {...k, group: keyOf(ai)} : k)};
+  const kr = aggregate(M, fltK, 'group').rows.map(g => { const m = metrics(g, S.tb); m.key = g.key; return m; }).filter(g => g.key !== '(Không có KM)');
+  applyTrend(kr, true); kr.sort((a,b) => (a.key === KEY0) - (b.key === KEY0) || ((b.rD || 0) - (b.rD1 || 0)) - ((a.rD || 0) - (a.rD1 || 0)));
+  gr.forEach(g => g._gk = 'G:' + g.key); kr.forEach(g => g._gk = 'K:' + g.key);
+  S._keyOf = keyOf;
+  S._grSku = new Map(); const pushK = (k, r) => { if (!S._grSku.has(k)) S._grSku.set(k, []); S._grSku.get(k).push(r); };
+  for (const r of rows){ pushK('G:' + (r.km?.group || '(Không có KM)'), r); if (r.km) pushK('K:' + keyOf(r.ai), r); }
+  S._grTot = new Map(gr.concat(kr).map(g => [g._gk, g]));
+  const mxD2 = Math.max(mxD, ...kr.map(g => Math.abs(g.dVal || 0)));
   h += '<section class="dsec"><h3><span class="n">1</span>Overall CTKM &amp; xu hướng</h3>';
   h += '<p class="dsum">Doanh thu ngày D <b>' + fmtV(T.rD) + '</b> ' + unitShort() + ' (' + '<span class="' + clsSg(ddT) + '">' + pctTxt(ddT) + '</span> vs D-1, ' + sgnV(T.rD - T.rD1) + ') · Lũy kế <b>' + fmtV(T.rLK) + '</b> · <b>' + up.length + '/' + gr.length + '</b> nhóm CTKM tăng.'
      + (up.length ? ' Tăng mạnh: <b>' + up.slice(0,3).map(g => esc(g.key) + ' (' + sgnV(g.dVal) + ')').join(', ') + '</b>.' : '')
@@ -2213,16 +2227,18 @@ function renderDash(){
     + '<div class="pieInfo" id="pieInfo"></div></div>';
   h += '<div class="d1row"><div class="d1tbl">';
   /* Nhóm CTKM - Số mã - Tồn kho - Tồn BQ - DIO - Độ phủ - Sale LK - Sale BQ - No sale - Sale D-1 / Sale D - Tăng trưởng - Xu hướng */
-  const grRow = (g, tot) => { const w = Math.round(Math.abs(g.dVal || 0) / mxD * 70), ns = tot ? (g.pStock ? g.pNo / g.pStock : null) : g.noSale, dv = tot ? g.rD - g.rD1 : g.dVal, vv = tot ? ddT : g.vVal;
-    return '<tr' + (tot ? ' style="font-weight:800;background:#FFF7E6"' : '') + '><td class="l">' + (tot ? 'Tổng' : '<b>' + esc(g.key) + '</b>') + '</td><td>' + fmtQ(tot ? sk.nArtSel : g.nArt) + '</td>'
+  const dSel = S.dashSel || null;
+  const grRow = (g, tot) => { const w = Math.round(Math.abs(g.dVal || 0) / mxD2 * 70), ns = tot ? (g.pStock ? g.pNo / g.pStock : null) : g.noSale, dv = tot ? g.rD - g.rD1 : g.dVal, vv = tot ? ddT : g.vVal;
+    return '<tr' + (tot ? ' style="font-weight:800;background:#FFF7E6"' : ' class="gsel' + (dSel === g._gk ? ' on' : '') + '" data-gsel="' + esc(g._gk) + '" title="Bấm để lọc mục 2 theo nhóm này"') + '><td class="l">' + (tot ? 'Tổng' : '<b>' + esc(g.key) + '</b>') + '</td><td>' + fmtQ(tot ? sk.nArtSel : g.nArt) + '</td>'
       + '<td class="gsep">' + fmtV(g.sV) + '</td><td>' + fmtV(g.tsV) + '</td><td class="' + (g.dio > 60 ? 'cell-bad' : g.dio > 30 ? 'cell-warn' : '') + '">' + (g.dio == null ? '—' : nf0.format(g.dio)) + '</td><td class="' + (g.dr < 0.5 ? 'cell-bad' : g.dr < 0.8 ? 'cell-warn' : 'cell-good') + '">' + fmtPct(g.dr) + '</td>'
-      + '<td class="gsep"' + (tot ? '' : ' data-gp="lk" data-gk="' + esc(g.key) + '"') + '>' + fmtV(g.rLK) + '</td><td>' + fmtV(g.trLK) + '</td><td class="' + (ns > 0.3 ? 'cell-bad' : ns > 0.1 ? 'cell-warn' : '') + '">' + fmtPct(ns) + '</td>'
+      + '<td class="gsep"' + (tot ? '' : ' data-gp="lk" data-gk="' + esc(g._gk) + '"') + '>' + fmtV(g.rLK) + '</td><td>' + fmtV(g.trLK) + '</td><td class="' + (ns > 0.3 ? 'cell-bad' : ns > 0.1 ? 'cell-warn' : '') + '">' + fmtPct(ns) + '</td>'
       + '<td class="gsep">' + fmtV(g.rD1) + '</td><td>' + fmtV(g.rD) + '</td>'
-      + '<td class="l gsep"' + (tot ? '' : ' data-gp="up" data-gk="' + esc(g.key) + '"') + '>' + (tot ? '' : '<span class="dbar" style="width:' + w + 'px;background:' + (dv >= 0 ? 'var(--good)' : 'var(--bad)') + '"></span>') + '<span class="' + clsSg(dv) + '">' + sgnV(dv) + '</span> <span class="' + clsSg(vv) + '" style="font-size:11.5px">(' + pctTxt(vv) + ')</span></td>'
+      + '<td class="l gsep"' + (tot ? '' : ' data-gp="up" data-gk="' + esc(g._gk) + '"') + '>' + (tot ? '' : '<span class="dbar" style="width:' + w + 'px;background:' + (dv >= 0 ? 'var(--good)' : 'var(--bad)') + '"></span>') + '<span class="' + clsSg(dv) + '">' + sgnV(dv) + '</span> <span class="' + clsSg(vv) + '" style="font-size:11.5px">(' + pctTxt(vv) + ')</span></td>'
       + '<td class="l">' + (tot ? '' : lblHtml(g.trendLabel)) + '</td></tr>'; };
   h += '<div class="wrapx"><table class="dt grt"><thead><tr><th class="l" rowspan="2">Nhóm CTKM</th><th rowspan="2">Số mã</th><th class="c gh" colspan="4">Tồn kho</th><th class="c gh" colspan="3">Sale lũy kế</th><th class="c gh" colspan="2">Sale ngày</th><th class="c gh" rowspan="2">Tăng trưởng<br><span style="font-weight:500">D vs D-1</span></th><th class="l" rowspan="2">Xu hướng</th></tr>'
     + '<tr><th class="gsep">GT tồn</th><th>Tồn BQ/CH</th><th>DIO</th><th>Độ phủ</th><th class="gsep">DT lũy kế</th><th>DT BQ/CH</th><th>No sale</th><th class="gsep">Sale D-1</th><th>Sale D</th></tr></thead><tbody>';
   for (const g of gr) h += grRow(g, false);
+  if (kr.length){ h += '<tr class="ksep"><td class="l" colspan="13">Nhóm SKUs <span class="na" style="font-weight:500;text-transform:none">(Nhóm SKUs Key · Danh mục CTKM)</span></td></tr>'; for (const g of kr) h += grRow(g, false); h += '<tr class="ksep2"><td colspan="13"></td></tr>'; }
   h += grRow(T, true);
   h += '</tbody></table></div></div>' + pieH + '</div></section>';
 
@@ -2268,7 +2284,9 @@ function renderDash(){
     else if (DN[bk] > 5) t += '<div class="dmore"><button class="btn" data-dless="' + bk + '">Thu gọn</button></div>';
     return t; };
   h += '<section class="dsec"><h3><span class="n">2</span>Top SKUs review → ' + hmLbl + '</h3><p class="dsum"><b>Top sale lũy kế</b>: ô = DT BQ/CH lũy kế của ' + hmLbl + ' (màu so với TB của SKU: đỏ thấp hơn · xanh cao hơn); rê chuột xem DT lũy kế, tổng tồn, DIO. <b>Top / Flop Trend</b>: xếp theo Điểm hạng Trend D vs D-1 (mã có ≥ ' + minCH + ' CH bán); ô = %Δ DT tại từng ' + hmLbl + ' — <span style="color:var(--good);font-weight:700">xanh tăng</span> · <span style="color:var(--bad);font-weight:700">đỏ giảm</span>. Rê chuột xem số; bấm <b>View more</b> để thêm 5 mã.</p>';
-  h += heat(lkAll, '💰 Top sale lũy kế', 'lk', 'lk') + heat(upAll, '🔥 Top Trend D vs D-1', 'up') + heat(dnAll, '📉 Flop Trend D vs D-1', 'dn');
+  const selOK = r => !dSel || (dSel.startsWith('G:') ? (r.km?.group || '(Không có KM)') === dSel.slice(2) : !!r.km && keyOf(r.ai) === dSel.slice(2));
+  if (dSel) h += '<div class="dselbar">🔎 Đang lọc theo ' + (dSel.startsWith('G:') ? 'nhóm CTKM' : 'nhóm SKUs') + ': <b>' + esc(dSel.slice(2)) + '</b> <button class="btn" data-gselx>✕ Bỏ lọc</button></div>';
+  h += heat(lkAll.filter(selOK), '💰 Top sale lũy kế', 'lk', 'lk') + heat(upAll.filter(selOK), '🔥 Top Trend D vs D-1', 'up') + heat(dnAll.filter(selOK), '📉 Flop Trend D vs D-1', 'dn');
 
   /* Performance GĐV / QLKV */
   const perf = dim => { const rs = aggregate(M, flt, dim).rows.filter(g => g.key && g.key !== '(Trống)').map(g => { const m = metrics(g, S.tb); m.key = g.key; return m; });
@@ -2395,11 +2413,11 @@ function renderDash(){
   { let pop = $('gPop'); if (!pop){ pop = document.createElement('div'); pop.id = 'gPop'; pop.hidden = true; document.body.appendChild(pop); }
     const show = (td, ev) => { const k = td.dataset.gk, mode = td.dataset.gp, L = (S._grSku.get(k) || []).slice(), G = S._grTot.get(k) || {}; let t;
       if (mode === 'lk'){ const top = L.filter(r => r.rLK > 0).sort((a,b) => b.rLK - a.rLK).slice(0, 5), tot = G.rLK || 0;
-        t = '<h5>' + esc(k) + ' · Top 5 SKU đóng góp DT lũy kế</h5><table><tr><th class="l">SKU</th><th>DT lũy kế</th><th>Tỷ trọng</th><th>SL lũy kế</th><th>CH bán</th></tr>' + top.map(r => '<tr><td class="l"><b>' + esc(r.art.code) + '</b> ' + esc(r.art.name) + (r.art.qdMembers ? ' <span class="qdb">×' + r.art.qdMembers.length + '</span>' : '') + '</td><td>' + fmtV(r.rLK) + '</td><td>' + (tot ? nf1.format(r.rLK / tot * 100) + '%' : '—') + '</td><td>' + fmtQ(r.qLK) + '</td><td>' + fmtQ(r.nSale) + '</td></tr>').join('') + '</table>'
+        t = '<h5>' + esc(k.slice(2)) + ' · Top 5 SKU đóng góp DT lũy kế</h5><table><tr><th class="l">SKU</th><th>DT lũy kế</th><th>Tỷ trọng</th><th>SL lũy kế</th><th>CH bán</th></tr>' + top.map(r => '<tr><td class="l"><b>' + esc(r.art.code) + '</b> ' + esc(r.art.name) + (r.art.qdMembers ? ' <span class="qdb">×' + r.art.qdMembers.length + '</span>' : '') + '</td><td>' + fmtV(r.rLK) + '</td><td>' + (tot ? nf1.format(r.rLK / tot * 100) + '%' : '—') + '</td><td>' + fmtQ(r.qLK) + '</td><td>' + fmtQ(r.nSale) + '</td></tr>').join('') + '</table>'
           + '<div style="margin-top:4px;color:var(--ink2)">5 mã = <b>' + (tot ? nf1.format(top.reduce((a,r) => a + r.rLK, 0) / tot * 100) : '0') + '%</b> DT lũy kế của nhóm (' + L.length + ' mã)</div>'; }
       else { const dv = r => (r.rD || 0) - (r.rD1 || 0), up = L.filter(r => dv(r) > 0).sort((a,b) => dv(b) - dv(a)).slice(0, 5), dn = L.filter(r => dv(r) < 0).sort((a,b) => dv(a) - dv(b)).slice(0, 3);
         const rowH = r => '<tr><td class="l"><b>' + esc(r.art.code) + '</b> ' + esc(r.art.name) + (r.art.qdMembers ? ' <span class="qdb">×' + r.art.qdMembers.length + '</span>' : '') + '</td><td>' + fmtV(r.rD1) + '</td><td>' + fmtV(r.rD) + '</td><td class="' + clsSg(dv(r)) + '">' + sgnV(dv(r)) + '</td><td class="' + clsSg(dv(r)) + '">' + (r.rD1 > 0 ? pctTxt((r.rD - r.rD1) / r.rD1 * 100) : '—') + '</td></tr>';
-        t = '<h5>' + esc(k) + ' · Top 5 SKU đóng góp DT tăng thêm (D vs D-1)</h5><table><tr><th class="l">SKU</th><th>DT D-1</th><th>DT D</th><th>Tăng thêm</th><th>%</th></tr>' + (up.length ? up.map(rowH).join('') : '<tr><td class="l" colspan="5">Không có mã tăng.</td></tr>') + '</table>'
+        t = '<h5>' + esc(k.slice(2)) + ' · Top 5 SKU đóng góp DT tăng thêm (D vs D-1)</h5><table><tr><th class="l">SKU</th><th>DT D-1</th><th>DT D</th><th>Tăng thêm</th><th>%</th></tr>' + (up.length ? up.map(rowH).join('') : '<tr><td class="l" colspan="5">Không có mã tăng.</td></tr>') + '</table>'
           + (dn.length ? '<h5 style="margin-top:6px;color:var(--bad)">Kéo giảm nhiều nhất</h5><table>' + dn.map(rowH).join('') + '</table>' : '')
           + '<div style="margin-top:4px;color:var(--ink2)">Cả nhóm: <b class="' + clsSg(G.dVal) + '">' + sgnV(G.dVal || 0) + '</b> · ' + up.length + ' mã tăng dẫn đầu cộng <b>' + sgnV(up.reduce((a,r) => a + dv(r), 0)) + '</b></div>'; }
       pop.innerHTML = t; pop.hidden = false; move(ev); };
@@ -2407,6 +2425,8 @@ function renderDash(){
     $('dash').querySelectorAll('td[data-gp]').forEach(td => { td.onmouseenter = ev => show(td, ev); td.onmousemove = move; td.onmouseleave = () => { pop.hidden = true; }; }); }
   /* bấm tên sản phẩm → popup chi tiết (Miền → GĐV → QLKV) */
   if (!S._dashSkuBound) S._dashSkuBound = 1, $('dash').addEventListener('click', e => { const t = e.target.closest('[data-sku]'); if (!t || !$('dash').contains(t)) return; e.stopPropagation(); const k = t.closest('[data-pi]'); if (k && k.dataset.pi !== 'rest') pieInfo(+k.dataset.pi); skuPop(+t.dataset.sku); }, true);
+  $('dash').querySelectorAll('tr[data-gsel]').forEach(tr => tr.onclick = e => { if (e.target.closest('[data-sku],button')) return; const y = window.scrollY; S.dashSel = S.dashSel === tr.dataset.gsel ? null : tr.dataset.gsel; renderDash(); window.scrollTo(0, y); });
+  { const x = $('dash').querySelector('[data-gselx]'); if (x) x.onclick = () => { const y = window.scrollY; S.dashSel = null; renderDash(); window.scrollTo(0, y); }; }
   $('dash').querySelectorAll('[data-pi]').forEach(x => x.onclick = () => pieInfo(x.dataset.pi === 'rest' ? 'rest' : +x.dataset.pi));
   pieInfo(0);
   $('dash').querySelectorAll('[data-dmore],[data-dless]').forEach(b => b.onclick = () => { const y = window.scrollY, k = b.dataset.dmore || b.dataset.dless; S.dashN[k] = b.dataset.dmore ? S.dashN[k] + 5 : 5; renderDash(); window.scrollTo(0, y); });
