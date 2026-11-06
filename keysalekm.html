@@ -913,226 +913,235 @@ const COLGROUPS = [
   ['po','PO',[['poQ','SL PO','q'],['poV','GT PO','v'],['ndQ','SL chờ giao','q'],['ndV','GT chờ giao','v']]],
   ['val','Validate',[['vQ','SL Validate','q'],['vV','GT Validate','v']]],
 ];
+/* Cấu hình hiện cột theo mức Full/Compact/Lite — theo file KeySaleKM_Columns_View_Config_V2.xlsx */
 const COLS_VIEW = {
-"trend": {
-"dVal": {"F": true, "C": true, "L": true},
-"dQty": {"F": true, "C": true, "L": false},
-"trendScore": {
-"F": true,
-"C": true,
-"L": false
-},
-"trendLabel": {
-"F": true,
-"C": true,
-"L": true
-},
-"vVal": {
-"F": true,
-"C": true,
-"L": true
-},
-"vQty": {
-"F": true,
-"C": false,
-"L": false
-},
-"vCov": {
-"F": true,
-"C": false,
-"L": false
-}
-},
-"hq": {
-"rank": {
-"F": true,
-"C": true,
-"L": true
-},
-"score": {
-"F": true,
-"C": true,
-"L": false
-},
-"trLK": {
-"F": true,
-"C": true,
-"L": true
-},
-"bqV": {
-"F": true,
-"C": false,
-"L": false
-},
-"stR": {
-"F": true,
-"C": false,
-"L": false
-}
-},
-"lk": {
-"qLK": {
-"F": true,
-"C": false,
-"L": false
-},
-"rLK": {
-"F": true,
-"C": true,
-"L": true
-},
-"tqLK": {
-"F": true,
-"C": false,
-"L": false
-},
-"trLK": {
-"F": true,
-"C": true,
-"L": false
-}
-},
-"ns": {
-"nNo": {
-"F": true,
-"C": false,
-"L": false
-},
-"noSale": {
-"F": true,
-"C": true,
-"L": true
-}
-},
-"d": {
-"qD": {
-"F": true,
-"C": false,
-"L": false
-},
-"rD": {
-"F": true,
-"C": true,
-"L": true
-},
-"tqD": {
-"F": true,
-"C": false,
-"L": false
-},
-"trD": {
-"F": true,
-"C": true,
-"L": false
-}
-},
-"d1": {
-"qD1": {
-"F": true,
-"C": false,
-"L": false
-},
-"rD1": {
-"F": true,
-"C": true,
-"L": true
-},
-"tqD1": {
-"F": true,
-"C": true,
-"L": false
-},
-"trD1": {
-"F": true,
-"C": false,
-"L": false
-}
-},
-"tk": {
-"sQ": {
-"F": true,
-"C": false,
-"L": false
-},
-"sV": {
-"F": true,
-"C": true,
-"L": true
-},
-"tsQ": {
-"F": true,
-"C": false,
-"L": false
-},
-"tsV": {
-"F": true,
-"C": true,
-"L": false
-},
-"dio": {
-"F": true,
-"C": true,
-"L": true
-}
-},
-"dr": {
-"nDR": {
-"F": true,
-"C": false,
-"L": false
-},
-"dr": {
-"F": true,
-"C": true,
-"L": true
-}
-},
-"fc": {
-"fcQ": {
-"F": true,
-"C": false,
-"L": false
-},
-"fcV": {
-"F": true,
-"C": true,
-"L": true
-}
-},
-"po": {
-"poQ": {
-"F": true,
-"C": false,
-"L": false
-},
-"poV": {
-"F": true,
-"C": true,
-"L": true
-},
-"ndQ": {
-"F": true,
-"C": false,
-"L": false
-},
-"ndV": {
-"F": true,
-"C": true,
-"L": true
-}
-},
-"val": {
-"vQ": {
-"F": true,
-"C": false,
-"L": false
-},
-"vV": {
-"F": true,
-"C": true,
-"L": true
-}
-}
+ "trend": {
+  "trendScore": {
+   "F": true,
+   "C": true,
+   "L": false
+  },
+  "trendLabel": {
+   "F": true,
+   "C": true,
+   "L": true
+  },
+  "vVal": {
+   "F": true,
+   "C": true,
+   "L": true
+  },
+  "vQty": {
+   "F": true,
+   "C": false,
+   "L": false
+  },
+  "vCov": {
+   "F": true,
+   "C": false,
+   "L": false
+  },
+  "dVal": {
+   "F": true,
+   "C": true,
+   "L": true
+  },
+  "dQty": {
+   "F": true,
+   "C": true,
+   "L": false
+  }
+ },
+ "hq": {
+  "rank": {
+   "F": true,
+   "C": true,
+   "L": true
+  },
+  "score": {
+   "F": true,
+   "C": true,
+   "L": false
+  },
+  "trLK": {
+   "F": true,
+   "C": true,
+   "L": true
+  },
+  "bqV": {
+   "F": true,
+   "C": false,
+   "L": false
+  },
+  "stR": {
+   "F": true,
+   "C": false,
+   "L": false
+  }
+ },
+ "lk": {
+  "qLK": {
+   "F": true,
+   "C": false,
+   "L": false
+  },
+  "rLK": {
+   "F": true,
+   "C": true,
+   "L": true
+  },
+  "tqLK": {
+   "F": true,
+   "C": false,
+   "L": false
+  },
+  "trLK": {
+   "F": true,
+   "C": true,
+   "L": false
+  }
+ },
+ "ns": {
+  "nNo": {
+   "F": true,
+   "C": false,
+   "L": false
+  },
+  "noSale": {
+   "F": true,
+   "C": true,
+   "L": true
+  }
+ },
+ "d": {
+  "qD": {
+   "F": true,
+   "C": false,
+   "L": false
+  },
+  "rD": {
+   "F": true,
+   "C": true,
+   "L": true
+  },
+  "tqD": {
+   "F": true,
+   "C": false,
+   "L": false
+  },
+  "trD": {
+   "F": true,
+   "C": true,
+   "L": false
+  }
+ },
+ "d1": {
+  "qD1": {
+   "F": true,
+   "C": false,
+   "L": false
+  },
+  "rD1": {
+   "F": true,
+   "C": true,
+   "L": true
+  },
+  "tqD1": {
+   "F": true,
+   "C": false,
+   "L": false
+  },
+  "trD1": {
+   "F": true,
+   "C": true,
+   "L": false
+  }
+ },
+ "tk": {
+  "sQ": {
+   "F": true,
+   "C": false,
+   "L": false
+  },
+  "sV": {
+   "F": true,
+   "C": true,
+   "L": true
+  },
+  "tsQ": {
+   "F": true,
+   "C": false,
+   "L": false
+  },
+  "tsV": {
+   "F": true,
+   "C": true,
+   "L": false
+  },
+  "dio": {
+   "F": true,
+   "C": true,
+   "L": true
+  }
+ },
+ "dr": {
+  "nDR": {
+   "F": true,
+   "C": false,
+   "L": false
+  },
+  "dr": {
+   "F": true,
+   "C": true,
+   "L": true
+  }
+ },
+ "fc": {
+  "fcQ": {
+   "F": true,
+   "C": false,
+   "L": false
+  },
+  "fcV": {
+   "F": true,
+   "C": true,
+   "L": true
+  }
+ },
+ "po": {
+  "poQ": {
+   "F": true,
+   "C": false,
+   "L": false
+  },
+  "poV": {
+   "F": true,
+   "C": true,
+   "L": true
+  },
+  "ndQ": {
+   "F": true,
+   "C": false,
+   "L": false
+  },
+  "ndV": {
+   "F": true,
+   "C": true,
+   "L": true
+  }
+ },
+ "val": {
+  "vQ": {
+   "F": true,
+   "C": false,
+   "L": false
+  },
+  "vV": {
+   "F": true,
+   "C": true,
+   "L": true
+  }
+ }
 };
 /* Đơn vị hiển thị dưới tiêu đề cột. '$' = đơn vị tiền đang chọn */
 const COL_UNIT = {rank:'', score:'điểm', trLK:'$/CH', bqV:'$/mã/CH', stR:'% SL',
@@ -1508,7 +1517,8 @@ function renderKpis(res){
 function filterCols(gk, cols, cfgKey){ const lv = secLevel(gk), cfg = COLS_VIEW[cfgKey || gk]; return lv === 'F' || !cfg ? cols : cols.filter(([k]) => !cfg[k] || cfg[k][lv]); }
 function visibleGroups(){
   const ed = effDim(), skuLv = ed === 'sku' || ed === 'trend';
-  const drop = (gk, k) => gk === 'hq' && (k === 'trLK' && S.cols.has('lk'))          // DT TBCH đã có ở Sale lũy kế
+  const lkHasTr = S.cols.has('lk') && filterCols('lk', COLGROUPS.find(g => g[0]==='lk')[2]).some(([k]) => k === 'trLK');
+  const drop = (gk, k) => gk === 'hq' && (k === 'trLK' && lkHasTr)          // DT TBCH đang hiện ở Sale lũy kế thì bỏ bản trùng
                  || (k === 'bqV' && skuLv)                       // từng mã: DT BQ/mã/CH = DT TBCH
                  || ((k === 'rank' || k === 'score') && ed === 'trend');   // tab Trend dùng Điểm hạng riêng
   const base = COLGROUPS.filter(g => S.cols.has(g[0])).map(([gk, l, cols]) => [gk, l, filterCols(gk, cols).filter(([k]) => !drop(gk, k))]).filter(g => g[2].length);
