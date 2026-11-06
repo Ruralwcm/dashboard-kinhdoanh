@@ -338,8 +338,18 @@ body.fullscreen .ptools{opacity:.9}
 .dsec>h3 .n{background:var(--red);color:#fff;border-radius:6px;padding:1px 8px;font-size:12px}
 .dsec h4{margin:12px 0 6px;font-size:12.5px;color:var(--ink2);text-transform:uppercase;letter-spacing:.3px}
 .d1row{display:flex;gap:14px;align-items:stretch}
+.grt th.gh{background:#EEF2F8;color:var(--navy)} .grt .gsep{border-left:2px solid var(--line)}
+.pieSvg text{pointer-events:none}
 .d1tbl{flex:1;min-width:0}
-.d1pie{flex:none;width:250px;border:1px solid var(--line);border-radius:12px;padding:10px 14px;display:flex;flex-direction:column;align-items:center;gap:4px}
+.d1pie{flex:none;width:540px;border:1px solid var(--line);border-radius:12px;padding:10px 14px;display:flex;flex-direction:column;align-items:center;gap:4px}
+.pieWrap{display:flex;gap:12px;align-items:center;width:100%}
+.pieSvg{flex:none} .pseg{cursor:pointer;transition:stroke-width .15s} .pseg:hover,.pseg.on{stroke-width:42}
+.pieLeg{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.pl{display:flex;align-items:center;gap:6px;font-size:12px;padding:2px 5px;border-radius:6px;cursor:pointer} .pl:hover,.pl.on{background:var(--midbg)}
+.pl i{flex:none;width:11px;height:11px;border-radius:3px} .pl .pn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink)} .pl b{font-size:12px}
+.pieInfo{width:100%;border-top:1px dashed var(--line);margin-top:6px;padding-top:8px}
+.pih{font-size:13px;margin-bottom:2px} .pih i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px}
+.pig{display:grid;grid-template-columns:1fr auto 1fr auto;gap:2px 10px;font-size:12px} .pig span{color:var(--ink2)} .pig b{text-align:right}
 .d1t{font-size:12px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.3px;text-align:center}
 .d1l{display:flex;justify-content:space-between;width:100%;font-size:12px;color:var(--ink2)} .d1l b{color:var(--ink)} .d1l i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
 .d1s{font-size:11.5px;color:var(--ink2);text-align:center;margin-top:4px;line-height:1.5} .d1s b{color:var(--red)}
@@ -2043,15 +2053,32 @@ function renderDash(){
   /* vòng tròn: tỷ trọng DT Top 10 SKU / tổng DT */
   const shareOf = f => { const tot = T[f] || 0, top = rows.slice().sort((a,b) => (b[f] || 0) - (a[f] || 0)).slice(0, 10); const v = top.reduce((a,r) => a + (r[f] || 0), 0); return {v, tot, p: tot > 0 ? v / tot : 0, top}; };
   const shL = shareOf('rLK'), shD = shareOf('rD');
-  const donut = (p, sz) => { const r = sz/2 - 9, c = 2 * Math.PI * r; return '<svg width="' + sz + '" height="' + sz + '" viewBox="0 0 ' + sz + ' ' + sz + '"><circle cx="' + sz/2 + '" cy="' + sz/2 + '" r="' + r + '" fill="none" stroke="#E9EDF3" stroke-width="16"/><circle cx="' + sz/2 + '" cy="' + sz/2 + '" r="' + r + '" fill="none" stroke="var(--red)" stroke-width="16" stroke-linecap="round" stroke-dasharray="' + (c * p).toFixed(1) + ' ' + c.toFixed(1) + '" transform="rotate(-90 ' + sz/2 + ' ' + sz/2 + ')"/><text x="50%" y="47%" text-anchor="middle" font-size="24" font-weight="800" fill="var(--ink)">' + nf1.format(p * 100) + '%</text><text x="50%" y="62%" text-anchor="middle" font-size="11" fill="var(--ink2)">Top 10 SKU</text></svg>'; };
-  const pieH = '<div class="d1pie" title="' + esc('Top 10 SKU theo DT lũy kế: ' + shL.top.map(r => r.art.name).join('; ')) + '"><div class="d1t">DT Top 10 SKU / Tổng DT</div>' + donut(shL.p, 170)
-    + '<div class="d1l"><span><i style="background:var(--red)"></i>Top 10 SKU</span><b>' + fmtV(shL.v) + '</b></div><div class="d1l"><span><i style="background:#E9EDF3"></i>' + fmtQ(Math.max(0, rows.length - 10)) + ' SKU còn lại</span><b>' + fmtV(shL.tot - shL.v) + '</b></div>'
-    + '<div class="d1s">Lũy kế · ' + unitShort() + '<br>Ngày D: Top 10 chiếm <b>' + nf1.format(shD.p * 100) + '%</b> (' + fmtV(shD.v) + ' / ' + fmtV(shD.tot) + ')</div></div>';
+  /* vòng tròn chia 10 phần (mỗi SKU 1 màu) + phần còn lại; bấm để xem thông tin */
+  const PIE_C = ['#C8102E','#2563EB','#0E9F6E','#D97706','#7C3AED','#0891B2','#DB2777','#65A30D','#EA580C','#0F2A4A'];
+  const pieTop = shL.top.filter(r => r.rLK > 0);
+  S._pie = {items: pieTop.map((r, i) => ({c: PIE_C[i], code: r.art.code, name: r.art.name, grp: r.km?.group || '', p: shL.tot ? r.rLK / shL.tot : 0, rLK: r.rLK, qLK: r.qLK, rD: r.rD, qD: r.qD, pD: shD.tot ? r.rD / shD.tot : 0, ch: r.nSale})), rest: {p: 1 - shL.p, v: shL.tot - shL.v, n: Math.max(0, rows.length - pieTop.length)}, totL: shL.tot, totD: shD.tot};
+  const SZ = 250, R = 98, CIRC = 2 * Math.PI * R; let acc = 0;
+  let svg = '<svg class="pieSvg" width="' + SZ + '" height="' + SZ + '" viewBox="0 0 ' + SZ + ' ' + SZ + '"><circle cx="125" cy="125" r="' + R + '" fill="none" stroke="#E9EDF3" stroke-width="34"/>';
+  S._pie.items.forEach((it, i) => { const len = Math.max(0, CIRC * it.p - 1.5); svg += '<circle class="pseg" data-pi="' + i + '" cx="125" cy="125" r="' + R + '" fill="none" stroke="' + it.c + '" stroke-width="34" stroke-dasharray="' + len.toFixed(2) + ' ' + CIRC.toFixed(2) + '" stroke-dashoffset="' + (-acc).toFixed(2) + '" transform="rotate(-90 125 125)"><title>' + esc(it.code + ' ' + it.name + ' · ' + nf1.format(it.p * 100) + '%') + '</title></circle>'; acc += CIRC * it.p; });
+  svg += '<circle class="pseg" data-pi="rest" cx="125" cy="125" r="' + R + '" fill="none" stroke="transparent" stroke-width="34" stroke-dasharray="' + Math.max(0, CIRC * S._pie.rest.p).toFixed(2) + ' ' + CIRC.toFixed(2) + '" stroke-dashoffset="' + (-acc).toFixed(2) + '" transform="rotate(-90 125 125)"></circle>';
+  svg += '<text x="125" y="118" text-anchor="middle" font-size="30" font-weight="800" fill="var(--ink)">' + nf1.format(shL.p * 100) + '%</text><text x="125" y="140" text-anchor="middle" font-size="12" fill="var(--ink2)">Top 10 SKU / tổng DT</text><text x="125" y="156" text-anchor="middle" font-size="11" fill="var(--ink2)">lũy kế</text></svg>';
+  const pieH = '<div class="d1pie"><div class="d1t">DT Top 10 SKU / Tổng DT</div><div class="pieWrap">' + svg
+    + '<div class="pieLeg">' + S._pie.items.map((it, i) => '<div class="pl" data-pi="' + i + '"><i style="background:' + it.c + '"></i><span class="pn" title="' + esc(it.code + ' ' + it.name) + '">' + esc(it.name) + '</span><b>' + nf1.format(it.p * 100) + '%</b></div>').join('')
+    + '<div class="pl" data-pi="rest"><i style="background:#E9EDF3"></i><span class="pn">' + fmtQ(S._pie.rest.n) + ' SKU còn lại</span><b>' + nf1.format(S._pie.rest.p * 100) + '%</b></div></div></div>'
+    + '<div class="pieInfo" id="pieInfo"></div></div>';
   h += '<div class="d1row"><div class="d1tbl">';
-  h += '<div class="wrapx"><table class="dt"><thead><tr><th class="l">Nhóm CTKM</th><th>Số mã</th><th>DT D</th><th class="l">DT tăng thêm vs D-1</th><th>%Δ DT</th><th>%Δ SL</th><th>DT lũy kế</th><th>% No sale</th><th>Độ phủ (DR)</th><th class="l">Xu hướng</th></tr></thead><tbody>';
-  for (const g of gr){ const w = Math.round(Math.abs(g.dVal || 0) / mxD * 90);
-    h += '<tr><td class="l"><b>' + esc(g.key) + '</b></td><td>' + fmtQ(g.nArt) + '</td><td>' + fmtV(g.rD) + '</td><td class="l"><span class="dbar" style="width:' + w + 'px;background:' + (g.dVal >= 0 ? 'var(--good)' : 'var(--bad)') + '"></span><span class="' + clsSg(g.dVal) + '">' + sgnV(g.dVal) + '</span></td><td class="' + clsSg(g.vVal) + '">' + pctTxt(g.vVal) + '</td><td class="' + clsSg(g.vQty) + '">' + pctTxt(g.vQty) + '</td><td>' + fmtV(g.rLK) + '</td><td class="' + (g.noSale > 0.3 ? 'cell-bad' : g.noSale > 0.1 ? 'cell-warn' : '') + '">' + fmtPct(g.noSale) + '</td><td class="' + (g.dr < 0.5 ? 'cell-bad' : g.dr < 0.8 ? 'cell-warn' : 'cell-good') + '">' + fmtPct(g.dr) + '</td><td class="l">' + lblHtml(g.trendLabel) + '</td></tr>'; }
-  h += '<tr style="font-weight:800;background:#FFF7E6"><td class="l">Tổng</td><td>' + fmtQ(sk.nArtSel) + '</td><td>' + fmtV(T.rD) + '</td><td class="l ' + clsSg(T.rD - T.rD1) + '">' + sgnV(T.rD - T.rD1) + '</td><td class="' + clsSg(ddT) + '">' + pctTxt(ddT) + '</td><td>' + pctTxt(T.qD1 ? (T.qD - T.qD1) / T.qD1 * 100 : null) + '</td><td>' + fmtV(T.rLK) + '</td><td>' + fmtPct(T.pStock ? T.pNo / T.pStock : null) + '</td><td>' + fmtPct(T.dr) + '</td><td></td></tr>';
+  /* Nhóm CTKM - Số mã - Tồn kho - Tồn BQ - DIO - Độ phủ - Sale LK - Sale BQ - No sale - Sale D-1 / Sale D - Tăng trưởng - Xu hướng */
+  const grRow = (g, tot) => { const w = Math.round(Math.abs(g.dVal || 0) / mxD * 70), ns = tot ? (g.pStock ? g.pNo / g.pStock : null) : g.noSale, dv = tot ? g.rD - g.rD1 : g.dVal, vv = tot ? ddT : g.vVal;
+    return '<tr' + (tot ? ' style="font-weight:800;background:#FFF7E6"' : '') + '><td class="l">' + (tot ? 'Tổng' : '<b>' + esc(g.key) + '</b>') + '</td><td>' + fmtQ(tot ? sk.nArtSel : g.nArt) + '</td>'
+      + '<td class="gsep">' + fmtV(g.sV) + '</td><td>' + fmtV(g.tsV) + '</td><td class="' + (g.dio > 60 ? 'cell-bad' : g.dio > 30 ? 'cell-warn' : '') + '">' + (g.dio == null ? '—' : nf0.format(g.dio)) + '</td><td class="' + (g.dr < 0.5 ? 'cell-bad' : g.dr < 0.8 ? 'cell-warn' : 'cell-good') + '">' + fmtPct(g.dr) + '</td>'
+      + '<td class="gsep">' + fmtV(g.rLK) + '</td><td>' + fmtV(g.trLK) + '</td><td class="' + (ns > 0.3 ? 'cell-bad' : ns > 0.1 ? 'cell-warn' : '') + '">' + fmtPct(ns) + '</td>'
+      + '<td class="gsep">' + fmtV(g.rD1) + '</td><td>' + fmtV(g.rD) + '</td>'
+      + '<td class="l gsep">' + (tot ? '' : '<span class="dbar" style="width:' + w + 'px;background:' + (dv >= 0 ? 'var(--good)' : 'var(--bad)') + '"></span>') + '<span class="' + clsSg(dv) + '">' + sgnV(dv) + '</span> <span class="' + clsSg(vv) + '" style="font-size:11.5px">(' + pctTxt(vv) + ')</span></td>'
+      + '<td class="l">' + (tot ? '' : lblHtml(g.trendLabel)) + '</td></tr>'; };
+  h += '<div class="wrapx"><table class="dt grt"><thead><tr><th class="l" rowspan="2">Nhóm CTKM</th><th rowspan="2">Số mã</th><th class="c gh" colspan="4">Tồn kho</th><th class="c gh" colspan="3">Sale lũy kế</th><th class="c gh" colspan="2">Sale ngày</th><th class="c gh" rowspan="2">Tăng trưởng<br><span style="font-weight:500">D vs D-1</span></th><th class="l" rowspan="2">Xu hướng</th></tr>'
+    + '<tr><th class="gsep">GT tồn</th><th>Tồn BQ/CH</th><th>DIO</th><th>Độ phủ</th><th class="gsep">DT lũy kế</th><th>DT BQ/CH</th><th>No sale</th><th class="gsep">Sale D-1</th><th>Sale D</th></tr></thead><tbody>';
+  for (const g of gr) h += grRow(g, false);
+  h += grRow(T, true);
   h += '</tbody></table></div></div>' + pieH + '</div></section>';
 
   /* ---------- 2. SKUs Trend → GĐV ---------- */
@@ -2181,6 +2208,15 @@ function renderDash(){
   $('dash').innerHTML = h;
   $('rowinfo').textContent = '';
   const mb = $('dashUpcMore'); if (mb) mb.onclick = () => { S.dashAllUpc = !S.dashAllUpc; renderDash(); };
+  const pieInfo = k => { const P = S._pie, el = $('pieInfo'); if (!P || !el) return;
+    $('dash').querySelectorAll('.pseg,.pl').forEach(x => x.classList.toggle('on', x.dataset.pi === String(k)));
+    if (k === 'rest'){ el.innerHTML = '<div class="pih"><i style="background:#CBD3DF"></i><b>' + fmtQ(P.rest.n) + ' SKU còn lại</b></div><div class="pig"><span>Tỷ trọng DT lũy kế</span><b>' + nf1.format(P.rest.p * 100) + '%</b><span>DT lũy kế</span><b>' + fmtV(P.rest.v) + '</b></div>'; return; }
+    const it = P.items[k]; if (!it){ el.innerHTML = '<div class="na" style="font-size:12px">Bấm vào từng phần màu hoặc tên mã để xem chi tiết.</div>'; return; }
+    el.innerHTML = '<div class="pih"><i style="background:' + it.c + '"></i><b>' + esc(it.code) + '</b> ' + esc(it.name) + '</div><div class="na" style="font-size:11.5px;margin-bottom:4px">' + esc(it.grp) + ' · #' + (k + 1) + ' theo DT lũy kế · ' + fmtQ(it.ch) + ' CH bán</div>'
+      + '<div class="pig"><span>Tỷ trọng DT lũy kế</span><b>' + nf1.format(it.p * 100) + '%</b><span>DT lũy kế · ' + unitShort() + '</span><b>' + fmtV(it.rLK) + '</b><span>SL bán lũy kế</span><b>' + fmtQ(it.qLK) + '</b>'
+      + '<span>Tỷ trọng DT ngày D</span><b>' + nf1.format(it.pD * 100) + '%</b><span>DT ngày D</span><b>' + fmtV(it.rD) + '</b><span>SL bán ngày D</span><b>' + fmtQ(it.qD) + '</b></div>'; };
+  $('dash').querySelectorAll('[data-pi]').forEach(x => x.onclick = () => pieInfo(x.dataset.pi === 'rest' ? 'rest' : +x.dataset.pi));
+  pieInfo(0);
   $('dash').querySelectorAll('[data-dmore],[data-dless]').forEach(b => b.onclick = () => { const y = window.scrollY, k = b.dataset.dmore || b.dataset.dless; S.dashN[k] = b.dataset.dmore ? S.dashN[k] + 5 : 5; renderDash(); window.scrollTo(0, y); });
   $('dash').querySelectorAll('[data-upx]').forEach(b => b.onclick = () => { const y = window.scrollY, a = +b.dataset.upx; S.dashUpOpen.has(a) ? S.dashUpOpen.delete(a) : S.dashUpOpen.add(a); renderDash(); window.scrollTo(0, y); });
   $('dash').querySelectorAll('[data-dexp]').forEach(b => b.onclick = () => { const y = window.scrollY; S.dashExp[b.dataset.dexp] = !S.dashExp[b.dataset.dexp]; renderDash(); window.scrollTo(0, y); });
