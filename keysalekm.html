@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Key Sale KM v4.28.0 — Win Rural</title>
+<title>Key Sale KM v4.28.1 — Win Rural</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 [hidden]{display:none!important}
@@ -380,9 +380,20 @@ table.ctt{border-collapse:separate;border-spacing:0;font-size:12.5px;width:max-c
 .grt tr.ksep2 td{padding:0;height:4px;border-bottom:2px solid #D9E0EA}
 .dselbar{display:flex;align-items:center;gap:8px;background:#E8F0FF;border:1px solid #C8D8F5;border-radius:10px;padding:6px 10px;margin:6px 0 8px;font-size:12.5px}.dselbar .btn{padding:2px 10px;font-size:12px}
 .spBox{width:min(1500px,97vw)}
+.spHd{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding:2px 30px 8px 0;border-bottom:2px solid var(--line);position:relative}
+.spHd .qdX{position:absolute;right:0;top:0}
+.spIc{font-size:20px}.spCd{font-size:20px;font-weight:800;color:var(--navy)}.spNm{font-size:20px;font-weight:800;color:var(--ink)}
+.spPr{font-size:20px;font-weight:800;color:var(--red)}.spPr s{font-size:13px;font-weight:500;color:var(--ink2);margin-left:6px}
+.spGr{font-size:13px;font-weight:700;background:var(--midbg);color:var(--navy);border-radius:999px;padding:2px 10px}
+.spDt{font-size:15px;font-weight:700;color:var(--ink2)}
+.spt thead tr.spZ th{color:#fff;text-align:center;font-size:12px;padding:5px 6px;border-left:2px solid #fff}
+.spt thead tr.spZ th.z1{background:#0F2A4A}.spt thead tr.spZ th.z2{background:#1E5AA8}.spt thead tr.spZ th.z3{background:#C8102E}.spt thead tr.spZ th.z4{background:#44546A}
+.spt thead tr.spH th{top:27px}.spt thead tr.spH th.z1{background:#E6EBF2}.spt thead tr.spH th.z2{background:#E5EEFA}.spt thead tr.spH th.z3{background:#FBE7EA}.spt thead tr.spH th.z4{background:#ECEFF3}
+.spt td.zs,.spt thead tr.spH th:nth-child(4),.spt thead tr.spH th:nth-child(8),.spt thead tr.spH th:nth-child(12){border-left:2px solid #D9E0EA}
 .spInfo{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--ink2)}.spInfo span{max-width:420px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.spInfo b{color:var(--ink)}
 .spT{overflow:auto;border:1px solid var(--line);border-radius:10px;flex:1;min-height:200px}
-.spt{width:100%;font-size:12.5px}.spt th{position:sticky;top:0;z-index:1;white-space:normal!important;vertical-align:bottom}
+.spt{width:100%;font-size:12.5px}
+.spt tbody td.l{min-width:320px;white-space:nowrap;overflow:visible}.spt th{position:sticky;top:0;z-index:1;white-space:normal!important;vertical-align:bottom}
 .spt tr.sptot td{background:#FFF7E6;font-weight:800}.spt tr.spl0 td{font-weight:700;background:#F4F7FC}.spt tr.spl2 td{font-size:12px}
 .skl{cursor:pointer}.skl:hover{color:var(--mid);text-decoration:underline}
 .eqg{border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin:8px 0;background:#fff}
@@ -519,7 +530,7 @@ body.dashOn .ctlBar .ctl:first-child,body.dashOn .ctl-sec,body.dashOn .ctl-sw{di
 <header class="hd">
   <div class="hd-in">
     <img id="lg" class="lg" alt="WinMart+">
-    <div class="tt">Key Sale KM <span id="fileinfo" title="">v4.28.0 · Win Rural · Theo dõi CTKM</span></div>
+    <div class="tt">Key Sale KM <span id="fileinfo" title="">v4.28.1 · Win Rural · Theo dõi CTKM</span></div>
     <div class="mainTabs hdTabs" id="mainTabs" role="tablist"></div>
     <div class="mt">
       <div class="ts hd-ts" title="Cỡ chữ">
@@ -2180,7 +2191,7 @@ const wkHtml = (m, max) => (m.weak || []).length ? m.weak.slice(0, max || 9).map
 function skuPop(ai){
   const M = S.M, flt = S.flt || buildFilter(), A = M.arts[ai]; if (!A) return;
   const km = flt.kmOf[ai] || A.km, mask = new Uint8Array(M.arts.length); mask[ai] = 1;
-  const LV = ['rm', 'rsm', 'asm'], LN = {rm:'Miền (RM)', rsm:'GĐV', asm:'QLKV'};   /* Miền = RM của STORELIST (Miền Bắc - Đặng Trần…), không dùng Region địa lý */
+  const LV = ['rm', 'rsm', 'asm'], LN = {rm:'Miền', rsm:'GĐV', asm:'QLKV'};   /* Miền = RM của STORELIST (Miền Bắc - Đặng Trần…), không dùng Region địa lý */
   const open = S._spOpen || (S._spOpen = new Set());
   const agg = path => { const dim = LV[path.length];
     const so = path.length ? Uint8Array.from(flt.storeOK, (v, si) => v && path.every((p, j) => M.stores[si][LV[j]] === p) ? 1 : 0) : flt.storeOK;
@@ -2192,16 +2203,22 @@ function skuPop(ai){
   const C = [['Số CH', m => fmtQ(m.nAct)], ['Rank LK', m => m.rankT ? '#' + m.rankT : ''], ['DT lũy kế', m => fmtV(m.rLK)], ['DT BQ/CH', m => fmtV(m.trLK)], ['% CH bán', m => fmtPct(m.nAct ? Math.min(1, m.nSale / m.nAct) : null)], ['SL lũy kế', m => fmtQ(m.qLK)],
     ['DT D-1', m => fmtV(m.rD1)], ['DT D', m => fmtV(m.rD)], ['Tăng thêm', m => { const d = (m.rD || 0) - (m.rD1 || 0); return '<span class="' + clsSg(d) + '">' + sgnV(d) + '</span>'; }], ['%Δ', m => { const v = m.rD1 > 0 ? (m.rD - m.rD1) / m.rD1 * 100 : null; return v == null ? '—' : '<span class="' + clsSg(v) + '">' + pctTxt(v) + '</span>'; }],
     ['GT tồn', m => fmtV(m.sV)], ['DIO', m => m.dio == null ? '—' : '<span class="' + (m.dio > 60 ? 'cell-bad' : m.dio > 30 ? 'cell-warn' : '') + '">' + nf0.format(m.dio) + '</span>'], ['DR', m => '<span class="' + (m.dr < 0.5 ? 'cell-bad' : m.dr < 0.8 ? 'cell-warn' : 'cell-good') + '">' + fmtPct(m.dr == null ? null : Math.min(1, m.dr)) + '</span>'], ['% No sale', m => fmtPct(m.noSale)], ['Xu hướng', m => m.trendLabel ? lblHtml(m.trendLabel) : '']];
+  /* 4 vùng cột: 1 Phạm vi (tên, Số CH, Rank) · 2 Lũy kế · 3 Ngày D vs D-1 · 4 Tồn kho / độ phủ / xu hướng */
+  const zOf = i => i < 2 ? 1 : i < 6 ? 2 : i < 10 ? 3 : 4, zc = i => 'z' + zOf(i), zb = i => (i === 2 || i === 6 || i === 10) ? 'zs' : '';
   const row = (m, path, lv) => { const id = path.concat([m.key]).join('|'), leaf = lv >= LV.length - 1, op = !leaf && open.has(id);
-    return '<tr class="spl' + lv + '"><td class="l" style="padding-left:' + (8 + lv * 18) + 'px">' + (leaf ? '<span style="display:inline-block;width:22px"></span>' : '<button type="button" class="tg" data-spx="' + esc(id) + '">' + (op ? '−' : '+') + '</button> ') + esc(m.key) + ' <span class="na" style="font-size:10.5px">' + LN[LV[lv]] + '</span></td>' + C.map(c => '<td>' + c[1](m) + '</td>').join('') + '</tr>'
+    return '<tr class="spl' + lv + '"><td class="l" style="padding-left:' + (8 + lv * 18) + 'px">' + (leaf ? '<span style="display:inline-block;width:22px"></span>' : '<button type="button" class="tg" data-spx="' + esc(id) + '">' + (op ? '−' : '+') + '</button> ') + esc(m.key) + ' <span class="na" style="font-size:10.5px">' + LN[LV[lv]] + '</span></td>' + C.map((c, i) => '<td class="' + zb(i) + '">' + c[1](m) + '</td>').join('') + '</tr>'
       + (op ? agg(path.concat([m.key])).map(k => row(k, path.concat([m.key]), lv + 1)).join('') : ''); };
   let bd = $('spModal'); if (!bd){ bd = document.createElement('div'); bd.id = 'spModal'; bd.className = 'qdBack'; document.body.appendChild(bd); }
   const draw = () => {
     const top = agg([]);
-    bd.innerHTML = '<div class="qdBox spBox" role="dialog"><div class="qdHd"><b>📦 <span class="cd" style="color:var(--navy)">' + esc(A.code) + '</span> ' + esc(A.name) + '</b>' + (A.qdMembers ? ' <span class="qdb">gộp ' + A.qdMembers.length + ' mã: ' + esc(A.qdMembers.join(', ')) + '</span>' : '') + '<button class="qdX" data-x>✕</button></div>'
-      + '<div class="spInfo">' + (km ? '<span><b>' + esc(km.group || '') + '</b></span><span>Giá KM <b>' + (km.p1 ? nf0.format(km.p1) : '—') + '</b>' + (km.p0 ? ' (thường ' + nf0.format(km.p0) + ')' : '') + '</span><span>' + fmtDate(km.d0) + ' → ' + fmtDate(km.d1) + '</span><span>' + esc(km.status || '') + '</span>' + (km.mech ? '<span title="' + esc(km.mech) + '">' + esc(km.mech) + '</span>' : '') : '<span class="na">Không có CTKM</span>') + '<span>MCH3: ' + esc(A.mch3 || '—') + '</span><span>Min TB: ' + (A.minTB || '—') + '</span></div>'
-      + '<div class="spT"><table class="dt spt"><thead><tr><th class="l">Miền → GĐV → QLKV</th>' + C.map(c => '<th>' + c[0] + '</th>').join('') + '</tr></thead><tbody>'
-      + '<tr class="sptot"><td class="l"><b>Tổng</b></td>' + C.map(c => '<td>' + (c[0] === 'Rank LK' || c[0] === 'Xu hướng' ? '' : c[1](tot)) + '</td>').join('') + '</tr>'
+    const dm = d => d ? String(d.getUTCDate()).padStart(2, '0') + '/' + String(d.getUTCMonth() + 1).padStart(2, '0') : '—';
+    const ZN = [['Phạm vi', 3], ['Lũy kế', 4], ['Ngày D vs D-1', 4], ['Tồn kho · Độ phủ · Xu hướng', 5]];
+    bd.innerHTML = '<div class="qdBox spBox" role="dialog"><div class="spHd"><span class="spIc">📦</span><span class="spCd">' + esc(A.code) + '</span><span class="spNm">' + esc(A.name) + '</span>'
+      + (km ? '<span class="spPr">' + (km.p1 ? nf0.format(km.p1) + 'đ' : '—') + (km.p0 ? '<s>' + nf0.format(km.p0) + '</s>' : '') + '</span><span class="spGr">' + esc(km.group || '') + '</span><span class="spDt">' + dm(km.d0) + ' → ' + dm(km.d1) + '</span>' : '<span class="na">Không có CTKM</span>')
+      + '<button class="qdX" data-x>✕</button></div>'
+      + '<div class="spInfo">' + (km ? '<span>' + esc(km.status || '') + '</span>' + (km.mech ? '<span title="' + esc(km.mech) + '">' + esc(km.mech) + '</span>' : '') : '') + '<span>MCH3: ' + esc(A.mch3 || '—') + '</span><span>Min TB: ' + (A.minTB || '—') + '</span>' + (A.qdMembers ? '<span class="qdb">gộp ' + A.qdMembers.length + ' mã: ' + esc(A.qdMembers.join(', ')) + '</span>' : '') + '</div>'
+      + '<div class="spT"><table class="dt spt"><thead><tr class="spZ">' + ZN.map((z, i) => '<th colspan="' + z[1] + '" class="z' + (i + 1) + '">' + z[0] + '</th>').join('') + '</tr><tr class="spH"><th class="l z1">Miền → GĐV → QLKV</th>' + C.map((c, i) => '<th class="' + zc(i) + '">' + c[0] + '</th>').join('') + '</tr></thead><tbody>'
+      + '<tr class="sptot"><td class="l"><b>Tổng</b></td>' + C.map((c, i) => '<td class="' + zb(i) + '">' + (c[0] === 'Rank LK' || c[0] === 'Xu hướng' ? '' : c[1](tot)) + '</td>').join('') + '</tr>'
       + top.map(m => row(m, [], 0)).join('') + '</tbody></table></div>'
       + '<div class="qdA"><button class="btn" data-spall>Mở tất cả GĐV</button><button class="btn" data-spnone>Thu gọn</button><span style="flex:1"></span><span class="na" style="font-size:11.5px">Theo bộ lọc hiện tại · Rank LK = xếp hạng lũy kế trong cùng cấp</span><button class="btn pri" data-x>Đóng</button></div></div>';
     bd.hidden = false;
