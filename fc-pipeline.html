@@ -1,117 +1,395 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" data-theme="light">
 <head>
-<style>html{visibility:hidden}</style><script src="auth.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>FC Pipeline — MsT</title>
+<title>FC Pipeline — Dashboard Kinh Doanh</title>
 <style>
-:root{--bg:#f0f2f5;--card:#fff;--primary:#1a73e8;--danger:#ea4335;--warn:#fbbc04;--ok:#34a853;--text:#202124;--sub:#5f6368;--border:#dadce0}
-*{box-sizing:border-box;margin:0;padding:0}
-body{font:14px/1.5 system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text)}
-.header{background:linear-gradient(135deg,#1a237e,#0d47a1);color:#fff;padding:16px 24px;display:flex;align-items:center;gap:16px}
-.header h1{font-size:20px;font-weight:600}
-.header sub{opacity:.8;font-size:12px}
-.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;padding:16px 24px}
-.kpi{background:var(--card);border-radius:8px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,.1)}
-.kpi .label{font-size:11px;color:var(--sub);text-transform:uppercase;letter-spacing:.5px}
-.kpi .value{font-size:28px;font-weight:700;margin:4px 0}
-.kpi .sub{font-size:12px;color:var(--sub)}
-.pipeline{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;padding:0 24px 24px}
-.stage{background:var(--card);border-radius:8px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,.1);min-height:200px}
-.stage h3{font-size:14px;margin-bottom:8px;padding-bottom:8px;border-bottom:2px solid var(--border);display:flex;justify-content:space-between}
-.stage .count{font-size:24px;font-weight:700}
-.stage.s1 h3{border-color:#4285f4}.stage.s1 .count{color:#4285f4}
-.stage.s2 h3{border-color:#fbbc04}.stage.s2 .count{color:#fbbc04}
-.stage.s3 h3{border-color:#ff6d01}.stage.s3 .count{color:#ff6d01}
-.stage.s4 h3{border-color:#34a853}.stage.s4 .count{color:#34a853}
-.stage.s5 h3{border-color:#1a73e8}.stage.s5 .count{color:#1a73e8}
-.stage .card{background:#f8f9fa;border-radius:6px;padding:10px;margin-bottom:8px;font-size:12px;border-left:3px solid var(--border)}
-.stage.s1 .card{border-left-color:#4285f4}
-.stage.s2 .card{border-left-color:#fbbc04}
-.stage.s3 .card{border-left-color:#ff6d01}
-.stage.s4 .card{border-left-color:#34a853}
-.stage.s5 .card{border-left-color:#1a73e8}
-.section{padding:0 24px 16px}
-.section h2{font-size:16px;margin-bottom:12px}
-table{width:100%;border-collapse:collapse;background:var(--card);border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.1)}
-th{background:#f8f9fa;padding:10px 12px;text-align:left;font-size:12px;font-weight:600;color:var(--sub);border-bottom:1px solid var(--border)}
-td{padding:10px 12px;font-size:13px;border-bottom:1px solid #eee}
-tr:hover{background:#f8f9fa}
-.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
-.badge.FRESH{background:#e8f5e9;color:#2e7d32}
-.badge.RR{background:#e3f2fd;color:#1565c0}
-.badge.BW{background:#fff3e0;color:#e65100}
-.badge.CTKM{background:#fce4ec;color:#c62828}
-.badge.ADHOC{background:#f3e5f5;color:#6a1b9a}
-.empty{text-align:center;color:var(--sub);padding:40px;font-style:italic}
-@media(max-width:1200px){.pipeline{grid-template-columns:repeat(3,1fr)}}
-@media(max-width:768px){.pipeline{grid-template-columns:1fr}.kpi-grid{grid-template-columns:repeat(2,1fr)}}
+:root{
+  --bg:#f2f4f8;--card:#fff;--text:#0f1e3d;--text2:#64748b;--border:#e2e8f0;
+  --navy:#0b1b4d;--navy2:#1e3a8a;--accent:#10b981;--accent2:#f59e0b;
+  --red:#ef4444;--redbg:#fee2e2;--greenbg:#d1fae5;--orangebg:#fef3c7;
+  --shadow:0 1px 3px rgba(15,30,61,.08),0 4px 12px rgba(15,30,61,.04);
+  --radius:14px;
+  --hh:62px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column;height:100vh;overflow:hidden}
+header{background:linear-gradient(120deg,var(--navy) 0%,var(--navy2) 100%);color:#fff;height:var(--hh);min-height:var(--hh);padding:0 22px;display:flex;align-items:center;justify-content:space-between;gap:16px;box-shadow:0 4px 20px rgba(11,27,77,.25);z-index:100}
+.hl{display:flex;align-items:center;gap:11px;min-width:0}
+.logo.brand{width:auto;height:34px;flex:0 0 auto;display:flex;align-items:center;padding:0}
+.logo.brand img{height:34px;width:auto;display:block;border-radius:6px}
+.hl>div{min-width:0}
+h1{font-size:16px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:44vw}
+.sub{font-size:11px;opacity:.72;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:44vw}
+nav{display:flex;gap:5px;align-items:center;flex-wrap:nowrap}
+nav a{display:inline-flex;align-items:center;justify-content:center;height:32px;padding:0 12px;border-radius:9px;font-size:12px;font-weight:600;text-decoration:none;color:#cbd5e1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);transition:.15s;white-space:nowrap}
+nav a:hover{background:rgba(255,255,255,.16);color:#fff}
+nav a.on{background:#fff;color:var(--navy);border-color:#fff}
+main{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;width:100%;padding:14px 22px 18px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:11px;margin-bottom:14px}
+.kpi{background:var(--card);border-radius:var(--radius);padding:12px 14px;box-shadow:var(--shadow);border:1px solid var(--border);position:relative;overflow:hidden}
+.kpi::after{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--c,#3b82f6)}
+.kpi .lbl{font-size:10.5px;color:var(--text2);text-transform:uppercase;font-weight:700;letter-spacing:.6px}
+.kpi .val{font-size:21px;font-weight:800;letter-spacing:-.8px;margin-top:4px}
+.kpi .note{font-size:11px;color:var(--text2);margin-top:3px}
+.card{background:var(--card);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);border:1px solid var(--border);margin-bottom:14px}
+.ch{display:flex;justify-content:space-between;align-items:center;margin-bottom:11px;gap:10px;flex-wrap:wrap}
+.ch h3{font-size:14px;font-weight:700}
+.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.filters select,.filters input{padding:8px 11px;border-radius:9px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:12.5px;font-family:inherit;cursor:pointer}
+.filters input{cursor:text}
+.filters button{padding:8px 14px;border-radius:9px;border:none;background:linear-gradient(135deg,#10b981,#059669);color:#fff;font-size:12.5px;font-weight:600;cursor:pointer}
+.filters button.ghost{background:var(--card);color:var(--text);border:1px solid var(--border)}
+.filters .cnt{margin-left:auto;font-size:12px;color:var(--text2);font-weight:600}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th,td{padding:7px 9px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
+th{color:var(--text2);font-size:10.5px;text-transform:uppercase;font-weight:700;letter-spacing:.4px;position:sticky;top:0;background:var(--card);z-index:2}
+tbody tr:hover{background:rgba(59,130,246,.05)}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+.scroll{max-height:calc(100vh - 340px);min-height:280px;overflow:auto;border-radius:10px}
+.chip{display:inline-block;padding:2px 8px;border-radius:6px;font-size:10.5px;font-weight:700;background:var(--bg);border:1px solid var(--border);cursor:pointer}
+.chip:hover{opacity:.85}
+.st1{background:#e3f2fd;color:#1565c0;border-color:transparent}
+.st2{background:var(--orangebg);color:#d97706;border-color:transparent}
+.st3{background:#ffedd5;color:#ea580c;border-color:transparent}
+.st4{background:var(--greenbg);color:#059669;border-color:transparent}
+.st5{background:#ede9fe;color:#7c3aed;border-color:transparent}
+.edit-btn{padding:3px 9px;border-radius:6px;border:1px solid var(--border);background:var(--card);cursor:pointer;font-size:11px}
+.edit-btn:hover{background:var(--bg)}
+.modal{position:fixed;inset:0;background:rgba(15,30,61,.5);display:none;align-items:center;justify-content:center;z-index:1000}
+.modal.on{display:flex}
+.modal-box{background:var(--card);border-radius:14px;padding:20px;width:480px;max-width:94vw;max-height:86vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.modal-box h3{font-size:15px;margin-bottom:14px}
+.modal-box label{display:block;font-size:11px;color:var(--text2);font-weight:700;text-transform:uppercase;margin:10px 0 4px}
+.modal-box input,.modal-box select,.modal-box textarea{width:100%;padding:8px 11px;border-radius:9px;border:1px solid var(--border);font-size:13px;font-family:inherit}
+.modal-box textarea{min-height:60px;resize:vertical}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+.modal-actions button{padding:9px 16px;border-radius:9px;border:none;font-size:13px;font-weight:600;cursor:pointer}
+.btn-primary{background:linear-gradient(135deg,#10b981,#059669);color:#fff}
+.btn-ghost{background:var(--bg);color:var(--text);border:1px solid var(--border)!important}
+.btn-danger{background:var(--red);color:#fff}
+.toast{position:fixed;bottom:20px;right:20px;background:#0f1e3d;color:#fff;padding:12px 18px;border-radius:10px;font-size:13px;z-index:2000;display:none;box-shadow:0 6px 20px rgba(0,0,0,.3)}
+.toast.on{display:block}
+.kanban{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.kb-col{background:var(--bg);border-radius:12px;padding:10px;min-height:180px}
+.kb-col h4{font-size:12px;font-weight:700;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+.kb-col .n{font-size:11px;color:var(--text2);font-weight:600}
+.kb-card{background:var(--card);border-radius:8px;padding:8px 10px;margin-bottom:6px;font-size:11.5px;border:1px solid var(--border);cursor:grab;box-shadow:var(--shadow)}
+.kb-card:hover{border-color:var(--navy2)}
+.kb-card .nm{font-weight:700}
+.kb-card .dt{color:var(--text2);font-size:10.5px;margin-top:2px}
+.empty{text-align:center;color:var(--text2);padding:30px;font-size:12px}
+.loading{padding:40px;text-align:center;color:var(--text2)}
+footer{border-top:1px solid var(--border);padding:8px 22px;font-size:11px;color:var(--text2)}
+@media(max-width:1100px){.kanban{grid-template-columns:repeat(2,1fr)}body{overflow:auto;height:auto}main{overflow:visible}}
+@media(max-width:640px){.kanban{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-<div class="header">
-  <div><h1>📦 FC Pipeline</h1><sub>Forecast → GĐ Chuỗi duyệt → SC Valid → SC ra PO → NCC giao hàng</sub></div>
+<header>
+  <div class="hl">
+    <a class="logo brand" href="index.html"><img src="logo.png" alt="WinMart+"></a>
+    <div><h1>FC Pipeline</h1><div class="sub">Forecast → GĐ Chuỗi duyệt → SC Valid → SC ra PO → NCC giao hàng</div></div>
+  </div>
+  <div style="display:flex;gap:8px;align-items:center">
+    <nav>
+      <a href="index.html">Tổng quan</a>
+      <a href="dailysale.html">Kinh doanh</a>
+      <a href="fc-pipeline.html" class="on">FC Pipeline</a>
+      <a href="sl-report.html">S&L</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="kpis" id="kpis"></div>
+
+  <div class="card">
+    <div class="ch">
+      <h3>📋 Danh sách FC</h3>
+      <div style="display:flex;gap:8px">
+        <button class="ghost" onclick="switchView('table')">📋 Bảng</button>
+        <button class="ghost" onclick="switchView('kanban')">📊 Kanban</button>
+      </div>
+    </div>
+    <div class="filters" id="filters"></div>
+    <div id="view"></div>
+  </div>
+</main>
+
+<div class="modal" id="modal">
+  <div class="modal-box">
+    <h3 id="modal-title">Chỉnh sửa</h3>
+    <div id="modal-body"></div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeModal()">Hủy</button>
+      <button class="btn-primary" id="modal-save" onclick="saveModal()">Lưu</button>
+    </div>
+  </div>
 </div>
 
-<div class="kpi-grid" id="kpi"></div>
-
-<div class="section"><h2>📊 Pipeline Status</h2></div>
-<div class="pipeline" id="pipeline"></div>
-
-<div class="section">
-  <h2>📋 Theo loại FC</h2>
-  <table id="type-table"><thead><tr><th>Loại</th><th>Số dòng</th><th>Số files</th><th>GT FC (tỷ)</th></tr></thead><tbody></tbody></table>
-</div>
-
-<div class="section">
-  <h2>📁 Top Files</h2>
-  <table id="files-table"><thead><tr><th>File</th><th>Loại</th><th>Số dòng</th></tr></thead><tbody></tbody></table>
-</div>
+<div class="toast" id="toast"></div>
 
 <script>
-const STAGES = [
-  {id:'FC',label:'1. FC',desc:'Tạo Forecast'},
-  {id:'GD_CHUOI_DUYET',label:'2. GĐ Chuỗi duyệt',desc:'Phê duyệt'},
-  {id:'SC_VALID',label:'3. SC Valid',desc:'Supply Chain'},
-  {id:'SC_RA_PO',label:'4. SC ra PO',desc:'Ra đơn hàng'},
-  {id:'NCC_XAC_NHAN',label:'5. NCC xác nhận',desc:'Giao hàng'},
+// ─── Config ────────────────────────────────────────────────────────
+// GAS_URL sẽ được điền sau khi anh Hảo deploy GAS backend
+var GAS_URL = '';
+var API_BASE = GAS_URL; // GAS doPost endpoint
+
+// Nếu chưa có GAS, đọc từ snapshot JSON (chỉ đọc, không edit được)
+var DATA_SNAPSHOT = 'https://ruralwcm.github.io/dashboard-kinhdoanh/fc_dashboard_data.json';
+
+var STAGES = [
+  { id: 'FC', label: '1. FC', desc: 'Tạo Forecast', color: 'st1' },
+  { id: 'GD_CHUOI_DUYET', label: '2. GĐ Chuỗi duyệt', desc: 'Phê duyệt', color: 'st2' },
+  { id: 'SC_VALID', label: '3. SC Valid', desc: 'Supply Chain', color: 'st3' },
+  { id: 'SC_RA_PO', label: '4. SC ra PO', desc: 'Ra đơn hàng', color: 'st4' },
+  { id: 'NCC_XAC_NHAN', label: '5. NCC xác nhận', desc: 'Giao hàng', color: 'st5' }
 ];
 
-fetch('https://ruralwcm.github.io/dashboard-kinhdoanh/fc_dashboard_data.json')
-  .then(r=>r.json())
-  .then(d=>{
-    // KPI
-    const kpi = d.kpi[0] || d.kpi;
-    const gt = kpi.total_gt_fc_ty || kpi.gt_fc_ty || 0;
-    document.getElementById('kpi').innerHTML = `
-      <div class="kpi"><div class="label">Tổng dòng FC</div><div class="value">${(kpi.total_fc||0).toLocaleString()}</div><div class="sub">${kpi.total_files||0} files</div></div>
-      <div class="kpi"><div class="label">Cửa hàng</div><div class="value">${(kpi.total_stores||0).toLocaleString()}</div><div class="sub">${kpi.total_types||0} loại FC</div></div>
-      <div class="kpi"><div class="label">Mã SP (SKU)</div><div class="value">${(kpi.total_skus||0).toLocaleString()}</div></div>
-      <div class="kpi"><div class="label">Tổng GT FC</div><div class="value">${Number(gt).toFixed(1)} tỷ</div><div class="sub">${(kpi.rows_with_fc||0).toLocaleString()} dòng có SL</div></div>
-    `;
+var currentView = 'table';
+var allRows = [];
+var filteredRows = [];
+var editTarget = null;
+var user = localStorage.getItem('fc_user') || '';
 
-    // Pipeline
-    const statusDist = d.status_dist || [];
-    const statusMap = {};
-    statusDist.forEach(s=>{statusMap[s.status]=s.cnt;});
-    document.getElementById('pipeline').innerHTML = STAGES.map((s,i)=>{
-      const cnt = statusMap[s.id] || 0;
-      return `<div class="stage s${i+1}"><h3>${s.label}<span class="count">${cnt.toLocaleString()}</span></h3><p style="font-size:12px;color:var(--sub)">${s.desc}</p></div>`;
-    }).join('');
+// ─── Init ─────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function () {
+  if (!user) {
+    user = prompt('Nhập tên của bạn (để ghi nhận người duyệt/sửa):') || 'Unknown';
+    localStorage.setItem('fc_user', user);
+  }
+  loadData();
+});
 
-    // Type table
-    const types = d.by_type || [];
-    document.querySelector('#type-table tbody').innerHTML = types.map(t=>
-      `<tr><td><span class="badge ${t.fc_type}">${t.fc_type}</span></td><td>${(t.cnt||0).toLocaleString()}</td><td>${t.files||0}</td><td>${Number(t.gt_fc_ty||0).toFixed(2)}</td></tr>`
-    ).join('');
+function loadData() {
+  if (API_BASE) {
+    loadFromGAS();
+  } else {
+    loadFromSnapshot();
+  }
+}
 
-    // Files table
-    const files = d.top_files || [];
-    document.querySelector('#files-table tbody').innerHTML = files.map(f=>
-      `<tr><td style="max-width:400px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${f.file_name}">${f.file_name||''}</td><td><span class="badge ${f.fc_type}">${f.fc_type}</span></td><td>${(f.cnt||0).toLocaleString()}</td></tr>`
-    ).join('');
+function loadFromSnapshot() {
+  fetch(DATA_SNAPSHOT).then(r => r.json()).then(d => {
+    // Snapshot chỉ có tổng hợp, không có từng dòng
+    renderKPISnapshot(d);
+    document.getElementById('view').innerHTML = '<div class="empty">⚠️ Chưa cấu hình GAS backend — chỉ hiển thị số liệu tổng hợp.<br>Cần deploy GAS để edit từng dòng SKU.</div>';
   });
+}
+
+function renderKPISnapshot(d) {
+  var kpi = d.kpi[0] || d.kpi || {};
+  document.getElementById('kpis').innerHTML = [
+    kpiCard('Tổng dòng FC', (kpi.total_fc||0).toLocaleString(), kpi.total_files + ' files', '#3b82f6'),
+    kpiCard('Cửa hàng', (kpi.total_stores||0).toLocaleString(), '', '#10b981'),
+    kpiCard('Mã SP (SKU)', (kpi.total_skus||0).toLocaleString(), '', '#f59e0b'),
+    kpiCard('Tổng GT FC', Number(kpi.total_gt_fc_ty||0).toFixed(1) + ' tỷ', '', '#ef4444')
+  ].join('');
+}
+
+function kpiCard(lbl, val, note, color) {
+  return '<div class="kpi" style="--c:' + color + '"><div class="lbl">' + lbl + '</div><div class="val">' + val + '</div>' + (note ? '<div class="note">' + note + '</div>' : '') + '</div>';
+}
+
+// ─── GAS load ─────────────────────────────────────────────────────
+function loadFromGAS() {
+  var sql = 'SELECT * FROM `rural-data-analystic.fc.fc_pipeline` LIMIT 2000';
+  callGAS({ action: 'query', sql: sql }).then(res => {
+    if (!res.ok) { showToast('Lỗi: ' + res.error); return; }
+    allRows = res.rows || [];
+    buildFilters();
+    renderKPIs();
+    renderTable();
+  });
+}
+
+function callGAS(payload) {
+  return fetch(API_BASE, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(payload)
+  }).then(r => r.json());
+}
+
+// ─── Filters ──────────────────────────────────────────────────────
+function buildFilters() {
+  var types = [...new Set(allRows.map(r => r.fc_type).filter(Boolean))];
+  var miens = [...new Set(allRows.map(r => r.mien).filter(Boolean))];
+  var statuses = [...new Set(allRows.map(r => r.status).filter(Boolean))];
+
+  document.getElementById('filters').innerHTML =
+    select('type', ['Tất cả loại'].concat(types)) +
+    select('mien', ['Tất cả miền'].concat(miens)) +
+    select('status', ['Tất cả status'].concat(statuses)) +
+    '<input id="search" placeholder="Tìm Mã SAP / Mã SP / Tên SP..." oninput="applyFilters()">' +
+    '<span class="cnt" id="cnt"></span>';
+
+  document.querySelectorAll('#filters select').forEach(s => s.addEventListener('change', applyFilters));
+}
+
+function select(id, opts) {
+  return '<select id="' + id + '">' + opts.map(o => '<option>' + o + '</option>').join('') + '</select>';
+}
+
+function applyFilters() {
+  var t = document.getElementById('type').value;
+  var m = document.getElementById('mien').value;
+  var s = document.getElementById('status').value;
+  var q = (document.getElementById('search').value || '').toLowerCase();
+
+  filteredRows = allRows.filter(r => {
+    if (t !== 'Tất cả loại' && r.fc_type !== t) return false;
+    if (m !== 'Tất cả miền' && r.mien !== m) return false;
+    if (s !== 'Tất cả status' && r.status !== s) return false;
+    if (q && !(String(r.ma_sap||'').toLowerCase().includes(q) || String(r.ma_sp||'').toLowerCase().includes(q) || String(r.ten_sp||'').toLowerCase().includes(q))) return false;
+    return true;
+  });
+
+  document.getElementById('cnt').textContent = filteredRows.length.toLocaleString() + ' dòng';
+  if (currentView === 'table') renderTable();
+  else renderKanban();
+}
+
+// ─── KPI ──────────────────────────────────────────────────────────
+function renderKPIs() {
+  var total = allRows.length;
+  var stores = new Set(allRows.map(r => r.ma_sap)).size;
+  var skus = new Set(allRows.map(r => r.ma_sp)).size;
+  var gt = allRows.reduce((a, r) => a + (Number(r.gt_fc) || 0), 0);
+  var byStatus = {};
+  allRows.forEach(r => { byStatus[r.status] = (byStatus[r.status] || 0) + 1; });
+
+  document.getElementById('kpis').innerHTML = [
+    kpiCard('Tổng dòng FC', total.toLocaleString(), Object.keys(byStatus).length + ' status', '#3b82f6'),
+    kpiCard('Cửa hàng', stores.toLocaleString(), '', '#10b981'),
+    kpiCard('Mã SP (SKU)', skus.toLocaleString(), '', '#f59e0b'),
+    kpiCard('Tổng GT FC', (gt/1e9).toFixed(1) + ' tỷ', '', '#ef4444')
+  ].join('');
+}
+
+// ─── Table view ───────────────────────────────────────────────────
+function renderTable() {
+  var rows = filteredRows.slice(0, 500);
+  if (!rows.length) {
+    document.getElementById('view').innerHTML = '<div class="empty">Không có dữ liệu phù hợp</div>';
+    return;
+  }
+  var html = '<div class="scroll"><table><thead><tr>' +
+    '<th>Mã SAP</th><th>Mã SP</th><th>Tên SP</th><th>MCH3</th><th>Miền</th>' +
+    '<th class="num">SL FC</th><th class="num">SL Tổng</th><th class="num">GT FC</th>' +
+    '<th>Status</th><th></th></tr></thead><tbody>';
+
+  rows.forEach((r, i) => {
+    var st = STAGES.find(s => s.id === r.status) || { label: r.status || 'FC', color: 'st1' };
+    html += '<tr>' +
+      '<td>' + (r.ma_sap || '') + '</td>' +
+      '<td>' + (r.ma_sp || '') + '</td>' +
+      '<td style="max-width:220px;overflow:hidden;text-overflow:ellipsis">' + (r.ten_sp || '') + '</td>' +
+      '<td>' + (r.mch3 || '') + '</td>' +
+      '<td>' + (r.mien || '') + '</td>' +
+      '<td class="num">' + fmt(r.sl_fc) + '</td>' +
+      '<td class="num">' + fmt(r.sl_tong) + '</td>' +
+      '<td class="num">' + fmtMoney(r.gt_fc) + '</td>' +
+      '<td><span class="chip ' + st.color + '" onclick="cycleStatus(' + i + ')">' + st.label + '</span></td>' +
+      '<td><button class="edit-btn" onclick="openEdit(' + i + ')">✏️</button></td>' +
+      '</tr>';
+  });
+
+  html += '</tbody></table></div>';
+  document.getElementById('view').innerHTML = html;
+}
+
+function fmt(v) { return v === null || v === undefined ? '—' : Number(v).toLocaleString(); }
+function fmtMoney(v) { return v === null || v === undefined ? '—' : Number(v).toLocaleString('vi-VN'); }
+
+// ─── Kanban view ──────────────────────────────────────────────────
+function renderKanban() {
+  var html = '<div class="kanban">';
+  STAGES.forEach(st => {
+    var items = filteredRows.filter(r => r.status === st.id).slice(0, 20);
+    html += '<div class="kb-col"><h4>' + st.label + ' <span class="n">' + items.length + '</span></h4>';
+    if (!items.length) html += '<div class="empty">—</div>';
+    items.forEach(r => {
+      html += '<div class="kb-card"><div class="nm">' + (r.ten_sp || r.ma_sp || '') + '</div>' +
+        '<div class="dt">' + (r.ma_sap || '') + ' · ' + (r.mien || '') + '</div>' +
+        '<div class="dt">SL: ' + fmt(r.sl_fc) + ' · GT: ' + fmtMoney(r.gt_fc) + '</div></div>';
+    });
+    html += '</div>';
+  });
+  html += '</div>';
+  document.getElementById('view').innerHTML = html;
+}
+
+function switchView(v) {
+  currentView = v;
+  document.querySelectorAll('.card .ch button').forEach((b, i) => {
+    b.style.background = (i === (v === 'table' ? 0 : 1)) ? 'linear-gradient(135deg,#10b981,#059669)' : '';
+    b.style.color = (i === (v === 'table' ? 0 : 1)) ? '#fff' : '';
+  });
+  if (v === 'table') renderTable(); else renderKanban();
+}
+
+// ─── Edit modal ───────────────────────────────────────────────────
+function openEdit(i) {
+  editTarget = filteredRows[i];
+  if (!editTarget) return;
+  document.getElementById('modal-title').textContent = '✏️ Chỉnh sửa — ' + (editTarget.ten_sp || editTarget.ma_sp || '');
+  document.getElementById('modal-body').innerHTML =
+    '<label>Mã SAP</label><input value="' + (editTarget.ma_sap || '') + '" disabled>' +
+    '<label>Mã SP</label><input value="' + (editTarget.ma_sp || '') + '" disabled>' +
+    '<label>SL FC</label><input id="e-slfc" type="number" value="' + (editTarget.sl_fc ?? '') + '">' +
+    '<label>SL Tổng</label><input id="e-sltong" type="number" value="' + (editTarget.sl_tong ?? '') + '">' +
+    '<label>GT FC</label><input id="e-gtfc" type="number" value="' + (editTarget.gt_fc ?? '') + '">' +
+    '<label>Status</label><select id="e-status">' + STAGES.map(s => '<option ' + (s.id === editTarget.status ? 'selected' : '') + '>' + s.id + '</option>').join('') + '</select>' +
+    '<label>Ghi chú</label><textarea id="e-ghichu" placeholder="Lý do thay đổi...">' + (editTarget.ghi_chu || '') + '</textarea>';
+  document.getElementById('modal').classList.add('on');
+}
+
+function closeModal() { document.getElementById('modal').classList.remove('on'); }
+
+function saveModal() {
+  if (!API_BASE) { showToast('⚠️ Chưa cấu hình GAS backend'); return; }
+  var payload = {
+    action: 'updateSL',
+    ma_sap: editTarget.ma_sap,
+    ma_sp: editTarget.ma_sp,
+    file_name: editTarget.file_name,
+    sl_fc: document.getElementById('e-slfc').value,
+    sl_tong: document.getElementById('e-sltong').value,
+    gt_fc: document.getElementById('e-gtfc').value,
+    nguoi: user,
+    ghi_chu: document.getElementById('e-ghichu').value
+  };
+  var newStatus = document.getElementById('e-status').value;
+  callGAS(payload).then(res => {
+    if (res.ok) {
+      if (newStatus !== editTarget.status) {
+        return callGAS({
+          action: 'updateStatus', ma_sap: editTarget.ma_sap, ma_sp: editTarget.ma_sp,
+          file_name: editTarget.file_name, status: newStatus, nguoi: user, ghi_chu: payload.ghi_chu
+        });
+      }
+    }
+  }).then(() => { closeModal(); showToast('✅ Đã lưu'); loadFromGAS(); });
+}
+
+function cycleStatus(i) {
+  var r = filteredRows[i];
+  var idx = STAGES.findIndex(s => s.id === r.status);
+  var next = STAGES[(idx + 1) % STAGES.length];
+  if (!API_BASE) { showToast('⚠️ Chưa cấu hình GAS backend'); return; }
+  callGAS({ action: 'updateStatus', ma_sap: r.ma_sap, ma_sp: r.ma_sp, file_name: r.file_name, status: next.id, nguoi: user, ghi_chu: '' })
+    .then(res => { if (res.ok) { showToast('✅ → ' + next.label); loadFromGAS(); } });
+}
+
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('on');
+  setTimeout(() => t.classList.remove('on'), 2500);
+}
 </script>
 </body>
 </html>
