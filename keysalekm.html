@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Key Sale KM v4.13.1 — Win Rural</title>
+<title>Key Sale KM v4.14.0 — Win Rural</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 [hidden]{display:none!important}
@@ -362,7 +362,7 @@ body.fullscreen .ptools{opacity:.9}
 <header class="hd">
   <div class="hd-in">
     <img id="lg" class="lg" alt="WinMart+">
-    <div class="tt">Key Sale KM <span>v4.13.1 · Win Rural · Theo dõi CTKM</span></div>
+    <div class="tt">Key Sale KM <span>v4.14.0 · Win Rural · Theo dõi CTKM</span></div>
     <div class="mt">
       <span class="pill" id="fileinfo" title="">Chưa có dữ liệu</span>
       <div class="ts hd-ts" title="Cỡ chữ">
@@ -493,7 +493,7 @@ body.fullscreen .ptools{opacity:.9}
       <b class="twT">Tổng</b><b class="twT" id="rkTot">100%</b>
     </div>
     <div class="twMsg" id="rkMsg"></div>
-    <div class="twNote"><b>Index</b> = thực tế ÷ mức chuẩn của CH cùng <b>Nhóm DT</b> × 100 (100 = bằng nhóm). Mỗi tiêu chí xếp hạng 1 → hết trong cùng cấp; điểm = Σ hạng × trọng số, nhỏ = tốt. <span id="rkNhom"></span> <a href="#" id="rkReset">Về mặc định</a></div>
+    <div class="twNote"><b>Index</b> = thực tế ÷ mức chuẩn của CH cùng <b>nhóm ở MCH3 đó</b> × 100 (100 = bằng nhóm). Mỗi tiêu chí xếp hạng 1 → hết trong cùng cấp; điểm = Σ hạng × trọng số, nhỏ = tốt. <span id="rkNhom"></span> <a href="#" id="rkReset">Về mặc định</a></div>
   </div>
 
   <!-- Top trending config -->
@@ -1321,6 +1321,7 @@ function applyFs(){ document.documentElement.style.setProperty('--fs', S.fs + 'p
 function start(M, demo){
   S.M = M; $('staticNote').hidden = true;
   for (const st of M.stores) st.rsmasm = (st.rsm || '(Trống)') + ' | ' + (st.asm || '(Trống)');
+  if (S.nhomSrc) applyNhom(M); else if (S.nhomState !== 'loading') setTimeout(loadNhomSrc, 0);
   $('drop').hidden = true; $('app').hidden = false; $('btnExport').hidden = false; $('btnSnap').hidden = !!demo;
   $('demoBanner').hidden = !demo;
   $('fileinfo').textContent = demo ? 'Dữ liệu demo' : S.fileName; $('fileinfo').title = $('fileinfo').textContent;
@@ -1375,20 +1376,64 @@ function buildFilter(){
 function artKeyOf(dim, ai, flt){ const a = S.M.arts[ai];
   return dim==='sku' || dim==='trend' ? a.code : dim==='group' ? (flt.kmOf[ai]?.group || '(Không có KM)') : dim==='fa' ? (isFresh(a) ? 'Fresh & Chilled' : 'Ambient') : dim==='mch3' ? (a.mch3 || '(Chưa rõ)') : dim==='bg' ? (flt.kmOf[ai]?.group || '(Không có KM)') + ' | ' + a.brand : dim==='cg' ? flt.cgKey(ai) : null; }
 /* mức chuẩn: tổng DT/SL theo (Nhóm DT × mã) trên CH hoạt động trong phạm vi lọc; chuẩn/CH = tổng ÷ số CH hoạt động của nhóm */
+/* ===== Phân nhóm CH × MCH3 từ Sheet gốc (PhanNhomCH; dự phòng Storeslist "Nhóm DT") ===== */
+const NHOM_SRC = {sheet:'1UMtB9MOxGOaZvxN5VAUGAS1bPaAL2tVVFEViGANd4Tk', store:'164583655', nhom:'879484655'};
+const skey = v => String(v ?? '').trim().replace(/\.0+$/, '').toUpperCase();
+function parseCSVText(t){ const rows = []; let row = [], cur = '', q = false;
+  for (let i = 0; i < t.length; i++){ const c = t[i];
+    if (q){ if (c === '"'){ if (t[i+1] === '"'){ cur += '"'; i++; } else q = false; } else cur += c; continue; }
+    if (c === '"'){ q = true; continue; } if (c === ','){ row.push(cur); cur = ''; continue; }
+    if (c === '\n' || c === '\r'){ if (c === '\r' && t[i+1] === '\n') i++; row.push(cur); cur = ''; if (row.length > 1 || row[0] !== '') rows.push(row); row = []; continue; }
+    cur += c; }
+  row.push(cur); if (row.length > 1 || row[0] !== '') rows.push(row); return rows; }
+async function fetchSheetCSV(gid){
+  const base = 'https://docs.google.com/spreadsheets/d/' + NHOM_SRC.sheet, ex = base + '/export?format=csv&gid=' + gid, gv = base + '/gviz/tq?tqx=out:csv&gid=' + gid;
+  const go = async url => { const c = new AbortController(), t = setTimeout(() => c.abort(), 45000); try { const r = await fetch(url, {cache:'no-store', signal:c.signal}); if (!r.ok) throw new Error('HTTP ' + r.status); const x = await r.text(); if (/^\s*<(!doctype|html)/i.test(x)) throw new Error('không phải CSV'); return x; } finally { clearTimeout(t); } };
+  let err; for (const u of [ex, 'https://corsproxy.io/?url=' + encodeURIComponent(ex), gv]){ try { return await go(u); } catch(e){ err = err || e; } } throw err; }
+async function loadNhomSrc(){
+  S.nhomState = 'loading'; rkNhomInfo();
+  try {
+    const [tS, tN] = await Promise.all([fetchSheetCSV(NHOM_SRC.store), fetchSheetCSV(NHOM_SRC.nhom)]);
+    const byStore = new Map(), byPair = new Map(), NGRE = /^N\d{1,2}$/;
+    const rs = parseCSVText(tS), h = rs[0].map(x => String(x).trim().toLowerCase()), cN = h.findIndex(x => x === 'nhóm dt' || x === 'nhom dt');
+    if (cN >= 0) for (let i = 1; i < rs.length; i++){ const k = skey(rs[i][0]), n = String(rs[i][cN] || '').trim().toUpperCase(); if (k && NGRE.test(n)) byStore.set(k, n); }
+    const rn = parseCSVText(tN);
+    for (let i = 1; i < rn.length; i++){ const r = rn[i], k = skey(r[0]), n = String(r[2] || '').trim().toUpperCase(); if (k && NGRE.test(n)) byPair.set(k + '|' + mchKey(r[1]), n); }
+    S.nhomSrc = {byStore, byPair, at: new Date()}; S.nhomState = 'ok';
+  } catch(e){ console.warn('Không đọc được Sheet gốc', e); S.nhomState = 'err'; S.nhomErr = String(e.message || e); }
+  if (S.M){ applyNhom(S.M); render(); }
+}
+function applyNhom(M){
+  const src = S.nhomSrc; if (!src) return;
+  const m3 = [...new Set(M.arts.map(a => mchKey(a.mch3)))];
+  for (const st of M.stores){ const k = skey(st.code); const n = src.byStore.get(k); if (n) st.nhomDt = n;
+    const o = {}; let any = 0; for (const x of m3){ const v = src.byPair.get(k + '|' + x); if (v){ o[x] = v; any = 1; } } st.nhomM3 = any ? o : (st.nhomM3 || null); }
+}
 function buildBench(flt){
-  const {stores, arts, fs, fa, fv} = S.M, gi = new Map(), sg = new Int16Array(stores.length).fill(-1), C = [];
-  stores.forEach((st, si) => { if (!flt.storeOK[si] || !st.active) return; const k = st.nhomDt || 'NSO'; let g = gi.get(k); if (g === undefined){ g = C.length; gi.set(k, g); C.push(0); } sg[si] = g; C[g]++; });
-  const G = C.length, A = arts.length, FI = {rLK:F.rLK, qLK:F.qLK, rD:F.rD, qD:F.qD, rD1:F.rD1, qD1:F.qD1}, BS = {}, BT = {};
+  /* nhóm của CH theo MCH3 của mã (PhanNhomCH) → dự phòng Nhóm DT của CH → 'NSO' */
+  const {stores, arts, fs, fa, fv} = S.M, A = arts.length;
+  const m3i = new Map(), artM3 = new Int16Array(A); arts.forEach((a, ai) => { const k = mchKey(a.mch3); let x = m3i.get(k); if (x === undefined){ x = m3i.size; m3i.set(k, x); } artM3[ai] = x; });
+  const M3 = m3i.size, m3k = [...m3i.keys()], ni = new Map(), act = [];
+  const nIdx = n => { let x = ni.get(n); if (x === undefined){ x = ni.size; ni.set(n, x); } return x; };
+  const sgm = new Int16Array(stores.length * M3).fill(-1); let pairHit = 0, pairTot = 0;
+  stores.forEach((st, si) => { if (!flt.storeOK[si] || !st.active) return; act.push(si);
+    for (let m = 0; m < M3; m++){ const v = st.nhomM3 && st.nhomM3[m3k[m]]; pairTot++; if (v) pairHit++; sgm[si*M3+m] = nIdx(v || st.nhomDt || 'NSO'); } });
+  const G = ni.size, C = new Float64Array(M3 * G);
+  for (const si of act) for (let m = 0; m < M3; m++) C[m*G + sgm[si*M3+m]]++;
+  const FI = {rLK:F.rLK, qLK:F.qLK, rD:F.rD, qD:F.qD, rD1:F.rD1, qD1:F.qD1}, BS = {}, BT = {};
   for (const f in FI) BS[f] = new Float64Array(G * A);
-  for (let i = 0; i < S.M.n; i++){ const g = sg[fs[i]]; if (g < 0) continue; const ai = fa[i]; if (!flt.artOK[ai]) continue; const o = i*NF; for (const f in FI){ const v = fv[o+FI[f]]; if (v) BS[f][g*A+ai] += v; } }
-  for (const f in FI){ const t = new Float64Array(G); for (let g = 0; g < G; g++){ let x = 0; for (let a = 0; a < A; a++) x += BS[f][g*A+a]; t[g] = x; } BT[f] = t; }
-  return {sg, C, G, A, BS, BT, names:[...gi.keys()]};
+  for (let i = 0; i < S.M.n; i++){ const si = fs[i], ai = fa[i]; if (!flt.artOK[ai]) continue; const g = sgm[si*M3 + artM3[ai]]; if (g < 0) continue; const o = i*NF; for (const f in FI){ const v = fv[o+FI[f]]; if (v) BS[f][g*A+ai] += v; } }
+  for (const f in FI){ const t = new Float64Array(M3 * G); for (let a = 0; a < A; a++){ const m = artM3[a]; for (let g = 0; g < G; g++) t[m*G+g] += BS[f][g*A+a]; } BT[f] = t; }
+  return {sgm, artM3, M3, C, G, A, BS, BT, names:[...ni.keys()], pairHit, pairTot, nAct: act.length};
 }
 function expectedOf(scope){
-  const B = S.bench; if (!B) return null; const cnt = new Float64Array(B.G), st = S.M.stores;
-  for (let si = 0; si < st.length; si++){ const g = B.sg[si]; if (g < 0 || (scope.st && !scope.st(si))) continue; cnt[g]++; }
+  const B = S.bench; if (!B) return null; const {M3, G, A} = B, cnt = new Float64Array(M3 * G), st = S.M.stores;
+  for (let si = 0; si < st.length; si++){ if (B.sgm[si*M3] < 0 || (scope.st && !scope.st(si))) continue; for (let m = 0; m < M3; m++) cnt[m*G + B.sgm[si*M3+m]]++; }
   const out = {};
-  for (const f in B.BS){ let e = 0; for (let g = 0; g < B.G; g++){ if (!cnt[g]) continue; let x; if (!scope.arts) x = B.BT[f][g]; else { x = 0; for (const a of scope.arts) x += B.BS[f][g*B.A+a]; } e += cnt[g] / B.C[g] * x; } out[f] = e; }
+  for (const f in B.BS){ let e = 0;
+    if (!scope.arts){ for (let k = 0; k < M3*G; k++) if (cnt[k] && B.C[k]) e += cnt[k] / B.C[k] * B.BT[f][k]; }
+    else for (const a of scope.arts){ const m = B.artM3[a]; for (let g = 0; g < G; g++){ const k = m*G+g; if (cnt[k] && B.C[k]) e += cnt[k] / B.C[k] * B.BS[f][g*A+a]; } }
+    out[f] = e; }
   return out;
 }
 const RK_PER = [['T','rLK','qLK','kS'],['D1','rD1','qD1','kD1'],['D','rD','qD','kD']];
@@ -1521,8 +1566,14 @@ function render(){
   }
   rkNhomInfo(); sortRows(); renderKpis(res); renderTable();
 }
-function rkNhomInfo(){ const B = S.bench; if (!B || !$('rkNhom')) return; const nm = B.names.filter(x => x !== 'NSO');
-  $('rkNhom').innerHTML = nm.length ? 'Đang dùng ' + nm.length + ' Nhóm DT: ' + esc(B.names.slice().sort().join(', ')) + '.' : '<b style="color:var(--bad)">Dữ liệu chưa có cột Nhóm DT → đang so với toàn bộ CH.</b>'; }
+function rkNhomInfo(){ const el = $('rkNhom'); if (!el) return; const B = S.bench;
+  if (S.nhomState === 'loading'){ el.innerHTML = '⏳ Đang đọc phân nhóm CH × MCH3 từ Sheet gốc…'; return; }
+  if (!B){ el.innerHTML = ''; return; }
+  const nm = B.names.filter(x => x !== 'NSO').sort(), pct = B.pairTot ? Math.round(B.pairHit / B.pairTot * 100) : 0;
+  if (B.pairHit) el.innerHTML = '✅ Phân nhóm <b>CH × MCH3</b> (Sheet gốc · PhanNhomCH): ' + pct + '% cặp CH×MCH3 có nhóm, còn lại dùng Nhóm DT của CH. Nhóm: ' + esc(nm.join(', ')) + '.' + (S.nhomState === 'err' ? ' <span style="color:var(--warn)">(Sheet gốc không đọc được lúc này — dùng phân nhóm đã lưu trong bản xem)</span>' : '');
+  else if (nm.length) el.innerHTML = 'Đang dùng Nhóm DT của CH: ' + esc(nm.join(', ')) + '.';
+  else el.innerHTML = '<b style="color:var(--bad)">' + (S.nhomState === 'err' ? 'Không đọc được Sheet gốc (' + esc(S.nhomErr || '') + ')' : 'Chưa có phân nhóm') + ' → đang so với toàn bộ CH.</b>';
+}
 
 function secLevel(gk){ return S.secView[gk] || LV_OF_VIEW[S.view] || 'F'; }
 function setSecView(gk, lv){
@@ -1802,7 +1853,7 @@ function renderLogic(){
   <h4>Xếp hạng (Rank Total · Rank D-1 · Rank D · Xu hướng)</h4>
   <ul>
     <li>3 kỳ: <b>Total</b> = lũy kế, <b>D-1</b>, <b>D</b>. Cùng bộ tiêu chí & trọng số (mặc định): Index DT 30% · Index SL 20% · % CH có bán 25% · Sell-through 15% · DR 10%.</li>
-    <li><b>Index</b> (dòng là cửa hàng/khu vực: GĐV, QLKV, Miền, CH) = thực tế ÷ mức chuẩn × 100; mức chuẩn = DT (SL) BQ/CH của từng mã tại các CH cùng <b>Nhóm DT</b> (N1–N8, STORELIST) × số CH của dòng theo nhóm → 100 = bằng các CH cùng quy mô. Dòng là mã / nhóm mã: Index = DT (SL) BQ/CH ÷ TB các dòng cùng cấp × 100.</li>
+    <li><b>Index</b> (dòng là cửa hàng/khu vực: GĐV, QLKV, Miền, CH) = thực tế ÷ mức chuẩn × 100; mức chuẩn = DT (SL) BQ/CH của từng mã tại các CH <b>cùng nhóm ở MCH3 của mã đó</b> (Sheet gốc · PhanNhomCH; thiếu thì dùng Nhóm DT trong Storeslist) × số CH của dòng theo nhóm → 100 = bằng các CH cùng quy mô. Dòng là mã / nhóm mã: Index = DT (SL) BQ/CH ÷ TB các dòng cùng cấp × 100.</li>
     <li><b>% CH có bán</b> = số cặp (CH × mã) có bán trong kỳ ÷ (CH hoạt động × số mã). <b>Sell-through</b> = SL bán kỳ ÷ (SL bán kỳ + SL tồn hiện tại). <b>DR</b> = % (CH × mã) đạt Min trưng bày (tồn hiện tại, dùng chung 3 kỳ).</li>
     <li>Mỗi tiêu chí xếp hạng 1 → hết trong cùng cấp; điểm = Σ hạng × trọng số; hạng nhỏ = tốt. <b>Xu hướng</b> = Rank D-1 − Rank D (▲ lên hạng, ▼ xuống hạng).</li>
   </ul>
