@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Key Sale KM v4.18.0 — Win Rural</title>
+<title>Key Sale KM v4.19.0 — Win Rural</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 [hidden]{display:none!important}
@@ -355,6 +355,17 @@ table.ctt{border-collapse:separate;border-spacing:0;font-size:12.5px;width:max-c
 .ctt td.act button{border:1px solid var(--line);background:#fff;border-radius:6px;cursor:pointer;padding:1px 6px;margin-right:2px}
 .ctt .w-code{width:96px} .ctt .w-name{width:300px} .ctt .w-sm{width:64px} .ctt .w-md{width:120px} .ctt .w-lg{width:220px} .ctt .w-date{width:128px}
 .qdb{display:inline-block;background:var(--midbg);color:var(--navy);border-radius:999px;padding:0 6px;font-size:10.5px;font-weight:700;margin-left:3px}
+.qdBack{position:fixed;inset:0;z-index:80;background:rgba(15,42,74,.35);display:flex;align-items:center;justify-content:center}
+.qdBack[hidden]{display:none}
+.qdBox{background:#fff;border-radius:14px;box-shadow:0 20px 50px rgba(0,0,0,.25);width:min(1000px,94vw);max-height:88vh;display:flex;flex-direction:column;padding:14px 16px;gap:10px;font-size:13px}
+.qdHd{display:flex;align-items:center;gap:8px;font-size:14px}.qdHd .cd{color:var(--ink2)}.qdX{margin-left:auto;border:0;background:none;font-size:18px;cursor:pointer;color:var(--ink2)}
+.qdF{display:flex;gap:10px}.qdF label{display:flex;flex-direction:column;gap:3px;font-size:11.5px;color:var(--ink2);font-weight:600}.qdF label.w{flex:1}
+.qdF input,.qdS input{border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-size:13px;color:var(--ink)}
+.qdS{display:flex;gap:10px;align-items:center;font-size:12px;color:var(--ink2)}.qdS input{flex:1}
+.qdL{overflow:auto;border:1px solid var(--line);border-radius:10px;flex:1;min-height:160px}
+.qdL table{width:100%;border-collapse:collapse;font-size:12.5px}.qdL th{position:sticky;top:0;background:#F4F6FA;color:var(--ink2);font-weight:600;padding:6px;text-align:center}
+.qdL td{padding:4px 6px;border-bottom:1px solid #EEF1F5;text-align:center;white-space:nowrap}.qdL .l{text-align:left;white-space:normal}.qdL tr.on td{background:#EFF5FF}
+.qdA{display:flex;gap:8px;align-items:center}
 .eqg{border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin:8px 0;background:#fff}
 .eqg.done{opacity:.6}
 .eqh{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:12.5px;margin-bottom:6px}
@@ -461,7 +472,7 @@ body.dashOn .ctlBar .ctl:first-child,body.dashOn .ctl-sec,body.dashOn .ctl-sw{di
 <header class="hd">
   <div class="hd-in">
     <img id="lg" class="lg" alt="WinMart+">
-    <div class="tt">Key Sale KM <span>v4.18.0 · Win Rural · Theo dõi CTKM</span></div>
+    <div class="tt">Key Sale KM <span>v4.19.0 · Win Rural · Theo dõi CTKM</span></div>
     <div class="mt">
       <span class="pill" id="fileinfo" title="">Chưa có dữ liệu</span>
       <div class="ts hd-ts" title="Cỡ chữ">
@@ -2320,6 +2331,48 @@ const ctStatus = v => { const a = v[7] ? daysLeft(new Date(v[7] + 'T00:00:00Z'))
   if (a != null && a > 0) return ['Chưa KM','st-pre']; if (b != null && b < 0) return ['Hết KM','st-end']; if (b === 0) return ['Ngày KM cuối','st-last']; return ['Chạy KM','st-run']; };
 function ctSize(name){ const m = String(name || '').toLowerCase().match(/(\d+(?:[.,]\d+)?)\s*(kg|gr|g|ml|lít|lit|l)\b/); if (!m) return null; let v = parseFloat(m[1].replace(',', '.')), u = m[2]; if (u === 'kg'){ v *= 1000; u = 'g'; } else if (u === 'gr') u = 'g'; else if (u === 'l' || u === 'lít' || u === 'lit'){ v *= 1000; u = 'ml'; } return {v, u, txt: m[0].replace(/\s+/g,'')}; }
 /* nhóm SKU tương đương: cùng thương hiệu, cùng giá KM (±3%), size cùng đơn vị lệch ≤ 15%, cùng GROUP KM, tên giống ≥ 40% (Jaccard) */
+/* tên quy đổi đề xuất: phần chung đầu tên + các phần khác nhau nối "/" + size nối "/" */
+function ctQdName(mem){ if (!mem.length) return ''; mem.forEach(m => { if (m.size === undefined) m.size = ctSize(m.name); });
+  const W = mem.map(m => m.name.replace(/^DEMO\s+/i, '').replace(m.size ? new RegExp(m.size.txt.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/(\d)([a-z])/i, '$1\\s*$2'), 'i') : /$^/, '').trim().split(/\s+/));
+  let k = 0; while (W.every(w => w[k] !== undefined && vnFold(w[k]) === vnFold(W[0][k]))) k++;
+  const head = W[0].slice(0, k).join(' '), tails = [...new Set(W.map(w => w.slice(k).join(' ')).filter(Boolean))], sizes = [...new Set(mem.map(m => m.size ? m.size.txt : '').filter(Boolean))];
+  return (head + (tails.length ? ' ' + tails.join('/') : '') + (sizes.length ? ' ' + sizes.join('/') : '')).replace(/\s+/g, ' ').trim(); }
+/* danh sách mã (không trùng) trong danh mục */
+function ctItems(){ const by = new Map(); for (const r of ctLoad().r){ const c = String(r.v[1] || '').trim(); if (!c || by.has(c)) continue; by.set(c, {code: c, name: String(r.v[2] || ''), p1: Number(r.v[6]) || 0, grp: String(r.v[9] || ''), qd: String(r.v[11] || '').trim(), tqd: String(r.v[12] || '').trim()}); } return [...by.values()]; }
+/* popup quy đổi cho 1 mã: chọn các mã gộp chung, mã quy đổi, tên quy đổi */
+function ctQdPopup(code){
+  const items = ctItems(), me = items.find(x => x.code === code); if (!me) return alert('Dòng này chưa có Mã SP.');
+  const qd0 = me.qd && me.qd !== me.code ? me.qd : null;
+  const sel = new Set([code]); if (qd0) items.forEach(x => { if (x.qd === qd0 || x.code === qd0) sel.add(x.code); });
+  let sug = []; try { const g = ctEquiv().find(g => g.mem.some(m => m.code === code)); if (g) sug = g.mem.map(m => m.code).filter(c => c !== code); } catch(e){}
+  const st = {q: '', qd: qd0 || code, name: qd0 && me.tqd ? me.tqd : me.name, nameTouched: !!(qd0 && me.tqd)};
+  let bd = $('qdModal'); if (!bd){ bd = document.createElement('div'); bd.id = 'qdModal'; bd.className = 'qdBack'; document.body.appendChild(bd); }
+  const close = () => { bd.hidden = true; bd.innerHTML = ''; };
+  const draw = () => {
+    const q = vnFold(st.q), brand = vnFold(me.name).split(/\s+/)[0];
+    const sorted = items.filter(x => sel.has(x.code)).concat(items.filter(x => !sel.has(x.code) && sug.includes(x.code)))
+      .concat(items.filter(x => !sel.has(x.code) && !sug.includes(x.code) && (q ? (vnFold(x.code + ' ' + x.name).includes(q)) : vnFold(x.name).split(/\s+/)[0] === brand)).slice(0, 60));
+    if (!sel.has(st.qd)) st.qd = [...sel][0] || code;
+    if (!st.nameTouched){ const mem = items.filter(x => sel.has(x.code)).map(x => ({...x})); st.name = mem.length > 1 ? ctQdName(mem) : me.name; }
+    bd.innerHTML = '<div class="qdBox" role="dialog"><div class="qdHd"><b>🔁 Quy đổi mã</b> <span class="cd">' + esc(me.code) + '</span> ' + esc(me.name) + '<button class="qdX" data-x>✕</button></div>'
+      + '<div class="qdF"><label>Mã quy đổi<input id="qdCode" value="' + esc(st.qd) + '"></label><label class="w">Tên quy đổi<input id="qdName" value="' + esc(st.name) + '"></label></div>'
+      + '<div class="qdS"><input type="search" id="qdQ" placeholder="Tìm thêm mã để gộp (mã / tên)…" value="' + esc(st.q) + '"><span>' + sel.size + ' mã được chọn · mặc định hiện mã cùng thương hiệu</span></div>'
+      + '<div class="qdL"><table><thead><tr><th>Gộp</th><th>Mã QĐ</th><th>Mã SP</th><th class="l">Tên SP</th><th>Giá KM</th><th class="l">GROUP KM</th><th>Mã QĐ hiện tại</th></tr></thead><tbody>'
+      + sorted.map(x => '<tr class="' + (sel.has(x.code) ? 'on' : '') + '"><td><input type="checkbox" data-ck="' + esc(x.code) + '"' + (sel.has(x.code) ? ' checked' : '') + (x.code === code ? ' disabled' : '') + '></td><td><input type="radio" name="qdR" data-rd="' + esc(x.code) + '"' + (st.qd === x.code ? ' checked' : '') + (sel.has(x.code) ? '' : ' disabled') + '></td><td><b>' + esc(x.code) + '</b></td><td class="l">' + esc(x.name) + (sug.includes(x.code) ? ' <span class="qdb">đề xuất</span>' : '') + '</td><td>' + (x.p1 ? nf0.format(x.p1) : '—') + '</td><td class="l">' + esc(x.grp) + '</td><td>' + esc(x.qd && x.qd !== x.code ? x.qd : '—') + '</td></tr>').join('')
+      + '</tbody></table></div><div class="qdA">' + (qd0 ? '<button class="btn" data-un>Bỏ quy đổi mã này</button>' : '') + '<span style="flex:1"></span><button class="btn" data-x>Huỷ</button><button class="btn pri" data-ok>✔ Áp dụng (' + sel.size + ' mã)</button></div></div>';
+    bd.hidden = false;
+    let tq; $('qdQ').oninput = e => { clearTimeout(tq); tq = setTimeout(() => { st.q = e.target.value; draw(); const x = $('qdQ'); x.focus(); x.setSelectionRange(x.value.length, x.value.length); }, 200); };
+    $('qdCode').oninput = e => { st.qd = e.target.value.trim(); }; $('qdName').oninput = e => { st.name = e.target.value; st.nameTouched = true; };
+    bd.querySelectorAll('[data-ck]').forEach(c => c.onchange = () => { c.checked ? sel.add(c.dataset.ck) : sel.delete(c.dataset.ck); draw(); });
+    bd.querySelectorAll('[data-rd]').forEach(c => c.onchange = () => { st.qd = c.dataset.rd; draw(); });
+    bd.querySelectorAll('[data-x]').forEach(b => b.onclick = close);
+    const done = (codes, qd, name) => { ctApplyEquiv(qd, name, codes); for (const c of codes){ const A = S.M && S.M.arts.find(a => a.code === c); if (A) A.maQuyDoi = qd; } if (S.M) applyQuyDoi(S.M); close(); renderCtkm(); };
+    bd.querySelector('[data-ok]').onclick = () => { const qd = ($('qdCode').value || '').trim(), name = ($('qdName').value || '').trim(); if (!qd) return alert('Nhập Mã quy đổi.'); done([...sel], qd, name); };
+    const un = bd.querySelector('[data-un]'); if (un) un.onclick = () => done([code], code, '');
+  };
+  bd.onclick = e => { if (e.target === bd) close(); };
+  draw();
+}
 function ctEquiv(){
   const rows = ctLoad().r, by = new Map();
   for (const r of rows){ const code = String(r.v[1] || '').trim(); if (!code) continue; if (!by.has(code)) by.set(code, {code, name: String(r.v[2] || ''), p1: Number(r.v[6]) || 0, p0: Number(r.v[5]) || 0, grp: String(r.v[9] || ''), qd: String(r.v[11] || ''), tqd: String(r.v[12] || ''), bum: String(r.v[3] || '')}); }
@@ -2342,11 +2395,7 @@ function ctEquiv(){
     mem.forEach(m => m.rlk = rLK(m)); mem.sort((a,b) => b.rlk - a.rlk || a.code.localeCompare(b.code));
     const shared = mem.find(m => m.qd && mem.filter(x => x.qd === m.qd).length > 1);
     const code = shared ? shared.qd : mem[0].code;
-    // tên quy đổi: phần chung đầu tên + các phần khác nhau nối "/" + size nối "/"
-    const W = mem.map(m => m.name.replace(/^DEMO\s+/i, '').replace(m.size ? new RegExp(m.size.txt.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/(\d)([a-z])/i, '$1\\s*$2'), 'i') : /$^/, '').trim().split(/\s+/));
-    let k = 0; while (W.every(w => w[k] !== undefined && vnFold(w[k]) === vnFold(W[0][k]))) k++;
-    const head = W[0].slice(0, k).join(' '), tails = [...new Set(W.map(w => w.slice(k).join(' ')).filter(Boolean))], sizes = [...new Set(mem.map(m => m.size ? m.size.txt : '').filter(Boolean))];
-    const name = (head + (tails.length ? ' ' + tails.join('/') : '') + (sizes.length ? ' ' + sizes.join('/') : '')).replace(/\s+/g, ' ').trim();
+    const name = ctQdName(mem);
     const allSame = mem.every(m => (m.qd || m.code) === (mem[0].qd || mem[0].code)) && mem[0].qd;
     out.push({mem, code, name: allSame && mem[0].tqd ? mem[0].tqd : name, done: !!allSame});
   }
@@ -2407,7 +2456,7 @@ function renderCtkm(){
   h += '<div class="ctwrap"><table class="ctt"><thead><tr><th></th>' + CT_COLS.map(c => '<th class="' + c[1] + '">' + esc(c[0]) + '</th>').join('') + '<th>Trạng thái</th></tr></thead><tbody>';
   const lim = S.ctAll ? vis.length : Math.min(vis.length, 400);
   for (const r of vis.slice(0, lim)){ const st = ctStatus(r.v);
-    h += '<tr data-id="' + r.id + '" class="' + (r.isNew ? 'new' : r.dirty ? 'dirty' : '') + '"><td class="act"><button data-dup="' + r.id + '" title="Nhân bản">⧉</button><button data-del="' + r.id + '" title="Xoá dòng">✕</button></td>'
+    h += '<tr data-id="' + r.id + '" class="' + (r.isNew ? 'new' : r.dirty ? 'dirty' : '') + '"><td class="act"><button data-qd="' + esc(String(r.v[1] || '')) + '" title="Quy đổi: chọn mã gộp chung, mã quy đổi, tên quy đổi">🔁 Quy đổi</button><button data-del="' + r.id + '" title="Xoá dòng">✕</button></td>'
       + CT_COLS.map((c, i) => '<td class="' + c[1] + (c[2] === 'n' ? ' num' : '') + '"><input data-c="' + i + '" type="' + (c[2] === 'd' ? 'date' : 'text') + '" value="' + esc(c[2] === 'n' && r.v[i] !== '' && r.v[i] != null && !isNaN(r.v[i]) ? nf0.format(r.v[i]) : r.v[i] ?? '') + '"></td>').join('')
       + '<td class="st"><span class="pill ' + st[1] + '">' + st[0] + '</span></td></tr>'; }
   h += '</tbody></table></div>' + (vis.length > lim ? '<div class="dmore"><button class="btn" id="ctAll">Hiện tất cả ' + vis.length + ' dòng</button></div>' : '') + '</section>';
@@ -2432,9 +2481,9 @@ function renderCtkm(){
   el.querySelector('tbody').onchange = e => { const inp = e.target.closest('input[data-c]'); if (!inp) return; const tr = inp.closest('tr'), r = C.r.find(x => x.id === +tr.dataset.id); if (!r) return;
     const i = +inp.dataset.c, t = CT_COLS[i][2]; let v = inp.value.trim(); if (t === 'n') v = v === '' ? '' : Number(v.replace(/[.\s]/g, '').replace(',', '.')) || 0;
     r.v[i] = v; r.dirty = 1; ctSave(); tr.classList.add('dirty'); if (t === 'd'){ const st = ctStatus(r.v); tr.querySelector('td.st').innerHTML = '<span class="pill ' + st[1] + '">' + st[0] + '</span>'; } };
-  el.querySelector('tbody').onclick = e => { const d = e.target.closest('[data-del]'), u = e.target.closest('[data-dup]');
+  el.querySelector('tbody').onclick = e => { const d = e.target.closest('[data-del]'), u = e.target.closest('[data-qd]');
     if (d){ const r = C.r.find(x => x.id === +d.dataset.del); if (r && confirm('Xoá dòng ' + (r.v[1] || '') + ' ' + (r.v[2] || '') + '?')){ C.r = C.r.filter(x => x !== r); ctSave(); re(); } }
-    if (u){ const k = C.r.findIndex(x => x.id === +u.dataset.dup); if (k >= 0){ C.r.splice(k + 1, 0, {id: C.seq++, v: C.r[k].v.slice(), isNew: 1}); ctSave(); re(); } } };
+    if (u) ctQdPopup(u.dataset.qd); };
   el.querySelectorAll('[data-eqa]').forEach(b => b.onclick = () => { const gi = +b.dataset.eqa, g = S._eq[gi], code = el.querySelector('[data-eqc="' + gi + '"]').value.trim(), name = el.querySelector('[data-eqn="' + gi + '"]').value.trim();
     if (!code) return alert('Nhập Mã quy đổi.'); const n = ctApplyEquiv(code, name, g.mem.map(m => m.code)); for (const c of g.mem.map(m => m.code)){ const A = S.M && S.M.arts.find(a => a.code === c); if (A) A.maQuyDoi = code; } if (S.M) applyQuyDoi(S.M); alert('Đã gộp ' + g.mem.length + ' mã (' + n + ' dòng) về mã quy đổi ' + code + ' — số liệu báo cáo đã tính theo mã quy đổi.'); renderCtkm(); });
 }
