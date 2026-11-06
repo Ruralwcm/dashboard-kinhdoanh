@@ -705,7 +705,7 @@ function newG(key){ return {key, f:new Float64Array(NF), cDR:0, dSale:0, dStock:
 function finishStores(g){ if (!g.st) return; for (const v of g.st.values()){ if (v[0] > 0) g.dSale++; if (v[1] > 0){ g.dStock++; if (v[2] <= 0) g.dNo++; } if (v[2] > 0) g.dD++; if (v[3] > 0) g.dD1++; } g.st = null; }
 function aggregate(M, flt, dim){
   const {stores, arts} = M;
-  const artKey = ai => dim==='sku' ? arts[ai].code : dim==='group' ? (flt.kmOf[ai]?.group || '(Không có KM)') : dim==='bg' ? (flt.kmOf[ai]?.group || '(Không có KM)') + ' | ' + arts[ai].brand : dim==='cg' ? flt.cgKey(ai) : dim==='trend' ? 'trend' : null;
+  const artKey = ai => dim==='sku' ? arts[ai].code : dim==='group' ? (flt.kmOf[ai]?.group || '(Không có KM)') : dim==='fa' ? (isFresh(arts[ai]) ? 'Fresh & Chilled' : 'Ambient') : dim==='mch3' ? (arts[ai].mch3 || '(Chưa rõ)') : dim==='bg' ? (flt.kmOf[ai]?.group || '(Không có KM)') + ' | ' + arts[ai].brand : dim==='cg' ? flt.cgKey(ai) : dim==='trend' ? 'trend' : null;
   const storeKey = si => stores[si][dim];
   const isStoreDim = !!STORE_DIMS[dim], perFact = dim === 'sku' || dim === 'trend';
   const groups = new Map();
@@ -895,14 +895,14 @@ function computeNosaleLoss(M, flt, rows){
 const $ = id => document.getElementById(id);
 const ST_LIST = ['Chạy KM','Ngày KM cuối','Chưa KM','Hết KM'];
 const ST_CLS = {'chạy km':'st-run','ngày km cuối':'st-last','chưa km':'st-pre','hết km':'st-end'};
-const TABS = [['overall','Overall CTKM'],['hottrend','🔥 Top Trend'],['downtrend','📉 Flop Trend'],['sku','SKUs'],['rsm','GĐV'],['asm','QLKV']];
+const TABS = [['overall','Overall CTKM'],['hottrend','🔥 Top Trend'],['downtrend','📉 Flop Trend'],['sku','SKUs'],['mch3','MCH3'],['rsm','GĐV'],['asm','QLKV']];
 const SEC_SHORT = {tr:'Trend', hq:'Ranking', lk:'Sale', ns:'No Sale', d:'Sale D', d1:'Sale D-1', tk:'Stock', dr:'Độ phủ', fc:'FC', po:'PO', val:'Validate'};
 const CG_ATTRS = [['brand','Thương hiệu'],['size','Size'],['price','Giá KM'],['group','GROUP KM'],['mech','Cơ chế CTKM'],['mch3','MCH3']];
 const RANK_INDS = [['trLK','DT BQ/CH'],['bqV','DT BQ/mã key/CH'],['stR','Tỷ lệ Sale/Tồn']];
 
 
 // Map new 5-tab dims to existing render logic
-const _DM = {overall:'group', hottrend:'trend', downtrend:'trend', sku:'sku', rsmasm:'rsmasm', rsm:'rsm', asm:'asm'};
+const _DM = {overall:'group', hottrend:'trend', downtrend:'trend', sku:'sku', rsmasm:'rsmasm', rsm:'rsm', asm:'asm', mch3:'fa'};
 const _EFF = d => _DM[d] || d;
 /* dim thực tế: tab SKUs + bật "Gộp SKU cùng tính chất" => nhóm theo tính chất (cg) */
 const effDim = () => { const d = _DM[S.dim] || S.dim; return d === 'sku' && S.grpSku ? 'cg' : d; };
@@ -1563,6 +1563,8 @@ function firstCell(r, isTotal, asSku, trCls){
     return '<td class="sticky"><div class="nm" title="' + esc(r.key) + '"><button class="tg" data-p="' + esc(pid) + '" aria-expanded="' + op + '">' + (op ? '−' : '+') + '</button>' + esc(r.key) + ' <span class="code">(' + fmtQ(r.nArt) + ' mã)</span></div></td>'; }
   if (!asSku && SD_CHAIN[S.dim] && !(_ed2 === 'bg' || _ed2 === 'cg' || _ed2 === 'group')){ const pid = 'sd:' + JSON.stringify([r.key]), op = S.open.has(pid);
     return '<td class="sticky"><div class="nm"><button class="tg" data-p="' + esc(pid) + '" aria-expanded="' + op + '">' + (op ? '−' : '+') + '</button>' + esc(r.key) + '</div></td>'; }
+  if (!asSku && AD_CHAIN[S.dim]){ const pid = 'ad:' + JSON.stringify([r.key]), op = S.open.has(pid);
+    return '<td class="sticky"><div class="nm"><button class="tg" data-p="' + esc(pid) + '" aria-expanded="' + op + '" title="Xem MCH3 → SKU">' + (op ? '−' : '+') + '</button><span class="cd">' + esc(r.key) + '</span> <span class="code">(' + fmtQ(r.nArt) + ' mã)</span></div></td>'; }
   if (!asSku) return '<td class="sticky"><div class="nm">' + esc(r.key) + '</div></td>';
   const a = r.art, k = r.km;
   S.tips[r.ai] = kmTip(a, k);
@@ -1628,12 +1630,34 @@ function sdChildHtml(path){
   }
   return h;
 }
+const AD_CHAIN = {mch3:['fa','mch3','sku']};
+function adChildHtml(path){
+  const chain = AD_CHAIN[S.dim], lvl = path.length, dim = chain[lvl], leaf = lvl === chain.length - 1, A = S.M.arts;
+  const keyOf = (ai, d) => d === 'fa' ? (isFresh(A[ai]) ? 'Fresh & Chilled' : 'Ambient') : d === 'mch3' ? (A[ai].mch3 || '(Chưa rõ)') : A[ai].code;
+  const mask = new Uint8Array(A.length);
+  for (let ai = 0; ai < A.length; ai++){ if (!S.flt.artOK[ai]) continue; let ok = 1; for (let k = 0; k < lvl; k++) if (keyOf(ai, chain[k]) !== path[k]){ ok = 0; break; } mask[ai] = ok; }
+  const res = aggregate(S.M, {...S.flt, artOK:mask}, dim), byCode = new Map(A.map((a,i) => [a.code, i]));
+  const kids = res.rows.map(g => { const m = metrics(g, S.tb); m.key = g.key; if (dim === 'sku'){ m.ai = byCode.get(g.key); m.art = A[m.ai]; m.km = S.flt.kmOf[m.ai]; } return m; });
+  rankRowsCfg(kids); applyTrend(kids, dim !== 'sku'); kids.sort((a,b) => a.trendScore - b.trendScore);
+  let h = '';
+  for (const m of kids){
+    const np = path.concat([m.key]), pid = 'ad:' + JSON.stringify(np), open = !leaf && S.open.has(pid);
+    let fc;
+    if (dim === 'sku'){ S.tips[m.ai] = kmTip(m.art, m.km);
+      fc = '<td class="sticky"><div class="nm"><span class="cd" data-tip="' + m.ai + '">' + esc(m.art.code) + '</span> - <span class="tipname" data-tip="' + m.ai + '">' + esc(m.art.name || '(Không tên)') + '</span></div>' + (S.viewInfo ? viewInfoHtml(m.art, m.km) : '') + '</td>'; }
+    else fc = '<td class="sticky">' + (!leaf ? '<button class="tg" data-p="' + esc(pid) + '" aria-expanded="' + open + '">' + (open ? '−' : '+') + '</button>' : '') + '<span title="MCH3">' + esc(m.key) + '</span> <span class="code">(' + fmtQ(m.nArt) + ' mã)</span></td>';
+    h += '<tr class="lv' + Math.min(lvl+1, 4) + '">' + fc + cellsHtml(m, null) + '</tr>';
+    if (open) h += adChildHtml(np);
+  }
+  return h;
+}
 function rowHtml(r, isTotal, mx, asSku, trCls){
   const _ed2 = effDim();
   asSku = asSku ?? (_ed2 === 'sku' || _ed2 === 'trend');
   let h = '<tr' + (isTotal ? ' class="total"' : trCls ? ' class="' + trCls + '"' : '') + '>' + firstCell(r, isTotal, asSku, trCls) + cellsHtml(r, isTotal ? null : mx) + '</tr>';
   if (!isTotal && !trCls && (_ed2 === 'sku' || _ed2 === 'trend') && S.open.has(String(r.ai))) h += childHtml(r.ai, []);
   if (!isTotal && !asSku && SD_CHAIN[S.dim] && S.open.has('sd:' + JSON.stringify([r.key]))) h += sdChildHtml([r.key]);
+  if (!isTotal && !asSku && AD_CHAIN[S.dim] && S.open.has('ad:' + JSON.stringify([r.key]))) h += adChildHtml([r.key]);
   if (!isTotal && !asSku && (_ed2 === 'bg' || _ed2 === 'cg' || _ed2 === 'group') && S.open.has((_ed2 === 'cg' ? 'cg:' : 'bg:') + r.key)) for (const k of (S.bgKids?.get(r.key) || [])) h += rowHtml(k, false, null, true, 'lvb');
   return h;
 }
@@ -1741,6 +1765,7 @@ function renderLogic(){
     <li>D-1 = 0 mà ngày D có bán: %Δ tính là <b>“Mới ↑”</b> (cao nhất khi xếp hạng).</li>
     <li>Điều kiện: số CH có bán (D hoặc D-1) ≥ ngưỡng (mặc định 20). <b>Hot</b> chỉ lấy mã có DT tăng; <b>Down</b> chỉ lấy mã có DT giảm.</li>
     <li><b>Fresh &amp; Chilled | Ambient</b> theo MCH3. Fresh &amp; Chilled: Thịt nguội, xúc xích, hàng chua · Đông lạnh · Trái cây · Thịt · Thủy hải sản · Rau củ · Bánh mỳ · Thức ăn nấu sẵn · Bơ, sữa, trứng. Các MCH3 còn lại là Ambient.</li>
+    <li><b>Tab MCH3</b>: Fresh &amp; Chilled / Ambient → MCH3 → SKU.</li>
     <li><b>Mọi tab</b> đều có cột Trending. Cấp <b>mã hàng</b>: DT/SL tăng thêm tuyệt đối. Cấp <b>nhóm</b> (Nhóm CTKM, RSM×ASM, Miền → GĐV → QLKV → CH): <b>điểm xếp hạng</b> tính theo <b>tăng trưởng BQ/CH</b> = DT (SL) ÷ số CH có bán của từng ngày (hoặc ÷ CH hoạt động khi chọn "TB mọi CH"), so trong cùng cấp. Các cột DT/SL tăng thêm, %Δ luôn hiển thị số tuyệt đối — cộng các cấp con bằng cấp cha.</li>
     <li><b>Top Trend / Flop Trend</b>: bấm + ở mỗi mã để xem Miền → GĐV → QLKV.</li>
     <li>Nhãn xu hướng: 🔥 <b>Top Trend</b> (10% đầu danh sách Hot) · <span style="color:var(--good)">▲</span> <b>Tăng</b> · ▶ <b>Đi ngang</b> (|%Δ DT| &lt; 5%) · <span style="color:var(--bad)">▼</span> <b>Giảm</b>.</li>
