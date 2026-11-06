@@ -1164,7 +1164,7 @@ const S = {
   M:null, dim:'sku', scope:'km', tb:'ps', unit:1000,
   status:new Set(['Chạy KM','Ngày KM cuối']),
   cols:new Set(COLGROUPS.map(g=>g[0])),
-  sort:{k:'rLK',asc:false}, page:200,
+  sort:{k:'trendScore',asc:true}, page:200,
   cg:new Set(['brand','size','price','group']),
   open:new Set(), rows:[], fileName:'', tips:{},
   view:'full', fs:13, viewInfo:false,
@@ -1475,7 +1475,7 @@ function render(){
     for (const g of sk.rows){ const m = skuRow(g);
       const bk = ed === 'cg' ? flt.cgKey(m.ai) : ed === 'group' ? (m.km?.group || '(Không có KM)') : (m.km?.group || '(Không có KM)') + ' | ' + m.art.brand;
       if (!S.bgKids.has(bk)) S.bgKids.set(bk, []); S.bgKids.get(bk).push(m); }
-    for (const list of S.bgKids.values()){ list.sort((a,b) => (b.tqLK ?? -1) - (a.tqLK ?? -1) || b.rLK - a.rLK); rankRowsCfg(list); applyTrend(list, false); }
+    for (const list of S.bgKids.values()){ rankRowsCfg(list); applyTrend(list, false); list.sort((a,b) => a.trendScore - b.trendScore); }
   }
   sortRows(); renderKpis(res); renderTable();
 }
@@ -1600,7 +1600,7 @@ function childHtml(ai, path){
   const kids = drillRows(S.M, S.flt, ai, path, keys).map(g => { const m = metrics(g, S.tb); m.key = g.key; m.label = g.label; return m; });
   rankRowsCfg(kids); applyTrend(kids, true);
   if (effDim() === 'trend') kids.sort((a,b) => S.dim === 'downtrend' ? b.trendScore - a.trendScore : a.trendScore - b.trendScore);
-  else kids.sort((a,b) => (b.tqLK ?? -1) - (a.tqLK ?? -1) || b.qLK - a.qLK || (b.sQ - a.sQ));
+  else kids.sort((a,b) => a.trendScore - b.trendScore);
   let h = ''; const mx = heatScale(kids);
   for (const m of kids){
     const np = path.concat([m.key]); const pid = JSON.stringify([ai].concat(np)); const open = !leaf && S.open.has(pid);
@@ -1619,7 +1619,7 @@ function sdChildHtml(path){
   const res = aggregate(S.M, {...S.flt, storeOK:mask}, dim);
   const byCode = dim === 'code' ? new Map(st.map(x => [x.code, x])) : null;
   const kids = res.rows.map(g => { const m = metrics(g, S.tb); m.key = g.key; m.label = byCode ? g.key + ' · ' + (byCode.get(g.key)?.name || '') : g.key; return m; });
-  rankRowsCfg(kids); applyTrend(kids, true); kids.sort((a,b) => (a.rank??1e9) - (b.rank??1e9));
+  rankRowsCfg(kids); applyTrend(kids, true); kids.sort((a,b) => a.trendScore - b.trendScore);
   let h = '';
   for (const m of kids){
     const np = path.concat([m.key]), pid = 'sd:' + JSON.stringify(np), open = !leaf && S.open.has(pid);
@@ -1836,8 +1836,7 @@ function initUI(){
   $('tabs').innerHTML = TABS.map(([k,l]) => '<button role="tab" data-k="' + k + '" aria-selected="' + (k===S.dim) + '">' + l + '</button>').join('');
   $('tabs').onclick = e => { const b = e.target.closest('button'); if (!b) return; S.dim = b.dataset.k; S.page = 200; S.open = new Set([...S.open].filter(x => !x.startsWith('sd:')));
     $('tabs').querySelectorAll('button').forEach(x => x.setAttribute('aria-selected', String(x===b)));
-    if (effDim()==='trend') S.sort = {k:'trendScore', asc:true};
-    else if (['key','trendScore','trendLabel','vVal','vQty','vCov'].includes(S.sort.k)) S.sort = {k:'rLK',asc:false};
+    S.sort = {k:'trendScore', asc:true};   // mọi view: mặc định sắp theo Điểm hạng Trend
     updateTabUI(); render(); };
 
   // multiselect status
