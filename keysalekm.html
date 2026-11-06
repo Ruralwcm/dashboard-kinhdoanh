@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Key Sale KM v4.27.0 — Win Rural</title>
+<title>Key Sale KM v4.28.0 — Win Rural</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 [hidden]{display:none!important}
@@ -354,6 +354,7 @@ table.ctt{border-collapse:separate;border-spacing:0;font-size:12.5px;width:max-c
 .ctt th{position:sticky;top:0;z-index:2;background:var(--navy);color:#fff;font-weight:700;padding:7px 6px;white-space:nowrap;text-align:left}
 .ctt td{border-bottom:1px solid var(--line);padding:0;background:#fff}
 .vtt td input[readonly]{cursor:default}
+.cloudb{font-size:11.5px;color:var(--ink2);margin:0 6px;cursor:pointer;white-space:nowrap}.cloudb.ok{color:var(--good)}.cloudb.err{color:var(--bad);font-weight:700}.cloudb.saving,.cloudb.loading{color:var(--mid)}
 .ctt td input{border:0;background:transparent;padding:6px 6px;font:inherit;color:var(--ink);width:100%;min-width:60px}
 .ctt td input:focus{outline:2px solid var(--mid);background:#F5F9FF}
 .ctt td.num input{text-align:right}
@@ -518,7 +519,7 @@ body.dashOn .ctlBar .ctl:first-child,body.dashOn .ctl-sec,body.dashOn .ctl-sw{di
 <header class="hd">
   <div class="hd-in">
     <img id="lg" class="lg" alt="WinMart+">
-    <div class="tt">Key Sale KM <span id="fileinfo" title="">v4.27.0 · Win Rural · Theo dõi CTKM</span></div>
+    <div class="tt">Key Sale KM <span id="fileinfo" title="">v4.28.0 · Win Rural · Theo dõi CTKM</span></div>
     <div class="mainTabs hdTabs" id="mainTabs" role="tablist"></div>
     <div class="mt">
       <div class="ts hd-ts" title="Cỡ chữ">
@@ -1502,6 +1503,7 @@ function start(M, demo){
   try { if (ctLoad().applied) ctApplyToReport(); } catch(e){ console.warn(e); }
   try { applyQuyDoi(M); } catch(e){ console.warn('Gộp mã quy đổi lỗi', e); }
   try { if (valLoad().applied && valLoad().r.length) valApply(); } catch(e){ console.warn('SL Validate lỗi', e); }
+  if (!S._cloudPulled){ S._cloudPulled = 1; setTimeout(cloudPull, 50); }
   if (S.nhomSrc) applyNhom(M); else if (S.nhomState !== 'loading') setTimeout(loadNhomSrc, 0);
   $('drop').hidden = true; $('app').hidden = false; $('btnExport').hidden = false; $('btnSnap').hidden = !!demo;
   $('demoBanner').hidden = !demo;
@@ -2178,15 +2180,15 @@ const wkHtml = (m, max) => (m.weak || []).length ? m.weak.slice(0, max || 9).map
 function skuPop(ai){
   const M = S.M, flt = S.flt || buildFilter(), A = M.arts[ai]; if (!A) return;
   const km = flt.kmOf[ai] || A.km, mask = new Uint8Array(M.arts.length); mask[ai] = 1;
-  const LV = ['region', 'rsm', 'asm'], LN = {region:'Miền', rsm:'GĐV', asm:'QLKV'};
+  const LV = ['rm', 'rsm', 'asm'], LN = {rm:'Miền (RM)', rsm:'GĐV', asm:'QLKV'};   /* Miền = RM của STORELIST (Miền Bắc - Đặng Trần…), không dùng Region địa lý */
   const open = S._spOpen || (S._spOpen = new Set());
   const agg = path => { const dim = LV[path.length];
     const so = path.length ? Uint8Array.from(flt.storeOK, (v, si) => v && path.every((p, j) => M.stores[si][LV[j]] === p) ? 1 : 0) : flt.storeOK;
     const r = aggregate(M, {...flt, artOK:mask, storeOK:so}, dim);
     const rs = r.rows.filter(g => g.key && g.key !== '(Trống)' && !String(g.key).startsWith('(Không có')).map(g => { const m = metrics(g, S.tb); m.key = g.key; return m; }).filter(m => m.nAct > 0 || m.rLK > 0);
     rankHQ(rs, m => ({arts:[ai], st: si => so[si] && M.stores[si][dim] === m.key})); applyTrend(rs, true);
-    rs.sort((a, b) => dim === 'region' ? String(a.key).localeCompare(String(b.key), 'vi') : (a.rankT || 0) - (b.rankT || 0)); return rs; };
-  const tot = metrics(aggregate(M, {...flt, artOK:mask}, 'region').total, S.tb);
+    rs.sort((a, b) => dim === 'rm' ? String(a.key).localeCompare(String(b.key), 'vi') : (a.rankT || 0) - (b.rankT || 0)); return rs; };
+  const tot = metrics(aggregate(M, {...flt, artOK:mask}, 'rm').total, S.tb);
   const C = [['Số CH', m => fmtQ(m.nAct)], ['Rank LK', m => m.rankT ? '#' + m.rankT : ''], ['DT lũy kế', m => fmtV(m.rLK)], ['DT BQ/CH', m => fmtV(m.trLK)], ['% CH bán', m => fmtPct(m.nAct ? Math.min(1, m.nSale / m.nAct) : null)], ['SL lũy kế', m => fmtQ(m.qLK)],
     ['DT D-1', m => fmtV(m.rD1)], ['DT D', m => fmtV(m.rD)], ['Tăng thêm', m => { const d = (m.rD || 0) - (m.rD1 || 0); return '<span class="' + clsSg(d) + '">' + sgnV(d) + '</span>'; }], ['%Δ', m => { const v = m.rD1 > 0 ? (m.rD - m.rD1) / m.rD1 * 100 : null; return v == null ? '—' : '<span class="' + clsSg(v) + '">' + pctTxt(v) + '</span>'; }],
     ['GT tồn', m => fmtV(m.sV)], ['DIO', m => m.dio == null ? '—' : '<span class="' + (m.dio > 60 ? 'cell-bad' : m.dio > 30 ? 'cell-warn' : '') + '">' + nf0.format(m.dio) + '</span>'], ['DR', m => '<span class="' + (m.dr < 0.5 ? 'cell-bad' : m.dr < 0.8 ? 'cell-warn' : 'cell-good') + '">' + fmtPct(m.dr == null ? null : Math.min(1, m.dr)) + '</span>'], ['% No sale', m => fmtPct(m.noSale)], ['Xu hướng', m => m.trendLabel ? lblHtml(m.trendLabel) : '']];
@@ -2480,7 +2482,34 @@ function ctLoad(){
   if (st && Array.isArray(st.r)){ S.ct = st; return st; }
   const seed = JSON.parse(document.getElementById('ctkmSeed').textContent);
   S.ct = {r: seed.r.map((x, i) => ({id: i + 1, v: x.slice(0, CT_COLS.length)})), seq: seed.r.length + 1, at: null, src: 'Danh sách CTKM.xlsb'}; return S.ct; }
-function ctSave(){ try { S.ct.at = new Date().toISOString(); localStorage.setItem(CT_KEY, JSON.stringify(S.ct)); } catch(e){ alert('Không lưu được: ' + e.message); } }
+/* ===== Lưu chung trên Google Sheet (dùng kho dữ liệu chung FC Portal – Apps Script) ===== */
+const GAS_DEF = 'https://script.google.com/macros/s/AKfycbz9yBDMSUKqnbC88_H830deQFFrElvvKqIbVQqeg68ULRB53i0ypOWD-lQ_H4aq-UVw/exec';
+const gasUrl = () => { try { return localStorage.getItem('fc_portal_gas3') || GAS_DEF; } catch(e){ return GAS_DEF; } };
+const CLOUD = {ctkm: 'keysalekm/danhmuc_ctkm', val: 'keysalekm/sl_validate'};
+S.cloud = {ctkm: {st: 'idle'}, val: {st: 'idle'}};
+async function cloudGet(key){ const u = gasUrl(), c = new AbortController(), t = setTimeout(() => c.abort(), 45000);
+  try { const r = await fetch(u + (u.includes('?') ? '&' : '?') + 'action=get&key=' + encodeURIComponent(key), {cache: 'no-store', signal: c.signal}); const j = await r.json(); if (!j.ok) throw new Error(j.error || 'lỗi'); return j.value; } finally { clearTimeout(t); } }
+async function cloudSet(key, value){ const r = await fetch(gasUrl(), {method: 'POST', headers: {'Content-Type': 'text/plain;charset=utf-8'}, body: JSON.stringify({action: 'set', key, value})}); const j = await r.json(); if (!j.ok) throw new Error(j.error || 'lỗi'); return true; }
+/* gọn dữ liệu trước khi gửi: chỉ giữ giá trị các ô */
+const cloudPack = o => ({at: o.at, src: o.src || '', applied: !!o.applied, by: 'haodt', r: o.r.map(x => x.v)});
+const cloudUnpack = o => ({at: o.at, src: o.src, applied: o.applied, r: (o.r || []).map((v, i) => ({id: i + 1, v})), seq: (o.r || []).length + 1});
+function cloudPush(kind){ const C = S.cloud[kind]; clearTimeout(C.t);
+  C.t = setTimeout(async () => { const o = kind === 'ctkm' ? S.ct : S.val; if (!o) return; C.st = 'saving'; cloudBadge();
+    try { await cloudSet(CLOUD[kind], cloudPack(o)); C.st = 'ok'; C.at = new Date(); } catch(e){ C.st = 'err'; C.err = String(e.message || e); } cloudBadge(); }, 1500); }
+/* tải bản chung khi mở trang: bản trên Sheet mới hơn bản trên máy → dùng bản trên Sheet */
+async function cloudPull(){
+  for (const kind of ['ctkm', 'val']){ const C = S.cloud[kind]; C.st = 'loading'; cloudBadge();
+    try { const v = await cloudGet(CLOUD[kind]);
+      if (v && Array.isArray(v.r)){ const loc = kind === 'ctkm' ? ctLoad() : valLoad();
+        if (!loc.at || !v.at || v.at > loc.at){ const o = cloudUnpack(v); if (kind === 'ctkm'){ S.ct = o; try { localStorage.setItem(CT_KEY, JSON.stringify(o)); } catch(e){} } else { S.val = o; try { localStorage.setItem(VAL_KEY, JSON.stringify(o)); } catch(e){} } C.changed = true; } }
+      else if (kind === 'val' ? valLoad().r.length : ctLoad().at){ if (authOk()) cloudPush(kind); }   /* Sheet chưa có → đẩy bản trên máy lên (khi đã đăng nhập) */
+      C.st = 'ok'; C.at = new Date(); } catch(e){ C.st = 'err'; C.err = String(e.message || e); } }
+  if (S.M && (S.cloud.ctkm.changed || S.cloud.val.changed)){ try { if (S.cloud.ctkm.changed && ctLoad().applied) ctApplyToReport(); applyQuyDoi(S.M); if (valLoad().applied && valLoad().r.length) valApply(); } catch(e){ console.warn(e); } render(); }
+  cloudBadge(); }
+function cloudBadge(){ for (const [kind, id] of [['ctkm', 'ctCloud'], ['val', 'valCloud']]){ const el = $(id); if (!el) continue; const C = S.cloud[kind];
+  el.className = 'cloudb ' + (C.st || ''); el.title = C.st === 'err' ? 'Lỗi: ' + (C.err || '') : 'Lưu chung trên Google Sheet (kho dữ liệu FC Portal)';
+  el.textContent = C.st === 'loading' ? '☁ Đang tải bản chung…' : C.st === 'saving' ? '☁ Đang lưu lên Google Sheet…' : C.st === 'ok' ? '☁ Đã đồng bộ Google Sheet' + (C.at ? ' · ' + C.at.toLocaleTimeString('vi-VN') : '') : C.st === 'err' ? '⚠ Chưa lưu được lên Google Sheet — bấm để thử lại' : '☁ Google Sheet'; } }
+function ctSave(){ try { S.ct.at = new Date().toISOString(); localStorage.setItem(CT_KEY, JSON.stringify(S.ct)); } catch(e){ alert('Không lưu được: ' + e.message); } if (authOk()) cloudPush('ctkm'); }
 const ctStatus = v => { const a = v[7] ? daysLeft(new Date(v[7] + 'T00:00:00Z')) : null, b = v[8] ? daysLeft(new Date(v[8] + 'T00:00:00Z')) : null;
   if (a != null && a > 0) return ['Chưa KM','st-pre']; if (b != null && b < 0) return ['Hết KM','st-end']; if (b === 0) return ['Ngày KM cuối','st-last']; return ['Chạy KM','st-run']; };
 function ctSize(name){ const m = String(name || '').toLowerCase().match(/(\d+(?:[.,]\d+)?)\s*(kg|gr|g|ml|lít|lit|l)\b/); if (!m) return null; let v = parseFloat(m[1].replace(',', '.')), u = m[2]; if (u === 'kg'){ v *= 1000; u = 'g'; } else if (u === 'gr') u = 'g'; else if (u === 'l' || u === 'lít' || u === 'lit'){ v *= 1000; u = 'ml'; } return {v, u, txt: m[0].replace(/\s+/g,'')}; }
@@ -2608,7 +2637,7 @@ function renderCtkm(){
     + '<div class="ctbar"><input type="search" id="ctQ" placeholder="Tìm mã, tên, group, cơ chế…" value="' + esc(S.ctQ || '') + '">'
     + '<button class="btn pri" id="ctAdd">＋ Thêm dòng</button><button class="btn" id="ctEq">🔍 Check SKUs tương đương</button><button class="btn" id="ctApply" title="Cập nhật nhóm, giá, ngày, Min, mã quy đổi vào các tab báo cáo">↻ Áp dụng vào báo cáo</button>'
     + '<button class="btn" id="ctExp">⬇ Xuất Excel</button><label class="btn" style="cursor:pointer">📂 Nhập Excel<input type="file" id="ctImp" accept=".xlsx,.xls,.xlsb" hidden></label><button class="btn" id="ctReset" title="Bỏ mọi chỉnh sửa, nạp lại danh sách gốc">↺ Khôi phục gốc</button>'
-    + '<span class="ctinfo">' + (q ? fmtQ(vis.length) + ' dòng khớp · ' : '') + (nDirty ? '<b style="color:var(--warn)">' + nDirty + ' dòng đã sửa/thêm</b> · ' : '') + 'Tự lưu trên trình duyệt này</span></div>';
+    + '<span class="ctinfo">' + (q ? fmtQ(vis.length) + ' dòng khớp · ' : '') + (nDirty ? '<b style="color:var(--warn)">' + nDirty + ' dòng đã sửa/thêm</b> · ' : '') + '<span id="ctCloud" class="cloudb"></span></span></div>';
   if (S.ctEqOn){ const G = ctEquiv(), open = G.filter(x => !x.done);
     h += '<div class="dsum">🔍 Tìm thấy <b>' + G.length + '</b> nhóm SKU tương đương (cùng thương hiệu · cùng GROUP KM · giá KM lệch ≤ 3% · size lệch ≤ 15% · tên giống ≥ 40%) — <b>' + open.length + '</b> nhóm chưa gộp mã quy đổi. Đề xuất mã quy đổi = mã bán tốt nhất trong nhóm. <a href="#" id="ctEqClose">Đóng</a></div>';
     G.forEach((g, gi) => { h += '<div class="eqg' + (g.done ? ' done' : '') + '"><div class="eqh"><b>Nhóm ' + (gi + 1) + '</b> · ' + g.mem.length + ' mã · ' + esc(g.mem[0].grp) + (g.done ? ' · <span class="cell-good">✔ đã cùng mã quy đổi</span>' : '') + '<span>Mã quy đổi</span><input class="qd" data-eqc="' + gi + '" value="' + esc(g.code) + '"><span>Tên quy đổi</span><input class="tqd" data-eqn="' + gi + '" value="' + esc(g.name) + '"><button class="btn pri" data-eqa="' + gi + '">' + (g.done ? 'Cập nhật' : 'Gộp mã') + '</button></div>'
@@ -2621,7 +2650,7 @@ function renderCtkm(){
       + CT_COLS.map((c, i) => '<td class="' + c[1] + (c[2] === 'n' ? ' num' : '') + '"><input data-c="' + i + '" type="' + (c[2] === 'd' ? 'date' : 'text') + '" value="' + esc(c[2] === 'n' && r.v[i] !== '' && r.v[i] != null && !isNaN(r.v[i]) ? nf0.format(r.v[i]) : r.v[i] ?? '') + '"></td>').join('')
       + '<td class="st"><span class="pill ' + st[1] + '">' + st[0] + '</span></td></tr>'; }
   h += '</tbody></table></div>' + (vis.length > lim ? '<div class="dmore"><button class="btn" id="ctAll">Hiện tất cả ' + vis.length + ' dòng</button></div>' : '') + '</section>';
-  el.innerHTML = h;
+  el.innerHTML = h; cloudBadge(); { const b = $('ctCloud'); if (b) b.onclick = () => { if (S.cloud.ctkm.st === 'err' && authOk()) cloudPush('ctkm'); else if (S.cloud.ctkm.st === 'err') cloudPull(); }; }
   const re = () => { const y = $('ctkmView').querySelector('.ctwrap')?.scrollTop || 0; renderCtkm(); const w = $('ctkmView').querySelector('.ctwrap'); if (w) w.scrollTop = y; };
   let tq; $('ctQ').oninput = e => { clearTimeout(tq); tq = setTimeout(() => { S.ctQ = e.target.value; renderCtkm(); const x = $('ctQ'); x.focus(); x.setSelectionRange(x.value.length, x.value.length); }, 250); };
   $('ctAdd').onclick = () => { C.r.unshift({id: C.seq++, v: CT_COLS.map(() => ''), isNew: 1}); ctSave(); S.ctQ = ''; renderCtkm(); setTimeout(() => $('ctkmView').querySelector('tbody tr input[data-c="1"]')?.focus(), 30); };
@@ -2672,7 +2701,7 @@ function needLogin(cb){
 const VAL_KEY = 'ksk_val_v1';
 const VAL_COLS = [['Mã CH','t',70],['Tên CH','t',220],['Mã hàng','t',90],['Tên sản phẩm','t',320],['ĐVT','t',60],['SL FC','n',80],['GT FC','n',110],['SL Validate','n',90],['GT Validate','n',110]];
 function valLoad(){ if (S.val) return S.val; try { const v = JSON.parse(localStorage.getItem(VAL_KEY) || 'null'); if (v && Array.isArray(v.r)){ S.val = v; return v; } } catch(e){} S.val = {r: [], seq: 1, at: null, src: ''}; return S.val; }
-function valSave(){ try { S.val.at = new Date().toISOString(); localStorage.setItem(VAL_KEY, JSON.stringify(S.val)); } catch(e){ alert('Không lưu được (dữ liệu quá lớn?): ' + e.message); } }
+function valSave(){ try { S.val.at = new Date().toISOString(); localStorage.setItem(VAL_KEY, JSON.stringify(S.val)); } catch(e){ console.warn('localStorage đầy', e); } if (authOk()) cloudPush('val'); }
 /* đưa SL/GT FC & Validate vào báo cáo: thay số FC/Validate của các cặp CH × mã có trong danh sách */
 function valApply(){
   const M = S.M; if (!M) return null; const V = valLoad(); if (!M._orig) applyQuyDoi(M);
@@ -2696,7 +2725,7 @@ function renderVal(){
     + '<div class="ctbar"><input type="search" id="valQ" placeholder="Tìm mã CH, tên CH, mã hàng, tên SP…" value="' + esc(S.valQ || '') + '">'
     + (can ? '<label class="btn pri" style="cursor:pointer">📂 Upload Excel<input type="file" id="valImp" accept=".xlsx,.xls,.xlsb,.csv" hidden></label><button class="btn" id="valAdd">＋ Thêm dòng</button><button class="btn" id="valApply" title="Thay SL/GT FC và Validate của các cặp CH × mã trong danh sách vào báo cáo">↻ Áp dụng vào báo cáo</button><button class="btn" id="valClear">🗑 Xoá hết</button>'
            : '<button class="btn pri" id="valLogin">🔒 Đăng nhập để upload / sửa</button>')
-    + '<button class="btn" id="valExp">⬇ Xuất Excel</button><span class="ctinfo">' + fmtQ(nCH) + ' CH · ' + fmtQ(nSku) + ' mã · SL FC <b>' + fmtQ(sFC) + '</b> · SL Validate <b>' + fmtQ(sV) + '</b> (' + (sFC ? fmtPct(sV / sFC) : '—') + ') · GT Validate <b>' + fmtV(sum(8)) + '</b></span></div>';
+    + '<button class="btn" id="valExp">⬇ Xuất Excel</button><span id="valCloud" class="cloudb"></span><span class="ctinfo">' + fmtQ(nCH) + ' CH · ' + fmtQ(nSku) + ' mã · SL FC <b>' + fmtQ(sFC) + '</b> · SL Validate <b>' + fmtQ(sV) + '</b> (' + (sFC ? fmtPct(sV / sFC) : '—') + ') · GT Validate <b>' + fmtV(sum(8)) + '</b></span></div>';
   if (!V.r.length) h += '<div class="dnone">Chưa có dữ liệu. ' + (can ? 'Bấm <b>Upload Excel</b> (cột: Mã CH · Tên CH · Mã hàng · Tên sản phẩm · ĐVT · SL FC · GT FC · SL Validate · GT Validate).' : 'Đăng nhập để upload file.') + '</div>';
   else { const lim = S.valAll ? vis.length : Math.min(vis.length, 500);
     h += '<div class="ctwrap"><table class="ctt vtt"><thead><tr>' + (can ? '<th></th>' : '') + VAL_COLS.map(c => '<th style="width:' + c[2] + 'px;text-align:' + (c[1] === 'n' ? 'right' : 'left') + '">' + c[0] + '</th>').join('') + '<th style="text-align:right">% Validate</th></tr></thead><tbody>';
@@ -2705,7 +2734,7 @@ function renderVal(){
         + VAL_COLS.map((c, i) => '<td class="' + (c[1] === 'n' ? 'num' : '') + '"><input data-c="' + i + '" value="' + esc(c[1] === 'n' && r.v[i] !== '' && r.v[i] != null && !isNaN(r.v[i]) ? nf0.format(r.v[i]) : r.v[i] ?? '') + '"' + (can ? '' : ' readonly') + '></td>').join('')
         + '<td class="num st" style="text-align:right;padding-right:8px" data-pv>' + fmtPct(pv) + '</td></tr>'; }
     h += '</tbody></table></div>' + (vis.length > lim ? '<div class="dmore"><button class="btn" id="valAll">Hiện tất cả ' + fmtQ(vis.length) + ' dòng</button></div>' : ''); }
-  el.innerHTML = h + '</section>';
+  el.innerHTML = h + '</section>'; cloudBadge(); { const b = $('valCloud'); if (b) b.onclick = () => { if (S.cloud.val.st === 'err' && authOk()) cloudPush('val'); else if (S.cloud.val.st === 'err') cloudPull(); }; }
   let tq; $('valQ').oninput = e => { clearTimeout(tq); tq = setTimeout(() => { S.valQ = e.target.value; renderVal(); const x = $('valQ'); x.focus(); x.setSelectionRange(x.value.length, x.value.length); }, 250); };
   const lg = $('valLogin'); if (lg) lg.onclick = () => needLogin(renderVal);
   const all = $('valAll'); if (all) all.onclick = () => { S.valAll = true; renderVal(); };
