@@ -725,7 +725,7 @@ function aggregate(M, flt, dim){
     for (let k = 0; k < NF; k++){ const v = fv[o+k]; if (v){ g.f[k] += v; total.f[k] += v; } }
     const qLK = fv[o+F.qLK], sQ = fv[o+F.sQ], qDD = fv[o+F.qD];
     if (sQ >= thr[ai]){ g.cDR++; total.cDR++; }
-    if (sQ > 0){ total.pStock++; if (qDD <= 0) total.pNo++; }
+    if (sQ > 0){ total.pStock++; g.pStock++; if (qDD <= 0){ total.pNo++; g.pNo++; } }
     const qD1 = fv[o+F.qD1];
     tS[si*TW] += qLK; tS[si*TW+1] += sQ; tS[si*TW+2] += qDD; tS[si*TW+3] += fv[o+F.ndQ]; tS[si*TW+5] += qD1;
     if (perFact){ if (qLK > 0) g.dSale++; if (sQ > 0){ g.dStock++; if (qDD <= 0){ g.dNo++; g.nosaleCH++; } } if (qDD > 0) g.dD++; if (qD1 > 0) g.dD1++; }
@@ -774,7 +774,7 @@ function metrics(g, tbMode){
     sQ:f[F.sQ], sV:f[F.sV], tsQ:div(f[F.sQ],dT), tsV:div(f[F.sV],dT), nStock:g.dStock,
     dio: f[F.cogs] > 0 ? f[F.sV] / (f[F.cogs]/30) : null,
     bqQ:div(div(f[F.qLK],dS), g.nArt), bqV:div(div(f[F.rLK],dS), g.nArt), stR:f[F.sQ] > 0 ? f[F.qLK] / f[F.sQ] : (f[F.qLK] > 0 ? Infinity : null),
-    nDR:g.nArt ? g.cDR / g.nArt : 0, dr:div(g.cDR,pairs), nNo:g.dNo, noSale:div(g.dNo,g.dStock), nAct:g.nAct, nArt:g.nArt,
+    nDR:g.nArt ? g.cDR / g.nArt : 0, dr:div(g.cDR,pairs), nNo:g.pStock ? g.pNo : g.dNo, noSale:g.pStock ? div(g.pNo, g.pStock) : div(g.dNo,g.dStock), nAct:g.nAct, nArt:g.nArt,
     fcQ:f[F.fcQ], fcV:f[F.fcV], poQ:f[F.poQ], poV:f[F.poV], ndQ:f[F.ndQ], ndV:f[F.ndV], nND:g.dND, tndQ:div(f[F.ndQ], tbMode === 'ps' ? g.dND : g.nAct), tndV:div(f[F.ndV], tbMode === 'ps' ? g.dND : g.nAct), vQ:f[F.vQ], vV:f[F.vV], pairs,
     nosaleLoss:null, nosaleCH:g.nosaleCH||0, nD:g.dD||0, nD1:g.dD1||0, pStock:g.pStock||0, pNo:g.pNo||0
   };
@@ -895,14 +895,14 @@ function computeNosaleLoss(M, flt, rows){
 const $ = id => document.getElementById(id);
 const ST_LIST = ['Chạy KM','Ngày KM cuối','Chưa KM','Hết KM'];
 const ST_CLS = {'chạy km':'st-run','ngày km cuối':'st-last','chưa km':'st-pre','hết km':'st-end'};
-const TABS = [['overall','Overall CTKM'],['hottrend','🔥 Top Trend'],['downtrend','📉 Flop Trend'],['sku','SKUs'],['rsmasm','RSM×ASM']];
+const TABS = [['overall','Overall CTKM'],['hottrend','🔥 Top Trend'],['downtrend','📉 Flop Trend'],['sku','SKUs'],['rsm','GĐV'],['asm','QLKV']];
 const SEC_SHORT = {tr:'Trend', hq:'Ranking', lk:'Sale', ns:'No Sale', d:'Sale D', d1:'Sale D-1', tk:'Stock', dr:'Độ phủ', fc:'FC', po:'PO', val:'Validate'};
 const CG_ATTRS = [['brand','Thương hiệu'],['size','Size'],['price','Giá KM'],['group','GROUP KM'],['mech','Cơ chế CTKM'],['mch3','MCH3']];
 const RANK_INDS = [['trLK','DT BQ/CH'],['bqV','DT BQ/mã key/CH'],['stR','Tỷ lệ Sale/Tồn']];
 
 
 // Map new 5-tab dims to existing render logic
-const _DM = {overall:'group', hottrend:'trend', downtrend:'trend', sku:'sku', rsmasm:'rsmasm'};
+const _DM = {overall:'group', hottrend:'trend', downtrend:'trend', sku:'sku', rsmasm:'rsmasm', rsm:'rsm', asm:'asm'};
 const _EFF = d => _DM[d] || d;
 /* dim thực tế: tab SKUs + bật "Gộp SKU cùng tính chất" => nhóm theo tính chất (cg) */
 const effDim = () => { const d = _DM[S.dim] || S.dim; return d === 'sku' && S.grpSku ? 'cg' : d; };
@@ -911,7 +911,7 @@ const LV_OF_VIEW = {full:'F', compact:'C', lite:'L'};
 const COLGROUPS = [
   ['hq','Xếp hạng',[['rank','Hạng','rank'],['score','Điểm TB','t2'],['trLK','DT TBCH','tv'],['bqV','DT BQ/mã/CH','tv'],['stR','Sale LK/Tồn','sr']]],
   ['lk','Sale lũy kế',[['qLK','SL','q'],['rLK','Doanh thu','v'],['tqLK','SL TBCH','t'],['trLK','DT TBCH','tv']]],
-  ['ns','No sale',[['nNo','CH no sale','q'],['noSale','% No sale','nspct']]],
+  ['ns','No sale',[['nNo','CH×mã no sale','q'],['noSale','% No sale','nspct']]],
   ['d','Sale D',[['qD','SL','q'],['rD','DT','v'],['tqD','SL TBCH','t'],['trD','DT TBCH','tv']]],
   ['d1','Sale D-1',[['qD1','SL','q'],['rD1','DT','v'],['tqD1','SL TBCH','t'],['trD1','DT TBCH','tv']]],
   ['tk','Tồn kho',[['sQ','SL tồn','q'],['sV','GT tồn','v'],['tsQ','SL tồn TBCH','t'],['tsV','GT tồn TBCH','tv'],['dio','DIO','dio']]],
@@ -1611,7 +1611,7 @@ function childHtml(ai, path){
   return h;
 }
 const SD_CHAIN = {rm:['rm','rsm','asm'], rsm:['rsm','asm','code'], asm:['asm','code'], rsmasm:['rsmasm','code']};
-const SD_NAME = {rm:'RM', rsm:'RSM', asm:'QLKV', code:'CH'};
+const SD_NAME = {rm:'RM', rsm:'GĐV', asm:'QLKV', code:'CH'};
 function sdChildHtml(path){
   const chain = SD_CHAIN[S.dim], lvl = path.length, dim = chain[lvl], leaf = lvl === chain.length - 1;
   const st = S.M.stores, mask = new Uint8Array(st.length);
@@ -1726,7 +1726,7 @@ function renderLogic(){
   <ul>
     <li><b>DR</b> = số (CH × mã) đạt Min trưng bày ÷ tổng cặp (CH × mã) trong phạm vi.</li>
     <li><b>CH đạt Min TB</b>: SL tồn ≥ Min TB (của CTKM), nếu không khai báo thì ngưỡng = 1.</li>
-    <li><b>% No sale</b> (mỗi dòng) = số CH có tồn nhưng không bán ngày D ÷ số CH có tồn. Ô KPI và dòng Tổng tính theo <b>cặp CH × mã</b>.</li>
+    <li><b>% No sale</b> = số cặp (CH × mã) có tồn nhưng không bán ngày D ÷ số cặp có tồn — áp dụng mọi cấp (mã, nhóm, GĐV, QLKV, CH) và ô KPI.</li>
   </ul>
   <h4>Xếp hạng (Hạng &amp; Điểm TB)</h4>
   <ul>
