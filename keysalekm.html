@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Key Sale KM v4.21.1 — Win Rural</title>
+<title>Key Sale KM v4.21.2 — Win Rural</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 [hidden]{display:none!important}
@@ -478,7 +478,7 @@ body.dashOn .ctlBar .ctl:first-child,body.dashOn .ctl-sec,body.dashOn .ctl-sw{di
 <header class="hd">
   <div class="hd-in">
     <img id="lg" class="lg" alt="WinMart+">
-    <div class="tt">Key Sale KM <span>v4.21.1 · Win Rural · Theo dõi CTKM</span></div>
+    <div class="tt">Key Sale KM <span>v4.21.2 · Win Rural · Theo dõi CTKM</span></div>
     <div class="mt">
       <span class="pill" id="fileinfo" title="">Chưa có dữ liệu</span>
       <div class="ts hd-ts" title="Cỡ chữ">
@@ -2287,28 +2287,6 @@ function renderDash(){
         return t; }).join('') + '</tbody></table></div>'
 ; }
   h += '</section>';
-
-  /* ---------- 4. Total CTKM & Focus ---------- */
-  const run = rows.filter(r => r.km && norm(r.km.status) === 'chạy km').length;
-  const endSoon = rows.filter(r => r.km && (norm(r.km.status) === 'ngày km cuối' || (daysLeft(r.km.d1) != null && daysLeft(r.km.d1) <= 3)));
-  h += '<section class="dsec"><h3><span class="n">4</span>Total CTKM &amp; Focus</h3><div class="dk">'
-    + '<div><span>Nhóm CTKM</span><b>' + fmtQ(gr.length) + '</b><small>' + fmtQ(sk.nArtSel) + ' mã trong phạm vi</small></div>'
-    + '<div><span>Mã đang chạy KM</span><b>' + fmtQ(run) + '</b><small>' + fmtQ(endSoon.length) + ' mã kết thúc ≤ 3 ngày</small></div>'
-    + '<div><span>Mã sắp KM</span><b>' + fmtQ(upc.length) + '</b><small>' + fmtQ(upc.filter(m => m.dl != null && m.dl <= 7).length) + ' mã trong 7 ngày</small></div>'
-    + '<div><span>DT lũy kế · ' + unitShort() + '</span><b>' + fmtV(T.rLK) + '</b><small>DT BQ/CH ' + fmtV(T.trLK) + '</small></div>'
-    + '<div><span>DT ngày D · ' + unitShort() + '</span><b>' + fmtV(T.rD) + '</b><small class="' + clsSg(ddT) + '">' + pctTxt(ddT) + ' vs D-1</small></div>'
-    + '<div><span>% No sale · DR</span><b>' + fmtPct(T.pStock ? T.pNo / T.pStock : null) + '</b><small>Độ phủ Min TB ' + fmtPct(T.dr) + '</small></div></div>';
-  const focus = (title, list, cols, empty) => '<div class="dcard"><h5>' + title + '</h5>' + (list.length ? '<div class="wrapx"><table class="dt"><thead><tr><th class="l">SKU</th>' + cols.map(c => '<th>' + c[0] + '</th>').join('') + '</tr></thead><tbody>' + list.map(m => '<tr>' + skuCell(m) + cols.map(c => c[1](m)).join('') + '</tr>').join('') + '</tbody></table></div>' : '<div class="dnone">' + empty + '</div>') + '</div>';
-  const keyDown = rows.filter(r => r.km && r.km.key && r.km.key !== '(Trống)' && r.dVal < 0).sort((a,b) => a.dVal - b.dVal).slice(0, 5);
-  const endHi = endSoon.filter(r => r.sV > 0).sort((a,b) => (b.dio ?? 0) - (a.dio ?? 0) || b.sV - a.sV).slice(0, 5);
-  const nsHi = rows.filter(r => r.noSale != null && (r.nStock || 0) >= 20).sort((a,b) => b.noSale - a.noSale || b.sV - a.sV).slice(0, 5);
-  const drLo = rows.filter(r => r.dr != null && r.rLK > 0 && r.km && norm(r.km.status) !== 'hết km').sort((a,b) => a.dr - b.dr || b.rLK - a.rLK).slice(0, 5);
-  h += '<div class="dgrid">'
-    + focus('🔑 Mã Key đang giảm (DT D vs D-1)', keyDown, [['Phân loại', m => '<td>' + esc(m.km.key) + '</td>'], ['DT D', m => '<td>' + fmtV(m.rD) + '</td>'], ['DT tăng thêm', m => '<td class="cell-bad">' + sgnV(m.dVal) + '</td>'], ['%Δ DT', m => '<td class="cell-bad">' + pctTxt(m.vVal) + '</td>']], 'Không có mã Key giảm.')
-    + focus('⏳ Sắp hết KM (≤ 3 ngày) – tồn cao', endHi, [['Hết KM', m => '<td>' + fmtDate(m.km.d1) + '</td>'], ['GT tồn', m => '<td>' + fmtV(m.sV) + '</td>'], ['DIO', m => '<td class="' + (m.dio > 60 ? 'cell-bad' : m.dio > 30 ? 'cell-warn' : '') + '">' + (m.dio == null ? '—' : nf0.format(m.dio)) + '</td>'], ['SL tồn TBCH', m => '<td>' + (m.tsQ == null ? '—' : nf1.format(m.tsQ)) + '</td>']], 'Không có mã sắp hết KM.')
-    + focus('🚫 % No sale cao (≥ 20 CH có tồn)', nsHi, [['% No sale', m => '<td class="cell-bad">' + fmtPct(m.noSale) + '</td>'], ['CH×mã no sale', m => '<td>' + fmtQ(m.nNo) + '</td>'], ['GT tồn', m => '<td>' + fmtV(m.sV) + '</td>'], ['DT D', m => '<td>' + fmtV(m.rD) + '</td>']], 'Không có.')
-    + focus('📉 Độ phủ Min TB thấp (mã đang có bán)', drLo, [['DR', m => '<td class="' + (m.dr < 0.5 ? 'cell-bad' : 'cell-warn') + '">' + fmtPct(m.dr) + '</td>'], ['CH đạt Min', m => '<td>' + fmtQ(Math.round(m.nDR)) + '</td>'], ['SL chờ giao', m => '<td>' + fmtQ(m.ndQ) + '</td>'], ['DT LK', m => '<td>' + fmtV(m.rLK) + '</td>']], 'Không có.')
-    + '</div></section>';
 
   /* ---------- 0. Cảnh báo cần xử lý hôm nay (đặt đầu trang) ---------- */
   const tg = m => (m.weak || []).slice(0, 3).map(x => x[0]).join(' · ');
