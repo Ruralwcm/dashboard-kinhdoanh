@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Key Sale KM v4.25.1 — Win Rural</title>
+<title>Key Sale KM v4.25.2 — Win Rural</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 [hidden]{display:none!important}
@@ -517,7 +517,7 @@ body.dashOn .ctlBar .ctl:first-child,body.dashOn .ctl-sec,body.dashOn .ctl-sw{di
 <header class="hd">
   <div class="hd-in">
     <img id="lg" class="lg" alt="WinMart+">
-    <div class="tt">Key Sale KM <span id="fileinfo" title="">v4.25.1 · Win Rural · Theo dõi CTKM</span></div>
+    <div class="tt">Key Sale KM <span id="fileinfo" title="">v4.25.2 · Win Rural · Theo dõi CTKM</span></div>
     <div class="mainTabs hdTabs" id="mainTabs" role="tablist"></div>
     <div class="mt">
       <div class="ts hd-ts" title="Cỡ chữ">
@@ -1347,6 +1347,7 @@ try {
   if (sv.trOff !== undefined) S.trOff = !!sv.trOff;
 } catch(e){}
 const RK_DEF = {iv:25, iq:15, cov:20, st:15, dr:10, km:15};
+S.rkW = {...RK_DEF};   /* mặc định mới (có Tỷ trọng KM); trọng số đã lưu đủ 6 tiêu chí sẽ ghi đè bên dưới */
 try { const w = JSON.parse(localStorage.getItem('ksk_rkW')||'null'); if (w && Object.keys(RK_DEF).every(k => typeof w[k] === 'number') && Object.keys(RK_DEF).reduce((a,k) => a + w[k], 0) === 100) S.rkW = w; } catch(e){}
 const TW_DEF = {dv:30, pv:10, dq:30, pq:10, pc:20};
 try { const w = JSON.parse(localStorage.getItem('ksk_trW')||'null'); if (w && Object.keys(TW_DEF).every(k => typeof w[k] === 'number') && Object.keys(TW_DEF).reduce((a,k) => a + w[k], 0) === 100) S.trW = w; } catch(e){}
@@ -1631,9 +1632,10 @@ function rankHQ(list, scopeOf){
   { const B = S.bench, ST = S.M.stores, days = lkDays(); const all = !scopeOf || rel ? spdOf(null) : null;
     for (const m of list){ const sp = all != null ? all : spdOf(scopeOf(m).st);
       m.kmS_T = sp > 0 && days ? (m.rLK || 0) / (sp * days) : null; m.kmS_D1 = sp > 0 ? (m.rD1 || 0) / sp : null; m.kmS_D = sp > 0 ? (m.rD || 0) / sp : null; } }
+  for (const m of list) m.drC = m.dr == null ? null : Math.min(1, m.dr);   /* DR tối đa 100% */
   for (const [p] of RK_PER){
     const sc = new Float64Array(n);
-    for (const [k, f] of [['iv','iV_'+p],['iq','iQ_'+p],['cov','cov_'+p],['st','st_'+p],['dr','dr'],['km','kmS_'+p]]){
+    for (const [k, f] of [['iv','iV_'+p],['iq','iQ_'+p],['cov','cov_'+p],['st','st_'+p],['dr','drC'],['km','kmS_'+p]]){
       if (!W[k]) continue; const val = r => { const v = r[f]; return v == null || !isFinite(v) ? -Infinity : v; };
       const idx = list.map((r,i) => i).sort((a,b) => { const x = val(list[a]), y = val(list[b]); return x === y ? 0 : (y > x ? 1 : -1); });
       let rk = 0, prev; idx.forEach((i,pos) => { const v = val(list[i]); if (pos === 0 || v !== prev){ rk = pos + 1; prev = v; } sc[i] += rk * W[k] / 100; });
@@ -2333,7 +2335,7 @@ function renderDash(){
       t += '<td class="c">' + rkHtml(m.rkTrend) + '</td><td class="' + clsSg(m.dVal) + '">' + sgnV(m.dVal) + '</td><td class="wkc">' + wkHtml(m) + '</td></tr>'; }
     return t + '</tbody></table></div>'; };
   const imp = pG.filter(m => m.rkTrend > 0).length, dec = pG.filter(m => m.rkTrend < 0).length;
-  h += '<h4>🏆 Performance CTKM theo GĐV</h4><p class="dsum">Xếp hạng theo 5 tiêu chí (Index DT/SL so với CH cùng nhóm MCH3, % CH bán, sell-through, DR). <b>' + imp + '</b> GĐV lên hạng, <b>' + dec + '</b> GĐV xuống hạng so với D-1.' + (pG.length ? ' Dẫn đầu: <b>' + esc(pG[0].key) + '</b>.' : '') + ' Mỗi kỳ luôn hiện Rank · Total Sale · Sale BQ · % No sale; bấm ▸ / ▾ để hiện thêm Index DT/SL, % CH×mã bán, Sell-through, DR.</p>' + gdvTbl(pG);
+  h += '<h4>🏆 Performance CTKM theo GĐV</h4><p class="dsum">Xếp hạng theo 6 tiêu chí (Index DT/SL so với CH cùng nhóm MCH3, % CH×mã bán, sell-through, DR, tỷ trọng Sale KM/Total). <b>' + imp + '</b> GĐV lên hạng, <b>' + dec + '</b> GĐV xuống hạng so với D-1.' + (pG.length ? ' Dẫn đầu: <b>' + esc(pG[0].key) + '</b>.' : '') + ' Mỗi kỳ luôn hiện Rank · Total Sale · Sale BQ · % No sale; bấm ▸ / ▾ để hiện thêm Index DT/SL, % CH×mã bán, Sell-through, DR.</p>' + gdvTbl(pG);
   const qTbl = rs => '<div class="wrapx"><table class="dt"><thead><tr><th class="c">Rank D</th><th class="l">QLKV</th><th class="l">GĐV</th><th class="c">vs D-1</th><th>Index DT</th><th>DT tăng thêm</th><th class="l">Chỉ số yếu</th></tr></thead><tbody>'
     + rs.map(m => { const g = M.stores.find(x => x.asm === m.key)?.rsm || ''; return '<tr><td class="c"><b>#' + m.rankD + '</b></td><td class="l"><b>' + esc(m.key) + '</b></td><td class="l">' + esc(g) + '</td><td class="c">' + rkHtml(m.rkTrend) + '</td><td class="' + (m.iV_D >= 110 ? 'cell-good' : m.iV_D < 90 ? 'cell-bad' : '') + '">' + (m.iV_D == null ? '—' : nf0.format(m.iV_D)) + '</td><td class="' + clsSg(m.dVal) + '">' + sgnV(m.dVal) + '</td><td class="wkc">' + wkHtml(m, 3) + '</td></tr>'; }).join('') + '</tbody></table></div>';
   const qDown = pQ.filter(m => m.rkTrend != null).sort((a,b) => a.rkTrend - b.rkTrend).slice(0, 10);
