@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Key Sale KM v4.28.13 — Win Rural</title>
+<title>Key Sale KM v4.28.15 — Win Rural</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 [hidden]{display:none!important}
@@ -538,7 +538,7 @@ body.dashOn .ctlBar .ctl:first-child,body.dashOn .ctl-sec,body.dashOn .ctl-sw{di
 <header class="hd">
   <div class="hd-in">
     <img id="lg" class="lg" alt="WinMart+">
-    <div class="tt">Key Sale KM <span id="fileinfo" title="">v4.28.13 · Win Rural · Theo dõi CTKM</span></div>
+    <div class="tt">Key Sale KM <span id="fileinfo" title="">v4.28.15 · Win Rural · Theo dõi CTKM</span></div>
     <div class="mainTabs hdTabs" id="mainTabs" role="tablist"></div>
     <div class="mt">
       <div class="ts hd-ts" title="Cỡ chữ">
@@ -2428,7 +2428,7 @@ function renderDash(){
   const hl = new Map(), addH = (m, g, rk, f) => { let it = hl.get(m.ai); if (!it){ it = {...m, f, tags:[], ord:9e9}; if (it.dr != null) it.dr = Math.min(1, it.dr); it.dl = it.km ? (norm(it.km.status) === 'chưa km' ? daysLeft(it.km.d0) : daysLeft(it.km.d1)) : null; hl.set(m.ai, it); } it.tags.push(g); it.ord = Math.min(it.ord, GO[g] * 1000 + rk); };
   const UFA = S.upFA || 'all', faOK = m => UFA === 'all' || (UFA === 'fresh') === isFresh(m.art);
   lkAll.filter(faOK).slice(0, UN).forEach((m, i) => addH(m, 'sale', i, flt)); upAll.filter(faOK).slice(0, UN).forEach((m, i) => addH(m, 'trend', i, flt));
-  upc.filter(faOK).sort((a, b) => Math.max(b.sV || 0, b.fcV || 0) - Math.max(a.sV || 0, a.fcV || 0)).slice(0, UN).forEach((m, i) => addH(m, 'upc', i, f2));
+  upc.filter(m => faOK(m) && !hl.has(m.ai)).sort((a, b) => Math.max(b.sV || 0, b.fcV || 0) - Math.max(a.sV || 0, a.fcV || 0)).slice(0, UN)   /* mã đã nằm trong Top sale / Top trend (kể cả đổi giá khi nối CTKM) không lặp lại ở Sắp chạy KM */.forEach((m, i) => addH(m, 'upc', i, f2));
   const hlist = [...hl.values()].filter(it => UG === 'all' || it.tags.includes(UG));
   h += '<div class="ctbar"><div class="seg" title="Compact: ẩn FC, Validate">' + [['compact','Compact'],['full','Full']].map(([k, l]) => '<button data-upv="' + k + '" aria-pressed="' + ((S.upView || 'compact') === k) + '">' + l + '</button>').join('') + '</div><div class="seg" title="Số mã mỗi nhóm">' + [5,10,20].map(n => '<button data-upn="' + n + '" aria-pressed="' + (UN === n) + '">Top ' + n + '</button>').join('') + '</div>'
     + '<div class="seg" title="Ngành hàng (theo MCH3)">' + [['all','Tất cả'],['fresh','Fresh & Chilled'],['ambient','Ambient']].map(([k, l]) => '<button data-upfa="' + k + '" aria-pressed="' + (UFA === k) + '">' + l + '</button>').join('') + '</div>'
