@@ -170,6 +170,11 @@ table#tbl{border-collapse:separate;border-spacing:0;font-size:var(--fs);width:ma
 #tbl td.gs{border-left:1px solid var(--line)}
 #tbl thead th.gs{border-left:1px solid rgba(255,255,255,.25)}
 #tbl td.tl,#tbl th.tl{text-align:left}
+#tbl td.hl{background:#FFF6DA;font-weight:700}
+#tbl tbody tr:not(.total) td.hl{box-shadow:inset 1px 0 0 #F6E2A8,inset -1px 0 0 #F6E2A8}
+#tbl tr.total td.hl{background:#FFE9B0}
+#tbl thead tr.c th.hl{background:#FFF0C2;color:var(--ink)}
+#tbl tbody tr:hover td.hl{background:#FCEBB5}
 .trb{display:inline-block;width:18px;text-align:center;margin-right:4px;font-size:11px}
 .tb-up{color:var(--good)} .tb-flat{color:var(--ink2);font-size:9px} .tb-down{color:var(--bad)} .tb-top{font-size:12px}
 #tbl tr.total td{font-weight:800;background:#FFF7E6;border-bottom:2px solid #F3D9A6}
@@ -1555,11 +1560,12 @@ const drillNames = () => effDim() === 'trend' ? TREND_DRILL_NAME : LV_NAME;
 const HEAT = {q:1, v:1, t:1, tv:1, t1:1};
 function heatScale(rows){ const mx = {}; for (const [, , cols] of visibleGroups()) for (const [k, , t] of cols) if (HEAT[t]){ let m = 0; for (const r of rows){ const v = r[k]; if (v > m) m = v; } mx[k] = m; } return mx; }
 function bandOf(gk){ return (S._vg || visibleGroups()).findIndex(g => g[0]===gk) % 2 ? 'gB' : 'gA'; }
+const HL_COLS = new Set(['dVal','tqLK','tqD','tqD1','tsQ']);   /* cột nhấn mạnh */
 function cellsHtml(m, mx){
   let h = ''; S.curRankN = m.rankN;
   (S._vg || visibleGroups()).forEach(([gk, , cols], gi) => { const band = gi % 2 ? 'gB' : 'gA'; cols.forEach(([k, , t], i) => {
     const [txt, cls] = fmtCell(t, m[k]);
-    h += '<td class="' + band + (i===0?' gs ':' ') + cls + '">' + txt + '</td>';
+    h += '<td class="' + band + (i===0?' gs ':' ') + (HL_COLS.has(k) ? 'hl ' : '') + cls + '">' + txt + '</td>';
   }); });
   return h;
 }
@@ -1618,7 +1624,7 @@ function renderTable(){
     const band = gi % 2 ? 'gB' : 'gA', lv = secLevel(gk), own = !!S.secView[gk];
     const svBtns = '<span class="sv-sel">' + ['F','C','L'].map(v => '<button type="button" class="sv-btn' + (lv===v?' on':'') + '" data-sv="' + gk + '" data-v="' + v + '" title="' + SV_T[v] + (own && lv===v ? ' (bấm lại để theo mức chung)' : '') + '">' + v + '</button>').join('') + '</span>';
     g += '<th colspan="' + cols.length + '" class="' + band + ' gs">' + label + (own ? '<span class="sv-dot">' + lv + '</span>' : '') + svBtns + '</th>';
-    cols.forEach(([k, l], i) => { c += '<th data-k="' + k + '" class="' + band + (i===0?' gs ':' ') + (k === 'trendLabel' ? 'tl ' : '') + (S.sort.k===k ? 'sorted' + (S.sort.asc?' asc':'') : '') + '">' + l + '</th>'; });
+    cols.forEach(([k, l], i) => { c += '<th data-k="' + k + '" class="' + band + (i===0?' gs ':' ') + (k === 'trendLabel' ? 'tl ' : '') + (HL_COLS.has(k) ? 'hl ' : '') + (S.sort.k===k ? 'sorted' + (S.sort.asc?' asc':'') : '') + '">' + l + '</th>'; });
   });
   $('tbl').tHead.innerHTML = g + '</tr>' + c + '</tr>';
   const shown = S.rows.slice(0, S.page);
