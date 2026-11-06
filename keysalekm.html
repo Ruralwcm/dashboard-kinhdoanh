@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Key Sale KM v4.26.0 — Win Rural</title>
+<title>Key Sale KM v4.26.1 — Win Rural</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 [hidden]{display:none!important}
@@ -517,7 +517,7 @@ body.dashOn .ctlBar .ctl:first-child,body.dashOn .ctl-sec,body.dashOn .ctl-sw{di
 <header class="hd">
   <div class="hd-in">
     <img id="lg" class="lg" alt="WinMart+">
-    <div class="tt">Key Sale KM <span id="fileinfo" title="">v4.26.0 · Win Rural · Theo dõi CTKM</span></div>
+    <div class="tt">Key Sale KM <span id="fileinfo" title="">v4.26.1 · Win Rural · Theo dõi CTKM</span></div>
     <div class="mainTabs hdTabs" id="mainTabs" role="tablist"></div>
     <div class="mt">
       <div class="ts hd-ts" title="Cỡ chữ">
@@ -1331,13 +1331,13 @@ const TREND_BQ_LBL = {dVal:'DT/CH tăng thêm', vVal:'%Δ DT/CH', dQty:'SL/CH t�
 const TREND_GROUP = ['tr','🔥 Trending',[['trendScore','Điểm hạng','trs'],['trendLabel','Xu hướng','trl'],['dVal','DT tăng thêm','dv'],['vVal','%Δ DT','trp'],['dQty','SL tăng thêm','dq'],['vQty','%Δ SL','trp'],['vCov','%Δ CH bán','trp']]];
 
 const S = {
-  M:null, dim:'dash', detDim:'overall', scope:'km', tb:'ps', unit:1000,
+  M:null, dim:'dash', detDim:'overall', scope:'km', tb:'all', unit:1000,
   status:new Set(['Chạy KM','Ngày KM cuối']),
-  cols:new Set(COLGROUPS.map(g=>g[0])),
+  cols:new Set(COLGROUPS.map(g=>g[0]).filter(k => !['hq','fc','po','val'].includes(k))),   /* mặc định: Trend · Sale · No Sale · Sale D · D-1 · Stock · Độ phủ */
   sort:{k:'trendScore',asc:true}, page:200,
   cg:new Set(['brand','size','price','group']),
   open:new Set(), rows:[], fileName:'', tips:{},
-  view:'full', fs:13, viewInfo:false,
+  view:'compact', fs:13, viewInfo:false,
   rkW:{iv:30, iq:20, cov:25, st:15, dr:10}, grpSku:false,
   trThr:0, trTopN:50, trMinCH:20, fa:'all',
   trW:{dv:30, pv:10, dq:30, pq:10, pc:20},
