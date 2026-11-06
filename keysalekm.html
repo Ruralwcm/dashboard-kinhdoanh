@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Key Sale KM v4.24.0 — Win Rural</title>
+<title>Key Sale KM v4.25.0 — Win Rural</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 [hidden]{display:none!important}
@@ -97,6 +97,13 @@ th:hover .sec-view,th:focus-within .sec-view{display:flex}
 .ts .lbl{font-size:11px;color:var(--ink2);min-width:30px;text-align:center}
 #tabs{display:flex;gap:4px;flex-wrap:wrap;margin:0}
 .mainTabs{display:flex;gap:0;margin:0 0 12px;border-bottom:2px solid var(--line)}
+.hd .hdTabs{margin:0 0 0 18px;border-bottom:0;align-self:stretch;align-items:stretch}
+.hd .hdTabs button{padding:0 16px;margin-bottom:0;border-bottom-width:3px;font-size:14.5px;white-space:nowrap}
+.hdSep{width:1px;align-self:stretch;background:var(--line);margin:4px 6px}
+#btnCtkm.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+body.noDet .ctlBar{display:none!important}
+.hd #fileinfo{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:280px;text-transform:none;letter-spacing:0}
+@media (min-width:1100px){ .hd .mt{flex-wrap:nowrap} .hd .tt{min-width:0;flex:0 1 auto} .hd .mt .btn{white-space:nowrap} }
 .mainTabs button{border:0;background:none;padding:10px 22px 9px;font-size:15px;font-weight:700;color:var(--ink2);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px}
 .mainTabs button:hover{color:var(--navy)}
 .mainTabs button[aria-selected="true"]{color:var(--red);border-bottom-color:var(--red)}
@@ -424,7 +431,7 @@ table.ctt{border-collapse:separate;border-spacing:0;font-size:12.5px;width:max-c
 .gdvt{table-layout:fixed;width:max-content}
 .gdvt th{white-space:normal!important;line-height:1.25;vertical-align:middle}
 .gdvt td{white-space:nowrap;font-size:12.5px;padding-left:4px;padding-right:4px}
-.gdvt td.nmc{white-space:normal!important}
+.gdvt td.nmc{white-space:nowrap!important;overflow:hidden;text-overflow:ellipsis}
 .gdvt td.wkc{white-space:nowrap!important;min-width:0!important}
 .gdvt .wk{white-space:nowrap}
 .gdvt tbody td.nmc{position:sticky;left:0;z-index:1;background:#fff}
@@ -507,17 +514,19 @@ body.dashOn .ctlBar .ctl:first-child,body.dashOn .ctl-sec,body.dashOn .ctl-sw{di
 <header class="hd">
   <div class="hd-in">
     <img id="lg" class="lg" alt="WinMart+">
-    <div class="tt">Key Sale KM <span>v4.24.0 · Win Rural · Theo dõi CTKM</span></div>
+    <div class="tt">Key Sale KM <span id="fileinfo" title="">v4.25.0 · Win Rural · Theo dõi CTKM</span></div>
+    <div class="mainTabs hdTabs" id="mainTabs" role="tablist"></div>
     <div class="mt">
-      <span class="pill" id="fileinfo" title="">Chưa có dữ liệu</span>
       <div class="ts hd-ts" title="Cỡ chữ">
       <button id="tsDown">A⁻</button><span class="ts-lbl lbl" id="tsLbl">13px</span><button id="tsUp">A⁺</button><button id="tsReset" style="font-size:11px" title="Về 13px">A</button>
       </div>
       <button class="btn" id="btnFilters" aria-expanded="false">⚙ Bộ lọc <span id="fCount"></span></button>
-      <button class="btn" id="btnOpen">📂 Mở file</button>
-      <button class="btn" id="btnDemo">▶ Demo</button>
-      <button class="btn" id="btnExport" hidden>⬇ Excel</button>
       <button class="btn pri" id="btnSnap" hidden>💾 Lưu bản xem</button>
+      <button class="btn" id="btnExport" hidden>⬇ Lưu Excel</button>
+      <span class="hdSep"></span>
+      <button class="btn" id="btnCtkm" title="Danh mục CTKM (cần đăng nhập)">🗂 Danh mục</button>
+      <button class="btn" id="btnOpen" title="Nạp file SOURCE KEY SALE (cần đăng nhập)">📥 Import Sale</button>
+      <button class="btn" id="btnDemo" hidden>▶ Demo</button>
     </div>
   </div>
 </header>
@@ -590,7 +599,6 @@ body.dashOn .ctlBar .ctl:first-child,body.dashOn .ctl-sec,body.dashOn .ctl-sw{di
   </div>
 
   <!-- Tab chính: Dashboard | Danh mục CTKM | Review Details -->
-  <div class="mainTabs" id="mainTabs" role="tablist"></div>
 
   <!-- Box Recap -->
   <section class="recapBox" id="recapBox">
@@ -1067,7 +1075,7 @@ function computeNosaleLoss(M, flt, rows){
 const $ = id => document.getElementById(id);
 const ST_LIST = ['Chạy KM','Ngày KM cuối','Chưa KM','Hết KM'];
 const ST_CLS = {'chạy km':'st-run','ngày km cuối':'st-last','chưa km':'st-pre','hết km':'st-end'};
-const MAIN_TABS = [['dash','📋 Dashboard'],['ctkm','🗂 Danh mục CTKM'],['detail','🔎 Review Details']];
+const MAIN_TABS = [['dash','📋 Dashboard'],['ctkm','🗂 Danh mục CTKM'],['detail','🔎 Review SKUs']];
 const mainOf = d => d === 'dash' || d === 'ctkm' ? d : 'detail';
 const TABS = [['overall','Overall CTKM'],['hottrend','🔥 Top Trend'],['downtrend','📉 Flop Trend'],['sku','SKUs'],['mch3','MCH3'],['rsm','GĐV'],['asm','QLKV']];
 const SEC_SHORT = {tr:'Trend', hq:'Ranking', lk:'Sale', ns:'No Sale', d:'Sale D', d1:'Sale D-1', tk:'Stock', dr:'Độ phủ', fc:'FC', po:'PO', val:'Validate'};
@@ -2309,7 +2317,7 @@ function renderDash(){
     /* độ rộng cột cố định → bảng GĐV và QLKV thẳng cột nhau */
     /* độ rộng theo tỷ lệ (vừa khung, không cuộn ngang); 2 bảng cùng tỷ lệ → thẳng cột */
     const nExp = PERS.filter(([p]) => exp[p]).length, pc = v => Math.round(v * 12.5) + 'px';   /* px cố định → 2 bảng thẳng cột; chỉ số flop 1 dòng, cuộn ngang khi rộng */
-    let cg = '<col style="width:' + pc(10) + '"><col style="width:' + pc(3.5) + '">'; for (const [p] of PERS){ cg += [3, 6.5, 5, 4.5, 4.5].map(v => '<col style="width:' + pc(v) + '">').join(''); if (exp[p]) cg += ('<col style="width:' + pc(4.2) + '">').repeat(5); } cg += '<col style="width:' + pc(4.5) + '"><col style="width:' + pc(6) + '"><col style="width:' + Math.max(220, Math.min(900, 20 + Math.max(0, ...pG.concat(pQ).map(m => (m.weak || []).reduce((a, w) => a + 14 + w[0].length * 6.6, 0))))) + 'px">';
+    let cg = '<col style="width:200px"><col style="width:' + pc(3.5) + '">'; for (const [p] of PERS){ cg += [3, 6.5, 5, 4.5, 4.5].map(v => '<col style="width:' + pc(v) + '">').join(''); if (exp[p]) cg += ('<col style="width:' + pc(4.2) + '">').repeat(5); } cg += '<col style="width:' + pc(4.5) + '"><col style="width:' + pc(6) + '"><col style="width:' + Math.max(220, Math.min(900, 20 + Math.max(0, ...pG.concat(pQ).map(m => (m.weak || []).reduce((a, w) => a + 14 + w[0].length * 6.6, 0))))) + 'px">';
     let t = '<div class="wrapx"><table class="dt gdvt"><colgroup>' + cg + '</colgroup><thead><tr><th class="l" rowspan="2">' + lbl + '</th><th rowspan="2">Số CH</th>';
     for (const [p, l] of PERS) t += '<th class="c pg ' + (p === 'D' ? 'pgD' : '') + '" colspan="' + (5 + (exp[p] ? 5 : 0)) + '">' + l + ' <button type="button" class="pgx" data-dexp="' + p + '" title="' + (exp[p] ? 'Ẩn' : 'Hiện') + ' KPI chính">' + (exp[p] ? '▾' : '▸') + '</button></th>';
     t += '<th class="c pg pgT" colspan="3">Xu hướng</th></tr><tr>';
@@ -2611,7 +2619,26 @@ function renderCtkm(){
   el.querySelectorAll('[data-eqa]').forEach(b => b.onclick = () => { const gi = +b.dataset.eqa, g = S._eq[gi], code = el.querySelector('[data-eqc="' + gi + '"]').value.trim(), name = el.querySelector('[data-eqn="' + gi + '"]').value.trim();
     if (!code) return alert('Nhập Mã quy đổi.'); const n = ctApplyEquiv(code, name, g.mem.map(m => m.code)); for (const c of g.mem.map(m => m.code)){ const A = S.M && S.M.arts.find(a => a.code === c); if (A) A.maQuyDoi = code; } if (S.M) applyQuyDoi(S.M); alert('Đã gộp ' + g.mem.length + ' mã (' + n + ' dòng) về mã quy đổi ' + code + ' — số liệu báo cáo đã tính theo mã quy đổi.'); renderCtkm(); });
 }
-function syncTabs(){ const m = mainOf(S.dim); $('mainTabs').querySelectorAll('button').forEach(x => x.setAttribute('aria-selected', String(x.dataset.k === m))); if (m === 'detail') $('tabs').querySelectorAll('button').forEach(x => x.setAttribute('aria-selected', String(x.dataset.k === S.dim))); }
+function syncTabs(){ const m = mainOf(S.dim); $('btnCtkm').classList.toggle('on', m === 'ctkm'); $('mainTabs').querySelectorAll('button').forEach(x => x.setAttribute('aria-selected', String(x.dataset.k === m))); if (m === 'detail') $('tabs').querySelectorAll('button').forEach(x => x.setAttribute('aria-selected', String(x.dataset.k === S.dim))); }
+/* ===== Đăng nhập cho Danh mục / Import Sale (dùng chung phiên với các trang khác) ===== */
+const AUTH_KEY = 'rwcm_auth_v1', AUTH_H = 'd9aeccd21c1573d604615b01aa83ecaf8d50bc3d50bc097e09cf57ddab00fb4a', AUTH_TTL = 12 * 3600 * 1000;
+function authOk(){ try { const t = JSON.parse(localStorage.getItem(AUTH_KEY) || 'null'); return !!(t && t.h === AUTH_H && t.exp > Date.now()); } catch(e){ return false; } }
+function needLogin(cb){
+  if (authOk()) return cb();
+  let w = $('loginModal'); if (!w){ w = document.createElement('div'); w.id = 'loginModal'; w.className = 'qdBack'; document.body.appendChild(w); }
+  w.innerHTML = '<form class="qdBox" style="width:min(340px,92vw);gap:8px"><div class="qdHd"><b>🔒 Đăng nhập</b><button type="button" class="qdX" data-x>✕</button></div><div class="na" style="font-size:12px">Danh mục CTKM và Import Sale cần đăng nhập.</div>'
+    + '<label style="font-size:12px;font-weight:600;color:var(--ink2)">Tài khoản<input name="u" autocomplete="username" required style="display:block;width:100%;box-sizing:border-box;margin-top:3px;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:14px"></label>'
+    + '<label style="font-size:12px;font-weight:600;color:var(--ink2)">Mật khẩu<input name="p" type="password" autocomplete="current-password" required style="display:block;width:100%;box-sizing:border-box;margin-top:3px;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:14px"></label>'
+    + '<div id="loginErr" style="min-height:16px;font-size:12px;color:var(--bad)"></div><button class="btn pri" style="justify-content:center">Đăng nhập</button></form>';
+  w.hidden = false; const f = w.querySelector('form'); f.u.focus();
+  const close = () => { w.hidden = true; w.innerHTML = ''; };
+  w.querySelector('[data-x]').onclick = close; w.onclick = e => { if (e.target === w) close(); };
+  f.onsubmit = async e => { e.preventDefault();
+    const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(f.u.value.trim().toLowerCase() + ':' + f.p.value)), h = [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join('');
+    if (h !== AUTH_H){ $('loginErr').textContent = 'Sai tài khoản hoặc mật khẩu.'; f.p.value = ''; f.p.focus(); return; }
+    try { localStorage.setItem(AUTH_KEY, JSON.stringify({h, exp: Date.now() + AUTH_TTL})); } catch(_){}
+    close(); cb(); };
+}
 function updateTabUI(){
   const ed = effDim();
   $('cgBox').hidden = false;
@@ -2627,7 +2654,8 @@ function initUI(){
   $('segTb').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v===S.tb)));
   $('segUnit').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(String(S.unit)===b.dataset.v)));
 
-  $('mainTabs').innerHTML = MAIN_TABS.map(([k,l]) => '<button role="tab" data-k="' + k + '" aria-selected="' + (k===mainOf(S.dim)) + '">' + l + '</button>').join('');
+  $('mainTabs').innerHTML = MAIN_TABS.filter(t => t[0] !== 'ctkm').map(([k,l]) => '<button role="tab" data-k="' + k + '" aria-selected="' + (k===mainOf(S.dim)) + '">' + l + '</button>').join('');
+  $('btnCtkm').onclick = () => needLogin(() => { if (S.dim === 'ctkm') return; S.dim = 'ctkm'; S.page = 200; updateTabUI(); render(); window.scrollTo(0, 0); });
   $('mainTabs').onclick = e => { const b = e.target.closest('button'); if (!b) return; const k = b.dataset.k; if (mainOf(S.dim) === k) return;
     S.dim = k === 'detail' ? (S.detDim || 'overall') : k; S.page = 200; S.open = new Set([...S.open].filter(x => !x.startsWith('sd:'))); S.sort = {k:'trendScore', asc:true}; updateTabUI(); render(); window.scrollTo(0, 0); };
   $('tabs').innerHTML = TABS.map(([k,l]) => '<button role="tab" data-k="' + k + '" aria-selected="' + (k===S.dim) + '">' + l + '</button>').join('');
@@ -2740,7 +2768,7 @@ function initUI(){
   window.addEventListener('resize', () => { if (S.M) syncX(); });
 
   $('btnMore').onclick = () => { S.page += 500; renderTable(); };
-  const pick = () => $('file').click();
+  const pick = () => needLogin(() => $('file').click());
   $('btnOpen').onclick = pick; $('btnOpen2').onclick = pick;
   $('file').onchange = e => { const f = e.target.files[0]; if (f) loadFile(f); e.target.value = ''; };
   $('btnDemo').onclick = () => start(demoModel(), true);
@@ -2775,7 +2803,7 @@ function initUI(){
   const dz = $('drop');
   ['dragenter','dragover'].forEach(ev => document.addEventListener(ev, e => { e.preventDefault(); dz.classList.add('over'); }));
   ['dragleave','drop'].forEach(ev => document.addEventListener(ev, e => { e.preventDefault(); if (ev==='drop' || e.target===dz) dz.classList.remove('over'); }));
-  document.addEventListener('drop', e => { const f = e.dataTransfer?.files?.[0]; if (f) loadFile(f); });
+  document.addEventListener('drop', e => { const f = e.dataTransfer?.files?.[0]; if (f) needLogin(() => loadFile(f)); });
 }
 
 /* ===== Trình chiếu: Fullscreen + bút vẽ / highlight / bút chỉ ===== */
