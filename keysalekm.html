@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Key Sale KM v4.16.0 — Win Rural</title>
+<title>Key Sale KM v4.17.0 — Win Rural</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 [hidden]{display:none!important}
@@ -460,7 +460,7 @@ body.dashOn .ctlBar .ctl:first-child,body.dashOn .ctl-sec,body.dashOn .ctl-sw{di
 <header class="hd">
   <div class="hd-in">
     <img id="lg" class="lg" alt="WinMart+">
-    <div class="tt">Key Sale KM <span>v4.16.0 · Win Rural · Theo dõi CTKM</span></div>
+    <div class="tt">Key Sale KM <span>v4.17.0 · Win Rural · Theo dõi CTKM</span></div>
     <div class="mt">
       <span class="pill" id="fileinfo" title="">Chưa có dữ liệu</span>
       <div class="ts hd-ts" title="Cỡ chữ">
@@ -591,9 +591,11 @@ body.dashOn .ctlBar .ctl:first-child,body.dashOn .ctl-sec,body.dashOn .ctl-sw{di
       <label for="rk_cov">% CH có bán / CH hoạt động</label><span class="twIn"><input type="number" id="rk_cov" min="0" max="100" step="5" data-rk="cov">%</span>
       <label for="rk_st">Tỷ lệ bán hết (sell-through)</label><span class="twIn"><input type="number" id="rk_st" min="0" max="100" step="5" data-rk="st">%</span>
       <label for="rk_dr">Độ phủ trưng bày (DR)</label><span class="twIn"><input type="number" id="rk_dr" min="0" max="100" step="5" data-rk="dr">%</span>
+      <label for="rk_km" title="DT hàng KM ÷ Tổng DT của CH (SPD Storeslist × số ngày)">Tỷ trọng Sale KM / Total Sale</label><span class="twIn"><input type="number" id="rk_km" min="0" max="100" step="5" data-rk="km">%</span>
       <b class="twT">Tổng</b><b class="twT" id="rkTot">100%</b>
     </div>
     <div class="twMsg" id="rkMsg"></div>
+    <div class="twNote" style="margin-top:6px"><b>Tỷ trọng Sale KM / Total Sale</b> = DT hàng KM ÷ Tổng DT của các CH (SPD trong Storeslist × số ngày). Ngày D / D-1: 1 ngày; lũy kế: <input type="number" id="lkDays" min="1" max="62" step="1" style="width:56px"> ngày <span id="lkDaysNote"></span>. <span id="spdInfo"></span></div>
     <div class="twNote"><b>Index</b> = thực tế ÷ mức chuẩn của CH cùng <b>nhóm ở MCH3 đó</b> × 100 (100 = bằng nhóm). Mỗi tiêu chí xếp hạng 1 → hết trong cùng cấp; điểm = Σ hạng × trọng số, nhỏ = tốt. <span id="rkNhom"></span> <a href="#" id="rkReset">Về mặc định</a></div>
   </div>
 
@@ -1034,7 +1036,7 @@ const effDim = () => { const d = _DM[S.dim] || S.dim; return d === 'sku' && S.gr
 const LV_OF_VIEW = {full:'F', compact:'C', lite:'L'};
 
 const COLGROUPS = [
-  ['hq','Xếp hạng',[['rankT','Rank Total','rank'],['rankD1','Rank D-1','rank'],['rankD','Rank D','rank'],['rkTrend','Xu hướng','rkt'],['iV_D','Index DT D','idx'],['iQ_D','Index SL D','idx'],['iV_T','Index DT LK','idx']]],
+  ['hq','Xếp hạng',[['rankT','Rank Total','rank'],['rankD1','Rank D-1','rank'],['rankD','Rank D','rank'],['rkTrend','Xu hướng','rkt'],['iV_D','Index DT D','idx'],['iQ_D','Index SL D','idx'],['iV_T','Index DT LK','idx'],['kmS_T','% KM/Total LK','pct'],['kmS_D','% KM/Total D','pct']]],
   ['lk','Sale lũy kế',[['qLK','SL','q'],['rLK','Doanh thu','v'],['tqLK','SL TBCH','t'],['trLK','DT TBCH','tv']]],
   ['ns','No sale',[['nNo','CH×mã no sale','q'],['noSale','% No sale','nspct']]],
   ['d','Sale D',[['qD','SL','q'],['rD','DT','v'],['tqD','SL TBCH','t'],['trD','DT TBCH','tv']]],
@@ -1086,7 +1088,7 @@ const COLS_VIEW = {
  },
  "hq": {
   "rankT": {"F": true, "C": true, "L": true}, "rankD1": {"F": true, "C": true, "L": true}, "rankD": {"F": true, "C": true, "L": true},
-  "rkTrend": {"F": true, "C": true, "L": true}, "iV_D": {"F": true, "C": true, "L": false}, "iQ_D": {"F": true, "C": false, "L": false}, "iV_T": {"F": true, "C": false, "L": false}
+  "rkTrend": {"F": true, "C": true, "L": true}, "iV_D": {"F": true, "C": true, "L": false}, "iQ_D": {"F": true, "C": false, "L": false}, "iV_T": {"F": true, "C": false, "L": false}, "kmS_T": {"F": true, "C": false, "L": false}, "kmS_D": {"F": true, "C": true, "L": false}
  },
  "lk": {
   "qLK": {
@@ -1286,7 +1288,7 @@ try {
   if (sv.viewInfo !== undefined) S.viewInfo = !!sv.viewInfo;
   if (sv.trOff !== undefined) S.trOff = !!sv.trOff;
 } catch(e){}
-const RK_DEF = {iv:30, iq:20, cov:25, st:15, dr:10};
+const RK_DEF = {iv:25, iq:15, cov:20, st:15, dr:10, km:15};
 try { const w = JSON.parse(localStorage.getItem('ksk_rkW')||'null'); if (w && Object.keys(RK_DEF).every(k => typeof w[k] === 'number') && Object.keys(RK_DEF).reduce((a,k) => a + w[k], 0) === 100) S.rkW = w; } catch(e){}
 const TW_DEF = {dv:30, pv:10, dq:30, pq:10, pc:20};
 try { const w = JSON.parse(localStorage.getItem('ksk_trW')||'null'); if (w && Object.keys(TW_DEF).every(k => typeof w[k] === 'number') && Object.keys(TW_DEF).reduce((a,k) => a + w[k], 0) === 100) S.trW = w; } catch(e){}
@@ -1298,7 +1300,7 @@ const nf1 = new Intl.NumberFormat('vi-VN',{maximumFractionDigits:1, minimumFract
 const nf2 = new Intl.NumberFormat('vi-VN',{maximumFractionDigits:2, minimumFractionDigits:2});
 const fmtQ = v => v === null ? '—' : (v === 0 ? '0' : nf0.format(v));
 const fmtV = v => { if (v === null) return '—'; const x = v / S.unit; return S.unit === 1 ? nf0.format(x) : (Math.abs(x) < 100 && x !== 0 ? nf1.format(x) : nf0.format(x)); };
-const fmtPct = v => v === null ? '—' : nf1.format(v*100) + '%';
+const fmtPct = v => v == null || !isFinite(v) ? '—' : nf1.format(v*100) + '%';
 const unitLbl = () => S.unit === 1 ? 'đ' : S.unit === 1000 ? 'nghìn đ' : 'triệu đ';
 const fmtDate = d => d ? String(d.getUTCDate()).padStart(2,'0') + '/' + String(d.getUTCMonth()+1).padStart(2,'0') + '/' + String(d.getUTCFullYear()).slice(2) : '?';
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -1502,21 +1504,23 @@ async function loadNhomSrc(){
   try {
     const [tS, tN] = await Promise.all([fetchSheetCSV(NHOM_SRC.store), fetchSheetCSV(NHOM_SRC.nhom)]);
     const byStore = new Map(), byPair = new Map(), NGRE = /^N\d{1,2}$/;
-    const rs = parseCSVText(tS), h = rs[0].map(x => String(x).trim().toLowerCase()), cN = h.findIndex(x => x === 'nhóm dt' || x === 'nhom dt');
-    if (cN >= 0) for (let i = 1; i < rs.length; i++){ const k = skey(rs[i][0]), n = String(rs[i][cN] || '').trim().toUpperCase(); if (k && NGRE.test(n)) byStore.set(k, n); }
+    const rs = parseCSVText(tS), h = rs[0].map(x => String(x).trim().toLowerCase()), cN = h.findIndex(x => x === 'nhóm dt' || x === 'nhom dt'), cS = h.findIndex(x => x === 'spd'), spd = new Map();
+    if (cN >= 0) for (let i = 1; i < rs.length; i++){ const k = skey(rs[i][0]), n = String(rs[i][cN] || '').trim().toUpperCase(); if (k && NGRE.test(n)) byStore.set(k, n); if (k && cS >= 0){ const v = parseFloat(String(rs[i][cS]).replace(',', '.')); if (v > 0) spd.set(k, v * 1e6); } }
     const rn = parseCSVText(tN);
     for (let i = 1; i < rn.length; i++){ const r = rn[i], k = skey(r[0]), n = String(r[2] || '').trim().toUpperCase(); if (k && NGRE.test(n)) byPair.set(k + '|' + mchKey(r[1]), n); }
-    S.nhomSrc = {byStore, byPair, at: new Date()}; S.nhomState = 'ok';
+    S.nhomSrc = {byStore, byPair, spd, at: new Date()}; S.nhomState = 'ok';
   } catch(e){ console.warn('Không đọc được Sheet gốc', e); S.nhomState = 'err'; S.nhomErr = String(e.message || e); }
   if (S.M){ applyNhom(S.M); render(); }
 }
 function applyNhom(M){
   const src = S.nhomSrc; if (!src) return;
   const m3 = [...new Set(M.arts.map(a => mchKey(a.mch3)))];
-  for (const st of M.stores){ const k = skey(st.code); const n = src.byStore.get(k); if (n) st.nhomDt = n;
+  for (const st of M.stores){ const k = skey(st.code); const n = src.byStore.get(k); if (n) st.nhomDt = n; const sp = src.spd && src.spd.get(k); if (sp) st.spd = sp;
     const o = {}; let any = 0; for (const x of m3){ const v = src.byPair.get(k + '|' + x); if (v){ o[x] = v; any = 1; } } st.nhomM3 = any ? o : (st.nhomM3 || null); }
 }
+function estLkDays(){ const M = S.M; if (!M || S._lkFor === M) return; let a = 0, b = 0, c = 0; for (let i = 0; i < M.n; i++){ const o = i*NF; a += M.fv[o+F.rLK]; b += M.fv[o+F.rD]; c += M.fv[o+F.rD1]; } S.lkDaysAuto = b + c > 0 ? Math.max(1, Math.round(a / ((b + c) / 2))) : null; S._lkFor = M; }
 function buildBench(flt){
+  estLkDays();
   /* nhóm của CH theo MCH3 của mã (PhanNhomCH) → dự phòng Nhóm DT của CH → 'NSO' */
   const {stores, arts, fs, fa, fv} = S.M, A = arts.length;
   const m3i = new Map(), artM3 = new Int16Array(A); arts.forEach((a, ai) => { const k = mchKey(a.mch3); let x = m3i.get(k); if (x === undefined){ x = m3i.size; m3i.set(k, x); } artM3[ai] = x; });
@@ -1544,6 +1548,10 @@ function expectedOf(scope){
   return out;
 }
 const RK_PER = [['T','rLK','qLK','kS'],['D1','rD1','qD1','kD1'],['D','rD','qD','kD']];
+/* Σ SPD của CH đang tính chuẩn (CH hoạt động trong phạm vi lọc) */
+function spdOf(stF){ const B = S.bench, ST = S.M.stores; if (!B) return 0; let x = 0; for (let si = 0; si < ST.length; si++){ if (B.sgm[si*B.M3] < 0 || (stF && !stF(si))) continue; x += ST[si].spd || 0; } return x; }
+/* số ngày lũy kế: người dùng nhập, mặc định ước tính = DT lũy kế ÷ TB DT ngày (D, D-1) */
+function lkDays(){ const u = Number(S.lkDays); if (u >= 1) return u; return S.lkDaysAuto || null; }
 function rankHQ(list, scopeOf){
   const n = list.length; if (!n) return; const W = S.rkW;
   const rel = !scopeOf || scopeOf(list[0]).rel;   // dòng là mã/nhóm mã → so với TB các dòng cùng cấp
@@ -1559,9 +1567,13 @@ function rankHQ(list, scopeOf){
   if (rel) for (const [p] of RK_PER) for (const f of ['iV_' + p, 'iQ_' + p]){   // quy về index: 100 = TB các dòng cùng cấp
     const v = list.map(m => m[f]).filter(x => x != null), avg = v.length ? v.reduce((a,b) => a + b, 0) / v.length : 0;
     for (const m of list) m[f] = m[f] != null && avg > 0 ? m[f] / avg * 100 : null; }
+  /* tỷ trọng Sale KM / Total Sale: Total = Σ SPD (Storeslist) của CH trong phạm vi × số ngày */
+  { const B = S.bench, ST = S.M.stores, days = lkDays(); const all = !scopeOf || rel ? spdOf(null) : null;
+    for (const m of list){ const sp = all != null ? all : spdOf(scopeOf(m).st);
+      m.kmS_T = sp > 0 && days ? (m.rLK || 0) / (sp * days) : null; m.kmS_D1 = sp > 0 ? (m.rD1 || 0) / sp : null; m.kmS_D = sp > 0 ? (m.rD || 0) / sp : null; } }
   for (const [p] of RK_PER){
     const sc = new Float64Array(n);
-    for (const [k, f] of [['iv','iV_'+p],['iq','iQ_'+p],['cov','cov_'+p],['st','st_'+p],['dr','dr']]){
+    for (const [k, f] of [['iv','iV_'+p],['iq','iQ_'+p],['cov','cov_'+p],['st','st_'+p],['dr','dr'],['km','kmS_'+p]]){
       if (!W[k]) continue; const val = r => { const v = r[f]; return v == null || !isFinite(v) ? -Infinity : v; };
       const idx = list.map((r,i) => i).sort((a,b) => { const x = val(list[a]), y = val(list[b]); return x === y ? 0 : (y > x ? 1 : -1); });
       let rk = 0, prev; idx.forEach((i,pos) => { const v = val(list[i]); if (pos === 0 || v !== prev){ rk = pos + 1; prev = v; } sc[i] += rk * W[k] / 100; });
@@ -1674,7 +1686,10 @@ function render(){
   }
   rkNhomInfo(); sortRows(); renderKpis(res); renderTable();
 }
-function rkNhomInfo(){ const el = $('rkNhom'); if (!el) return; const B = S.bench;
+function rkNhomInfo(){ const el = $('rkNhom'); const B = S.bench;
+  { const a = $('lkDaysNote'), b = $('spdInfo'); if (a) { a.textContent = S.lkDays ? '(đang nhập tay; để trống = tự ước tính ' + (S.lkDaysAuto || '—') + ' ngày)' : '(tự ước tính ' + (S.lkDaysAuto || '—') + ' ngày = DT lũy kế ÷ TB DT ngày D, D-1; nhập để sửa)'; if (!S.lkDays) $('lkDays').placeholder = S.lkDaysAuto || ''; }
+    if (b && S.M){ const n = S.M.stores.filter(x => x.active && x.spd > 0).length, na = S.M.stores.filter(x => x.active).length; b.innerHTML = n ? 'SPD có cho <b>' + fmtQ(n) + '/' + fmtQ(na) + '</b> CH hoạt động.' : '<b style="color:var(--warn)">Chưa có SPD (đang đọc Storeslist hoặc không đọc được) → tiêu chí này chưa tính.</b>'; } }
+  if (!el) return;
   if (S.nhomState === 'loading'){ el.innerHTML = '⏳ Đang đọc phân nhóm CH × MCH3 từ Sheet gốc…'; return; }
   if (!B){ el.innerHTML = ''; return; }
   const nm = B.names.filter(x => x !== 'NSO').sort(), pct = B.pairTot ? Math.round(B.pairHit / B.pairTot * 100) : 0;
@@ -2063,7 +2078,7 @@ const skuCell = m => '<td class="l nm2" title="' + esc(m.art.code + ' - ' + m.ar
 /* gắn nhãn chỉ số yếu cho 1 dòng so với trung vị các dòng cùng cấp (ngày D) */
 function weakDiag(list){
   const med = f => { const v = list.map(m => m[f]).filter(x => x != null && isFinite(x)).sort((a,b) => a - b); return v.length ? v[v.length >> 1] : null; };
-  const mc = med('cov_D'), ms = med('st_D'), md = med('dr');
+  const mc = med('cov_D'), ms = med('st_D'), md = med('dr'), mk = med('kmS_D');
   for (const m of list){ const t = [];
     if (m.dVal < 0 && m.vVal != null && isFinite(m.vVal) && m.vVal <= -5) t.push(['DT giảm ' + nf1.format(-m.vVal) + '%', '']);
     if (m.iV_D != null && m.iV_D < 90) t.push(['DT thấp vs nhóm (' + nf0.format(m.iV_D) + ')', '']);
@@ -2071,6 +2086,7 @@ function weakDiag(list){
     if (mc && m.cov_D != null && m.cov_D < mc * 0.85) t.push(['Ít CH bán (' + fmtPct(m.cov_D) + ')', 'mid']);
     if (ms && m.st_D != null && m.st_D < ms * 0.85) t.push(['Bán chậm / tồn cao', 'mid']);
     if (md && m.dr != null && m.dr < md * 0.9) t.push(['Thiếu trưng bày (DR ' + fmtPct(m.dr) + ')', 'mid']);
+    if (mk && m.kmS_D != null && m.kmS_D < mk * 0.85) t.push(['Tỷ trọng KM thấp (' + fmtPct(m.kmS_D) + ')', 'mid']);
     if (m.rkTrend != null && m.rkTrend <= -3) t.push(['Tụt ' + (-m.rkTrend) + ' hạng', '']);
     m.weak = t; }
 }
@@ -2166,19 +2182,21 @@ function renderDash(){
     rankHQ(rs, m => ({st: si => M.stores[si][dim] === m.key})); applyTrend(rs, true); rs.sort((a,b) => a.rankT - b.rankT); return rs; };
   const perfTbl = (rs, lbl) => '<div class="wrapx"><table class="dt"><thead><tr><th class="c">Rank D</th><th class="l">' + lbl + '</th><th>Rank D-1</th><th class="c">Lên/xuống</th><th>Rank Total</th><th>Index DT D</th><th>Index SL D</th><th>% CH×mã bán D</th><th>DT D</th><th>DT tăng thêm</th><th>%Δ DT</th><th class="l">Xu hướng</th><th class="l">Chỉ số yếu</th></tr></thead><tbody>'
     + rs.map(m => '<tr><td class="c"><b>#' + m.rankD + '</b></td><td class="l"><b>' + esc(m.key) + '</b></td><td>#' + m.rankD1 + '</td><td class="c">' + rkHtml(m.rkTrend) + '</td><td>#' + m.rankT + '</td><td class="' + (m.iV_D >= 110 ? 'cell-good' : m.iV_D < 90 ? 'cell-bad' : '') + '">' + (m.iV_D == null ? '—' : nf0.format(m.iV_D)) + '</td><td class="' + (m.iQ_D >= 110 ? 'cell-good' : m.iQ_D < 90 ? 'cell-bad' : '') + '">' + (m.iQ_D == null ? '—' : nf0.format(m.iQ_D)) + '</td><td>' + fmtPct(m.cov_D) + '</td><td>' + fmtV(m.rD) + '</td><td class="' + clsSg(m.dVal) + '">' + sgnV(m.dVal) + '</td><td class="' + clsSg(m.vVal) + '">' + pctTxt(m.vVal) + '</td><td class="l">' + lblHtml(m.trendLabel) + '</td><td class="wkc">' + wkHtml(m) + '</td></tr>').join('') + '</tbody></table></div>';
-  const pG = perf('rsm'), pQ = perf('asm'); weakDiag(pG); weakDiag(pQ);
+  const pG = perf('rsm'), pQ = perf('asm');
+  { const med = (L, f) => { const v = L.map(m => m[f]).filter(x => x != null && isFinite(x)).sort((a,b) => a - b); return v.length ? v[v.length >> 1] : null; }; S._kmMed = {T: med(pG, 'kmS_T'), D1: med(pG, 'kmS_D1'), D: med(pG, 'kmS_D')}; }
+  weakDiag(pG); weakDiag(pQ);
   /* Bảng GĐV: Rank Full | Rank D-1 | Rank D (KPI chính ẩn/hiện) | Xu hướng – Chỉ số flop */
   const exp = S.dashExp || (S.dashExp = {T:false, D1:false, D:false});
   const idxTd = v => '<td class="' + (v >= 110 ? 'cell-good' : v < 90 ? 'cell-bad' : '') + '">' + (v == null ? '—' : nf0.format(v)) + '</td>';
   const PERS = [['T','Rank Full','rLK','DT lũy kế'],['D1','Rank D-1','rD1','DT D-1'],['D','Rank D','rD','DT D']];
   const NSF = {T:'nsT', D1:'nsD1', D:'nsD'}, NCH = {T:'nSale', D1:'nSaleD1', D:'nSaleD'};
   const bqOf = (m, p, fr) => { const n = S.tb === 'ps' ? (m[NCH[p]] || 0) : (m.nAct || 0); return n ? (m[fr] || 0) / n : null; };
-  const BASE = (p, fr) => [['Total Sale', m => '<td>' + fmtV(m[fr]) + '</td>'], ['Sale BQ', m => { const v = bqOf(m, p, fr); return '<td>' + (v == null ? '—' : fmtV(v)) + '</td>'; }], ['% No sale', m => { const v = m[NSF[p]]; return '<td class="' + (v > 0.85 ? 'cell-bad' : v > 0.7 ? 'cell-warn' : '') + '">' + fmtPct(v) + '</td>'; }]];
+  const BASE = (p, fr) => [['Total Sale', m => '<td>' + fmtV(m[fr]) + '</td>'], ['Sale BQ', m => { const v = bqOf(m, p, fr); return '<td>' + (v == null ? '—' : fmtV(v)) + '</td>'; }], ['% No sale', m => { const v = m[NSF[p]]; return '<td class="' + (v > 0.85 ? 'cell-bad' : v > 0.7 ? 'cell-warn' : '') + '">' + fmtPct(v) + '</td>'; }], ['% KM/Total', m => { const v = m['kmS_' + p], md = S._kmMed && S._kmMed[p]; return '<td class="' + (v != null && md ? (v < md * 0.85 ? 'cell-bad' : v > md * 1.15 ? 'cell-good' : '') : '') + '" title="DT KM ÷ Tổng DT CH (SPD)">' + (v == null ? '—' : fmtPct(v)) + '</td>'; }]];
   const KPI = (p, fr, dl) => [['Index DT', m => idxTd(m['iV_' + p])], ['Index SL', m => idxTd(m['iQ_' + p])], ['% CH×mã bán', m => '<td>' + fmtPct(m['cov_' + p]) + '</td>'], ['Sell-through', m => '<td>' + fmtPct(m['st_' + p]) + '</td>'], ['DR', m => '<td class="' + (m.dr < 0.5 ? 'cell-bad' : m.dr < 0.8 ? 'cell-warn' : '') + '">' + fmtPct(m.dr) + '</td>']];
   const rkTd = (v, n) => '<td class="c rkc' + (v <= 3 ? ' top' : v > n - 3 ? ' bot' : '') + '"><b>#' + v + '</b></td>';
   const gdvTbl = (rs, lbl, N, withGdv) => { const n = N || rs.length; lbl = lbl || 'GĐV';
     let t = '<div class="wrapx"><table class="dt gdvt"><thead><tr><th class="l" rowspan="2">' + lbl + '</th>' + (withGdv ? '<th class="l" rowspan="2">GĐV</th>' : '') + '<th rowspan="2">Số CH</th>';
-    for (const [p, l] of PERS) t += '<th class="c pg ' + (p === 'D' ? 'pgD' : '') + '" colspan="' + (4 + (exp[p] ? 5 : 0)) + '">' + l + ' <button type="button" class="pgx" data-dexp="' + p + '" title="' + (exp[p] ? 'Ẩn' : 'Hiện') + ' KPI chính">' + (exp[p] ? '▾' : '▸') + '</button></th>';
+    for (const [p, l] of PERS) t += '<th class="c pg ' + (p === 'D' ? 'pgD' : '') + '" colspan="' + (5 + (exp[p] ? 5 : 0)) + '">' + l + ' <button type="button" class="pgx" data-dexp="' + p + '" title="' + (exp[p] ? 'Ẩn' : 'Hiện') + ' KPI chính">' + (exp[p] ? '▾' : '▸') + '</button></th>';
     t += '<th class="c pg pgT" colspan="3">Xu hướng</th></tr><tr>';
     for (const [p, , fr, dl] of PERS){ t += '<th class="c">Rank</th>' + BASE(p, fr).map(k => '<th>' + k[0] + '</th>').join(''); if (exp[p]) t += KPI(p, fr, dl).map(k => '<th>' + k[0] + '</th>').join(''); }
     t += '<th class="c">D vs D-1</th><th>DT tăng thêm</th><th class="l">Chỉ số flop</th></tr></thead><tbody>';
@@ -2255,6 +2273,7 @@ function renderDash(){
   h = alertH + h;
 
   $('dash').innerHTML = h;
+  rkNhomInfo();
   $('rowinfo').textContent = '';
   const mb = $('dashUpcMore'); if (mb) mb.onclick = () => { S.dashAllUpc = !S.dashAllUpc; renderDash(); };
   const pieInfo = k => { const P = S._pie, el = $('pieInfo'); if (!P || !el) return;
@@ -2447,6 +2466,8 @@ function initUI(){
     if (ok){ S.rkW = w; try { localStorage.setItem('ksk_rkW', JSON.stringify(w)); } catch(e){} clearTimeout(S._rkT); S._rkT = setTimeout(() => { if (S.M) render(); }, 150); } };
   rkFill(S.rkW);
   $('rkGrid').addEventListener('input', e => { if (e.target.matches('input[data-rk]')) rkW(); });
+  try { const d = Number(localStorage.getItem('ksk_lkDays')); if (d >= 1) S.lkDays = d; } catch(e){}
+  $('lkDays').value = S.lkDays || ''; $('lkDays').oninput = e => { const v = Number(e.target.value); S.lkDays = v >= 1 ? v : null; try { S.lkDays ? localStorage.setItem('ksk_lkDays', String(S.lkDays)) : localStorage.removeItem('ksk_lkDays'); } catch(_){} clearTimeout(S._ldT); S._ldT = setTimeout(() => { if (S.M) render(); }, 250); };
   $('rkReset').onclick = e => { e.preventDefault(); rkFill(RK_DEF); rkW(); };
 
   // trend config
