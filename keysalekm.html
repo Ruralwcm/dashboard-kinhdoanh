@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Key Sale KM v4.28.17 — Win Rural</title>
+<title>Key Sale KM v4.29.0 — Win Rural</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 [hidden]{display:none!important}
@@ -182,8 +182,8 @@ table#tbl{border-collapse:separate;border-spacing:0;font-size:var(--fs);width:ma
 #tbl thead th.sticky,#tbl thead tr.g th.sticky{z-index:9}
 #tbl td.gA{background:#fff}
 #tbl td.gB{background:#FAFBFD}
-#tbl td.gs{border-left:1px solid var(--line)}
-#tbl thead th.gs{border-left:1px solid rgba(255,255,255,.25)}
+#tbl td.gs{border-left:6px solid var(--bg)}
+#tbl thead th.gs{border-left:6px solid var(--bg)}
 #tbl td.tl,#tbl th.tl{text-align:left}
 /* highlight dạng viên màu theo giá trị */
 .pv{display:inline-block;min-width:54px;text-align:right;padding:1px 8px;border-radius:999px;font-weight:700;border:1px solid transparent;line-height:1.45}
@@ -538,7 +538,7 @@ body.dashOn .ctlBar .ctl:first-child,body.dashOn .ctl-sec,body.dashOn .ctl-sw{di
 <header class="hd">
   <div class="hd-in">
     <img id="lg" class="lg" alt="WinMart+">
-    <div class="tt">Key Sale KM <span id="fileinfo" title="">v4.28.17 · Win Rural · Theo dõi CTKM</span></div>
+    <div class="tt">Key Sale KM <span id="fileinfo" title="">v4.29.0 · Win Rural · Theo dõi CTKM</span></div>
     <div class="mainTabs hdTabs" id="mainTabs" role="tablist"></div>
     <div class="mt">
       <div class="ts hd-ts" title="Cỡ chữ">
@@ -649,8 +649,8 @@ body.dashOn .ctlBar .ctl:first-child,body.dashOn .ctl-sec,body.dashOn .ctl-sw{di
       <div class="seg" id="segFA" title="Lọc SKU theo ngành hàng (phân loại theo MCH3)"><button data-v="all" aria-pressed="true">Tất cả</button><button data-v="fresh" aria-pressed="false">Fresh &amp; Chilled</button><button data-v="ambient" aria-pressed="false">Ambient</button></div>
     </div>
     <div class="ctl ctl-sec"><span class="tlbl">View Section</span><div class="seg segSec" id="secChips"></div></div>
-    <div class="ctl ctl-sw"><span class="tlbl">Group SKUs</span>
-      <button type="button" class="sw" id="grpSkuSw" role="switch" aria-checked="false" title="Gộp SKU cùng tính chất (chọn tiêu chí gộp trong ⚙ Bộ lọc)"><span class="knob"></span></button><b class="swLbl" id="grpSkuLbl">OFF</b>
+    <div class="ctl ctl-sw"><span class="tlbl">Mã quy đổi</span>
+      <button type="button" class="sw" id="grpSkuSw" role="switch" aria-checked="true" title="ON: số liệu gộp theo Mã quy đổi (Danh mục CTKM) · OFF: hiện từng mã gốc"><span class="knob"></span></button><b class="swLbl" id="grpSkuLbl">OFF</b>
     </div>
   </div>
 
@@ -1121,7 +1121,7 @@ const RANK_INDS = [['trLK','DT BQ/CH'],['bqV','DT BQ/mã key/CH'],['stR','Tỷ l
 const _DM = {dash:'dash', ctkm:'ctkm', val:'val', overall:'group', hottrend:'trend', downtrend:'trend', sku:'sku', rsmasm:'rsmasm', rsm:'rsm', asm:'asm', mch3:'fa'};
 const _EFF = d => _DM[d] || d;
 /* dim thực tế: tab SKUs + bật "Gộp SKU cùng tính chất" => nhóm theo tính chất (cg) */
-const effDim = () => { const d = _DM[S.dim] || S.dim; return d === 'sku' && S.grpSku ? 'cg' : d; };
+const effDim = () => _DM[S.dim] || S.dim;
 const LV_OF_VIEW = {full:'F', compact:'C', lite:'L'};
 
 const COLGROUPS = [
@@ -1361,7 +1361,7 @@ const S = {
   cg:new Set(['brand','size','price','group']),
   open:new Set(), rows:[], fileName:'', tips:{},
   view:'compact', fs:13, viewInfo:false,
-  rkW:{iv:30, iq:20, cov:25, st:15, dr:10}, grpSku:false,
+  rkW:{iv:30, iq:20, cov:25, st:15, dr:10}, grpSku:false, qdOn:true,
   trThr:0, trTopN:50, trMinCH:20, fa:'all',
   trW:{dv:30, pv:10, dq:30, pq:10, pc:20},
   secView:{},
@@ -1373,7 +1373,7 @@ try {
   if (sv.tb) S.tb = sv.tb;
   if (sv.view) S.view = sv.view;
   if (sv.fs) S.fs = sv.fs;
-  if (sv.grpSku !== undefined) S.grpSku = sv.grpSku;
+  if (sv.qdOn !== undefined) S.qdOn = sv.qdOn;
   if (sv.viewInfo !== undefined) S.viewInfo = !!sv.viewInfo;
   if (sv.trOff !== undefined) S.trOff = !!sv.trOff;
 } catch(e){}
@@ -1383,7 +1383,7 @@ try { const w = JSON.parse(localStorage.getItem('ksk_rkW')||'null'); if (w && Ob
 const TW_DEF = {dv:30, pv:10, dq:30, pq:10, pc:20};
 try { const w = JSON.parse(localStorage.getItem('ksk_trW')||'null'); if (w && Object.keys(TW_DEF).every(k => typeof w[k] === 'number') && Object.keys(TW_DEF).reduce((a,k) => a + w[k], 0) === 100) S.trW = w; } catch(e){}
 try { const sv = JSON.parse(localStorage.getItem('ksk_secView')||'{}'); if (sv && typeof sv === 'object') S.secView = sv; } catch(e){}
-const savePrefs = () => { try { localStorage.setItem('kskv4_prefs', JSON.stringify({cols:[...S.cols], unit:S.unit, tb:S.tb, view:S.view, fs:S.fs, grpSku:S.grpSku, viewInfo:S.viewInfo, trOff:!!S.trOff})); } catch(e){} };
+const savePrefs = () => { try { localStorage.setItem('kskv4_prefs', JSON.stringify({cols:[...S.cols], unit:S.unit, tb:S.tb, view:S.view, fs:S.fs, qdOn:S.qdOn, viewInfo:S.viewInfo, trOff:!!S.trOff})); } catch(e){} };
 
 const nf0 = new Intl.NumberFormat('vi-VN',{maximumFractionDigits:0});
 const nf1 = new Intl.NumberFormat('vi-VN',{maximumFractionDigits:1, minimumFractionDigits:1});
@@ -1801,7 +1801,7 @@ function rkNhomInfo(){ const el = $('rkNhom'); const B = S.bench;
   else el.innerHTML = '<b style="color:var(--bad)">' + (S.nhomState === 'err' ? 'Không đọc được Sheet gốc (' + esc(S.nhomErr || '') + ')' : 'Chưa có phân nhóm') + ' → đang so với toàn bộ CH.</b>';
 }
 
-function secLevel(gk){ return S.secView[gk] || LV_OF_VIEW[S.view] || 'F'; }
+function secLevel(gk){ return LV_OF_VIEW[S.view] || 'F'; }   /* chỉ còn 3 mức hiển thị chung (Full/Compact/Lite) */
 function setSecView(gk, lv){
   if (S.secView[gk] === lv) delete S.secView[gk]; else S.secView[gk] = lv;   // bấm lại mức đang chọn => theo mức chung
   try { localStorage.setItem('ksk_secView', JSON.stringify(S.secView)); } catch(e){}
@@ -1997,7 +1997,7 @@ function renderTable(){
   gs.forEach(([gk, label, cols], gi) => {
     const band = gi % 2 ? 'gB' : 'gA', lv = secLevel(gk), own = !!S.secView[gk];
     const svBtns = '<span class="sv-sel">' + ['F','C','L'].map(v => '<button type="button" class="sv-btn' + (lv===v?' on':'') + '" data-sv="' + gk + '" data-v="' + v + '" title="' + SV_T[v] + (own && lv===v ? ' (bấm lại để theo mức chung)' : '') + '">' + v + '</button>').join('') + '</span>';
-    g += '<th colspan="' + cols.length + '" class="' + band + ' gs">' + label + (own ? '<span class="sv-dot">' + lv + '</span>' : '') + svBtns + '</th>';
+    g += '<th colspan="' + cols.length + '" class="' + band + ' gs">' + label + '</th>';
     cols.forEach(([k, l], i) => { c += '<th data-k="' + k + '" class="' + band + (i===0?' gs ':' ') + (k === 'trendLabel' ? 'tl ' : '') + (HL_COLS.has(k) ? 'hl ' : '') + (S.sort.k===k ? 'sorted' + (S.sort.asc?' asc':'') : '') + '">' + l + '</th>'; });
   });
   $('tbl').tHead.innerHTML = g + '</tr>' + c + '</tr>';
@@ -2655,7 +2655,7 @@ function applyQuyDoi(M){
   /* khoá gộp: Mã quy đổi khác mã SP → theo Mã quy đổi; nếu không, các mã dùng chung 1 "Tên quy đổi" cũng gộp với nhau */
   const tOf = new Map(); try { for (const r of ctLoad().r){ const c = String(r.v[1] || '').trim(), t = String(r.v[12] || '').trim(); if (c && t && !tOf.has(c)) tOf.set(c, t); } } catch(e){}
   const tCnt = new Map(); for (const [c, t] of tOf){ const k = vnFold(t); if (!tCnt.has(k)) tCnt.set(k, new Set()); tCnt.get(k).add(c); }
-  const grp = new Map(); A.forEach((a, i) => { const q = String(a.maQuyDoi || '').trim(); let k;
+  const grp = new Map(); if (S.qdOn !== false) A.forEach((a, i) => { const q = String(a.maQuyDoi || '').trim(); let k;
     if (q && q !== a.code) k = q; else { const t = tOf.get(a.code), set = t && tCnt.get(vnFold(t)); k = set && set.size > 1 ? 'T:' + vnFold(t) : (q || null); if (k && k.startsWith('T:') && !tq.has(k)) tq.set(k, t); }
     if (!k) return; if (!grp.has(k)) grp.set(k, []); grp.get(k).push(i); });
   /* nhóm theo Mã quy đổi nhận thêm các mã có mã SP = Mã quy đổi đó */
@@ -2970,11 +2970,10 @@ function initUI(){
   const grpDiv = document.createElement('div'); grpDiv.id='grpSkuCfg'; grpDiv.className='cfgBox';
   grpDiv.innerHTML = '<h4 style="margin:0 0 6px;font-size:12px;color:var(--ink2);text-transform:uppercase">🔗 Group SKUs — tiêu chí gộp</h4>';
   $('drawerBody').appendChild(grpDiv); grpDiv.appendChild($('cgBox')); $('cgBox').querySelector('h4').remove(); }
-  const swSync = () => { $('grpSkuSw').setAttribute('aria-checked', String(!!S.grpSku)); $('grpSkuLbl').textContent = S.grpSku ? 'ON' : 'OFF'; };
-  $('grpSkuSw').onclick = () => { S.grpSku = !S.grpSku; swSync(); S.open = new Set([...S.open].filter(x => !x.startsWith('cg:')));
-    savePrefs();
-    if (S.grpSku && S.dim !== 'sku'){ $('tabs').querySelector('button[data-k="sku"]').click(); return; }   // gộp SKU áp dụng ở tab SKUs
-    updateTabUI(); render(); };
+  /* công tắc Mã quy đổi: ON = gộp số liệu theo Mã quy đổi · OFF = từng mã gốc */
+  const swSync = () => { $('grpSkuSw').setAttribute('aria-checked', String(!!S.qdOn)); $('grpSkuLbl').textContent = S.qdOn ? 'ON' : 'OFF'; };
+  $('grpSkuSw').onclick = () => { S.qdOn = !S.qdOn; swSync(); savePrefs(); S.open = new Set(); if (S.M){ applyQuyDoi(S.M); try { if (valLoad().applied && valLoad().r.length) valApply(); } catch(e){} } render(); };
+  { const g = $('grpSkuCfg'); if (g) g.hidden = true; }
   swSync();
 
   updateTabUI();
