@@ -726,7 +726,7 @@ function aggregate(M, flt, dim){
   return { rows: [...groups.values()], total, nAct, nArtSel, storeSales: tS };
 }
 /* Drill-down */
-const DRILL_KEYS = ['rm','rsm','asm','code'];
+const DRILL_KEYS = ['region','rsm','asm','code'];
 function drillRows(M, flt, ai, path, keys){
   keys = keys || DRILL_KEYS;
   const {stores, fv} = M; const thr = M.arts[ai].minTB > 0 ? M.arts[ai].minTB : 1; const level = path.length, isCode = keys[level] === 'code';
@@ -1368,24 +1368,27 @@ function rankRowsCfg(list){
 const TREND_ICON = {'Top Trend':['🔥','tb-top'], 'Tăng':['▲','tb-up'], 'Đi ngang':['▶','tb-flat'], 'Giảm':['▼','tb-down']};
 const TREND_FLAT = 5;   // |%Δ DT| < 5% coi là đi ngang
 const TREND_COMP = [['dv','dVal'],['pv','vVal'],['dq','dQty'],['pq','vQty'],['pc','vCov']];
+const TREND_COMP_BQ = [['dv','bdVal'],['pv','bvVal'],['dq','bdQty'],['pq','bvQty'],['pc','vCov']];
 const pctG = (a, b) => b > 0 ? (a - b) / b * 100 : (a > 0 ? Infinity : 0);
 /* bq = true: cấp nhóm (Nhóm CTKM, RSM/ASM, Miền/GĐV/QLKV/CH) — dùng tăng trưởng BQ/CH (DT, SL ÷ số CH bán; hoặc ÷ CH hoạt động nếu chọn "TB mọi CH") */
 function computeTrend(list, down, bq){
   for (const m of list){ const t = trendingScore(m); m.vCov = t.vCov; m.trendScore = null; m.trendLabel = null; m.trRanks = {};
-    if (bq){ const nd = S.tb === 'ps' ? m.nD : m.nAct, nd1 = S.tb === 'ps' ? m.nD1 : m.nAct;
+    // số hiển thị luôn là tuyệt đối (cộng các cấp con = cấp cha)
+    m.vQty = t.vQty; m.vVal = t.vVal; m.dVal = (m.rD || 0) - (m.rD1 || 0); m.dQty = (m.qD || 0) - (m.qD1 || 0);
+    if (bq){ // cấp nhóm: chỉ số dùng để XẾP HẠNG là tăng trưởng BQ/CH
+      const nd = S.tb === 'ps' ? m.nD : m.nAct, nd1 = S.tb === 'ps' ? m.nD1 : m.nAct;
       const bD = nd ? m.rD / nd : 0, bD1 = nd1 ? m.rD1 / nd1 : 0, sD = nd ? m.qD / nd : 0, sD1 = nd1 ? m.qD1 / nd1 : 0;
-      m.dVal = bD - bD1; m.vVal = pctG(bD, bD1); m.dQty = sD - sD1; m.vQty = pctG(sD, sD1); }
-    else { m.vQty = t.vQty; m.vVal = t.vVal; m.dVal = (m.rD || 0) - (m.rD1 || 0); m.dQty = (m.qD || 0) - (m.qD1 || 0); } }
+      m.bdVal = bD - bD1; m.bvVal = pctG(bD, bD1); m.bdQty = sD - sD1; m.bvQty = pctG(sD, sD1); } }
   const n = list.length; if (!n || down === undefined) return;
   const W = S.trW, sc = new Float64Array(n);
-  for (const [wk, f] of TREND_COMP){
+  for (const [wk, f] of (bq ? TREND_COMP_BQ : TREND_COMP)){
     const val = r => { const v = r[f]; return v == null || Number.isNaN(v) ? 0 : v; };
     const idx = list.map((r,i) => i).sort((a,b) => { const x = val(list[a]), y = val(list[b]); return x === y ? 0 : (down ? (x > y ? 1 : -1) : (y > x ? 1 : -1)); });
     let rk = 0, prev; idx.forEach((i,pos) => { const v = val(list[i]); if (pos === 0 || v !== prev){ rk = pos + 1; prev = v; } list[i].trRanks[wk] = rk; sc[i] += rk * W[wk] / 100; });
   }
   list.forEach((m,i) => { m.trendScore = sc[i]; });
 }
-const trendLbl = (m, top) => top && m.dVal > 0 ? 'Top Trend' : (Number.isFinite(m.vVal) && Math.abs(m.vVal) < TREND_FLAT) ? 'Đi ngang' : m.dVal > 0 ? 'Tăng' : m.dVal < 0 ? 'Giảm' : 'Đi ngang';
+const trendLbl = (m, top) => { const d = m.dVal, p = m.vVal;   // nhãn theo số hiển thị (tuyệt đối) return top && d > 0 ? 'Top Trend' : (Number.isFinite(p) && Math.abs(p) < TREND_FLAT) ? 'Đi ngang' : d > 0 ? 'Tăng' : d < 0 ? 'Giảm' : 'Đi ngang'; };
 /* xếp hạng xu hướng cho 1 danh sách cùng cấp (các tab ngoài Top/Flop Trend): 10% đầu & tăng = Top Trend */
 function applyTrend(list, bq){
   if (!list.length) return; computeTrend(list, false, bq);
@@ -1417,6 +1420,7 @@ function render(){
     rows = rows.slice(0, Math.max(5, Number(S.trTopN) || 50));
     rows.forEach((r,i) => { r.rank = i + 1; r.rankN = rows.length; });
     S.rows = rows;
+    { const mask = new Uint8Array(S.M.arts.length); rows.forEach(r => { if (r.ai != null) mask[r.ai] = 1; }); sk.total = aggregate(S.M, {...flt, artOK:mask}, 'sku').total; }   // tổng = các mã trong danh sách
     S.totalRow = metrics(sk.total, S.tb); { const t = S.totalRow; t.nNo = t.pNo; t.noSale = t.pStock ? t.pNo / t.pStock : null; } computeTrend([S.totalRow]); S.totalRow.rank = null; S.totalRow.score = null;
     S.ctx = {nArtSel: rows.length, nAct: sk.nAct}; S.rankN = rows.length;
     sortRows(); renderKpis({nArtSel: sk.nArtSel, nAct: sk.nAct}); renderTable();
@@ -1502,8 +1506,7 @@ function visibleGroups(){
                  || ((k === 'rank' || k === 'score') && ed === 'trend');   // tab Trend dùng Điểm hạng riêng
   const base = COLGROUPS.filter(g => S.cols.has(g[0])).map(([gk, l, cols]) => [gk, l, filterCols(gk, cols).filter(([k]) => !drop(gk, k))]).filter(g => g[2].length);
   if (S.trOff) return base;
-  const bqHead = ed !== 'sku' && ed !== 'trend';   // hàng chính là cấp nhóm → nhãn theo BQ/CH
-  const tcols = filterCols(TREND_GROUP[0], TREND_GROUP[2], 'trend').map(c => bqHead && TREND_BQ_LBL[c[0]] ? [c[0], TREND_BQ_LBL[c[0]], c[2]] : c);
+  const tcols = filterCols(TREND_GROUP[0], TREND_GROUP[2], 'trend');
   return [[TREND_GROUP[0], TREND_GROUP[1], tcols], ...base];
 }
 function kmTip(a, k){
@@ -1543,7 +1546,7 @@ function firstCell(r, isTotal, asSku, trCls){
   const tg = canExpand ? '<button class="tg" data-p="' + esc(String(r.ai)) + '" aria-expanded="' + S.open.has(String(r.ai)) + '" title="Xem ' + drillNames().join(' → ') + '">' + (S.open.has(String(r.ai)) ? '−' : '+') + '</button>' : '';
   return '<td class="sticky"><div class="nm">' + tg + '<span class="cd" data-tip="' + r.ai + '">' + esc(a.code) + '</span> - <span class="tipname" data-tip="' + r.ai + '">' + esc(a.name || '(Không tên)') + '</span></div>' + vi + '</td>';
 }
-const LV_NAME = ['RM','RSM','QLKV','CH'];
+const LV_NAME = ['Miền','GĐV','QLKV','CH'];
 const TREND_DRILL = ['region','rsm','asm'], TREND_DRILL_NAME = ['Miền','GĐV','QLKV'];
 const drillKeys = () => effDim() === 'trend' ? TREND_DRILL : DRILL_KEYS;
 const drillNames = () => effDim() === 'trend' ? TREND_DRILL_NAME : LV_NAME;
@@ -1567,7 +1570,7 @@ function childHtml(ai, path){
   let h = ''; const mx = heatScale(kids);
   for (const m of kids){
     const np = path.concat([m.key]); const pid = JSON.stringify([ai].concat(np)); const open = !leaf && S.open.has(pid);
-    let fc = '<td class="sticky">' + (!leaf ? '<button class="tg" data-p="' + esc(pid) + '" aria-expanded="' + open + '">' + (open ? '−' : '+') + '</button>' : '') + '<span class="lvl">' + names[level] + '</span>' + esc(m.label) + '</td>';
+    let fc = '<td class="sticky">' + (!leaf ? '<button class="tg" data-p="' + esc(pid) + '" aria-expanded="' + open + '">' + (open ? '−' : '+') + '</button>' : '') + '<span title="' + names[level] + '">' + esc(m.label) + '</span></td>';
     h += '<tr class="lv' + (level+1) + '">' + fc + cellsHtml(m, mx) + '</tr>';
     if (open) h += childHtml(ai, np);
   }
@@ -1586,7 +1589,7 @@ function sdChildHtml(path){
   let h = '';
   for (const m of kids){
     const np = path.concat([m.key]), pid = 'sd:' + JSON.stringify(np), open = !leaf && S.open.has(pid);
-    h += '<tr class="lv' + Math.min(lvl+1, 4) + '"><td class="sticky">' + (!leaf ? '<button class="tg" data-p="' + esc(pid) + '" aria-expanded="' + open + '">' + (open ? '−' : '+') + '</button>' : '') + '<span class="lvl">' + SD_NAME[dim] + '</span>' + esc(m.label) + '</td>' + cellsHtml(m, null) + '</tr>';
+    h += '<tr class="lv' + Math.min(lvl+1, 4) + '"><td class="sticky">' + (!leaf ? '<button class="tg" data-p="' + esc(pid) + '" aria-expanded="' + open + '">' + (open ? '−' : '+') + '</button>' : '') + '<span title="' + SD_NAME[dim] + '">' + esc(m.label) + '</span></td>' + cellsHtml(m, null) + '</tr>';
     if (open) h += sdChildHtml(np);
   }
   return h;
@@ -1703,7 +1706,7 @@ function renderLogic(){
     <li>D-1 = 0 mà ngày D có bán: %Δ tính là <b>“Mới ↑”</b> (cao nhất khi xếp hạng).</li>
     <li>Điều kiện: số CH có bán (D hoặc D-1) ≥ ngưỡng (mặc định 20). <b>Hot</b> chỉ lấy mã có DT tăng; <b>Down</b> chỉ lấy mã có DT giảm.</li>
     <li><b>Fresh &amp; Chilled | Ambient</b> theo MCH3. Fresh &amp; Chilled: Thịt nguội, xúc xích, hàng chua · Đông lạnh · Trái cây · Thịt · Thủy hải sản · Rau củ · Bánh mỳ · Thức ăn nấu sẵn · Bơ, sữa, trứng. Các MCH3 còn lại là Ambient.</li>
-    <li><b>Mọi tab</b> đều có cột Trending. Cấp <b>mã hàng</b>: DT/SL tăng thêm tuyệt đối. Cấp <b>nhóm</b> (Nhóm CTKM, RSM×ASM, Miền → GĐV → QLKV → CH): dùng <b>tăng trưởng BQ/CH</b> = DT (SL) ÷ số CH có bán của từng ngày (hoặc ÷ CH hoạt động khi chọn "TB mọi CH"); xếp hạng trong cùng cấp.</li>
+    <li><b>Mọi tab</b> đều có cột Trending. Cấp <b>mã hàng</b>: DT/SL tăng thêm tuyệt đối. Cấp <b>nhóm</b> (Nhóm CTKM, RSM×ASM, Miền → GĐV → QLKV → CH): <b>điểm xếp hạng</b> tính theo <b>tăng trưởng BQ/CH</b> = DT (SL) ÷ số CH có bán của từng ngày (hoặc ÷ CH hoạt động khi chọn "TB mọi CH"), so trong cùng cấp. Các cột DT/SL tăng thêm, %Δ luôn hiển thị số tuyệt đối — cộng các cấp con bằng cấp cha.</li>
     <li><b>Top Trend / Flop Trend</b>: bấm + ở mỗi mã để xem Miền → GĐV → QLKV.</li>
     <li>Nhãn xu hướng: 🔥 <b>Top Trend</b> (10% đầu danh sách Hot) · <span style="color:var(--good)">▲</span> <b>Tăng</b> · ▶ <b>Đi ngang</b> (|%Δ DT| &lt; 5%) · <span style="color:var(--bad)">▼</span> <b>Giảm</b>.</li>
   </ul>
