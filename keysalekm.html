@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Key Sale KM v4.28.12 — Win Rural</title>
+<title>Key Sale KM v4.28.13 — Win Rural</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 [hidden]{display:none!important}
@@ -459,6 +459,7 @@ table.ctt{border-collapse:separate;border-spacing:0;font-size:12.5px;width:max-c
 .gdvt .pgx{margin-left:4px;border:1px solid rgba(255,255,255,.5);background:transparent;color:#fff;border-radius:5px;padding:0 5px;cursor:pointer;font-size:11px;line-height:1.4}
 .gdvt td.rkc{border-left:2px solid var(--line);font-size:13px} .gdvt td.rkc.top b{color:var(--good)} .gdvt td.rkc.bot b{color:var(--bad)}
 .upt tr.upk td{background:#F6F9FE;font-size:12px}
+.dlb{display:inline-block;border-radius:999px;padding:1px 8px;font-size:11.5px;font-weight:700;white-space:nowrap}.dlb.pre{background:#EDE9FE;color:#6D28D9}.dlb.end{background:#FFF1E6;color:#C2410C}.dlb.end.hot{background:var(--badbg);color:var(--bad)}
 .ara{display:inline-flex;gap:1px;font-weight:800;font-size:12px;letter-spacing:-.2px}.ara i{font-style:normal;color:#C9D1DC}.ara i.on{color:var(--navy)}.ara.all{color:var(--good)}
 .pxa{display:inline-block;cursor:help;font-size:12px;font-weight:800;margin-left:2px}.pxa.up{color:var(--bad)}.pxa.dn{color:var(--good)}
 .pxw{display:inline-block;margin-top:2px;border-radius:6px;padding:0 5px;font-size:10.5px;font-weight:700;white-space:nowrap}
@@ -537,7 +538,7 @@ body.dashOn .ctlBar .ctl:first-child,body.dashOn .ctl-sec,body.dashOn .ctl-sw{di
 <header class="hd">
   <div class="hd-in">
     <img id="lg" class="lg" alt="WinMart+">
-    <div class="tt">Key Sale KM <span id="fileinfo" title="">v4.28.12 · Win Rural · Theo dõi CTKM</span></div>
+    <div class="tt">Key Sale KM <span id="fileinfo" title="">v4.28.13 · Win Rural · Theo dõi CTKM</span></div>
     <div class="mainTabs hdTabs" id="mainTabs" role="tablist"></div>
     <div class="mt">
       <div class="ts hd-ts" title="Cỡ chữ">
@@ -2472,7 +2473,7 @@ function renderDash(){
     const uth = (k, l, c) => '<th class="' + (c || '') + ' srt" data-ups="' + k + '">' + l + (us.k === k ? (us.asc ? ' ▲' : ' ▼') : '') + '</th>';
     h += '<div class="wrapx"><table class="dt upt' + ((S.upView || 'compact') === 'compact' ? ' cmp' : '') + '"><thead><tr>' + uth('grp','Nhóm','l') + uth('code','SKU','l') + uth('p1','Giá KM') + uth('mech','Cơ chế','l') + uth('area','Miền AD') + uth('d0','Ngày bắt đầu') + uth('d1','Ngày kết thúc') + uth('dl','Còn') + uth('minTB','Min TB') + uth('sQ','SL tồn') + uth('sV','GT tồn') + uth('noMin','#Store không đạt Min') + uth('dr','DR') + uth('ndQ','SL chờ giao') + uth('ndV','GT chờ giao') + uth('fcQ','SL FC','fcv') + uth('fcV','GT FC','fcv') + uth('vQ','SL Validate','fcv') + uth('vV','GT Validate','fcv') + uth('rdy','Đánh giá','l') + '</tr></thead><tbody>'
       + hlist.map((m, i) => { const hid = '', op = upOpen.has(String(m.ai));
-        let t = '<tr' + hid + '><td class="l">' + m.tags.sort((a, b) => GO[a] - GO[b]).map(g => '<span class="hlg ' + g + '">' + GL[g] + '</span>').join(' ') + '</td><td class="l nm2" title="' + esc(m.art.code + ' - ' + m.art.name + (m.km?.group ? ' · ' + m.km.group : '')) + '"><span class="skl" data-sku="' + m.ai + '"><span class="cd">' + esc(m.art.code) + '</span> ' + esc(m.art.name) + '</span>' + (m.art.qdMembers ? ' <span class="qdb">×' + m.art.qdMembers.length + '</span>' : '') + '</td><td class="pc">' + (m.km?.p1 ? nf0.format(m.km.p1) : '—') + pxHtml(m) + '</td><td class="l mech" title="' + esc(m.km?.mech) + '">' + esc(m.km?.mech || '—') + '</td><td class="c" title="' + esc(m.km?.area || '') + '">' + areaHtml(m.km?.area) + '</td><td>' + fmtDate(m.km?.d0) + '</td><td>' + fmtDate(m.km?.d1) + '</td><td class="' + (m.dl != null && m.dl <= 3 ? 'cell-bad' : '') + '">' + (m.dl == null ? '—' : m.dl + ' ngày') + '</td><td>' + (m.art.minTB || '—') + '</td>' + upCells(m) + '</tr>';
+        let t = '<tr' + hid + '><td class="l">' + m.tags.sort((a, b) => GO[a] - GO[b]).map(g => '<span class="hlg ' + g + '">' + GL[g] + '</span>').join(' ') + '</td><td class="l nm2" title="' + esc(m.art.code + ' - ' + m.art.name + (m.km?.group ? ' · ' + m.km.group : '')) + '"><span class="skl" data-sku="' + m.ai + '"><span class="cd">' + esc(m.art.code) + '</span> ' + esc(m.art.name) + '</span>' + (m.art.qdMembers ? ' <span class="qdb">×' + m.art.qdMembers.length + '</span>' : '') + '</td><td class="pc">' + (m.km?.p1 ? nf0.format(m.km.p1) : '—') + pxHtml(m) + '</td><td class="l mech" title="' + esc(m.km?.mech) + '">' + esc(m.km?.mech || '—') + '</td><td class="c" title="' + esc(m.km?.area || '') + '">' + areaHtml(m.km?.area) + '</td><td>' + fmtDate(m.km?.d0) + '</td><td>' + fmtDate(m.km?.d1) + '</td><td>' + (m.dl == null ? '—' : (norm(m.km?.status || '') === 'chưa km' ? '<span class="dlb pre" title="Còn ' + m.dl + ' ngày nữa bắt đầu KM">⏳ ' + m.dl + ' ngày</span>' : '<span class="dlb end' + (m.dl <= 3 ? ' hot' : '') + '" title="Còn ' + m.dl + ' ngày là hết KM">⌛ ' + m.dl + ' ngày</span>')) + '</td><td>' + (m.art.minTB || '—') + '</td>' + upCells(m) + '</tr>';
         /* chi tiết theo GĐV → QLKV: bấm tên SP để mở popup */
         return t; }).join('') + '</tbody></table></div>'
 ; }
