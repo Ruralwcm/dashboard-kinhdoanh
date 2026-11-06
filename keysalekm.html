@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Key Sale KM v4.28.2 — Win Rural</title>
+<title>Key Sale KM v4.28.3 — Win Rural</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 [hidden]{display:none!important}
@@ -390,7 +390,12 @@ table.ctt{border-collapse:separate;border-spacing:0;font-size:12.5px;width:max-c
 .spt thead tr.spZ th.z1{background:#0F2A4A}.spt thead tr.spZ th.z2{background:#1E5AA8}.spt thead tr.spZ th.z3{background:#C8102E}.spt thead tr.spZ th.z4{background:#44546A}
 .spt thead tr.spH th{top:27px}.spt thead tr.spH th.z1{background:#E6EBF2}.spt thead tr.spH th.z2{background:#E5EEFA}.spt thead tr.spH th.z3{background:#FBE7EA}.spt thead tr.spH th.z4{background:#ECEFF3}
 .spt td.zs,.spt th.zs{border-left:2px solid #D9E0EA}
-.spSeg{margin-right:6px}.spSeg button{font-size:12px;padding:3px 10px}
+.spSeg{margin-right:6px}
+.dt th.zh1{background:#0F2A4A!important;color:#fff!important}.dt th.zh2{background:#1E5AA8!important;color:#fff!important}.dt th.zh3{background:#C8102E!important;color:#fff!important}.dt th.zh4{background:#44546A!important;color:#fff!important}
+.dt th.zh1 span,.dt th.zh3 span{color:#fff!important}
+.dt th.zs2{background:#E5EEFA!important}.dt th.zs3{background:#FBE7EA!important}.dt th.zs4{background:#ECEFF3!important}
+.hm thead tr:first-child th{position:sticky;top:0;text-align:center!important;font-size:11.5px;border-left:2px solid #fff}
+.hm thead tr:nth-child(2) th{top:26px}.spSeg button{font-size:12px;padding:3px 10px}
 .spInfo{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--ink2)}.spInfo span{max-width:420px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.spInfo b{color:var(--ink)}
 .spT{overflow:auto;border:1px solid var(--line);border-radius:10px;flex:1;min-height:200px}
 .spt{width:100%;font-size:12.5px}
@@ -531,7 +536,7 @@ body.dashOn .ctlBar .ctl:first-child,body.dashOn .ctl-sec,body.dashOn .ctl-sw{di
 <header class="hd">
   <div class="hd-in">
     <img id="lg" class="lg" alt="WinMart+">
-    <div class="tt">Key Sale KM <span id="fileinfo" title="">v4.28.2 · Win Rural · Theo dõi CTKM</span></div>
+    <div class="tt">Key Sale KM <span id="fileinfo" title="">v4.28.3 · Win Rural · Theo dõi CTKM</span></div>
     <div class="mainTabs hdTabs" id="mainTabs" role="tablist"></div>
     <div class="mt">
       <div class="ts hd-ts" title="Cỡ chữ">
@@ -2303,8 +2308,8 @@ function renderDash(){
       + '<td class="gsep">' + fmtV(g.rD1) + '</td><td>' + fmtV(g.rD) + '</td>'
       + '<td class="l gsep"' + (tot ? '' : ' data-gp="up" data-gk="' + esc(g._gk) + '"') + '>' + (tot ? '' : '<span class="dbar" style="width:' + w + 'px;background:' + (dv >= 0 ? 'var(--good)' : 'var(--bad)') + '"></span>') + '<span class="' + clsSg(dv) + '">' + sgnV(dv) + '</span> <span class="' + clsSg(vv) + '" style="font-size:11.5px">(' + pctTxt(vv) + ')</span></td>'
       + '<td class="l">' + (tot ? '' : lblHtml(g.trendLabel)) + '</td></tr>'; };
-  h += '<div class="wrapx"><table class="dt grt"><thead><tr><th class="l" rowspan="2">' + (kr.length ? 'Nhóm SKUs <span style="font-weight:500;font-size:10.5px">(Nhóm SKUs Key)</span>' : 'Nhóm CTKM') + '</th><th rowspan="2">Số mã</th><th class="c gh" colspan="4">Tồn kho</th><th class="c gh" colspan="3">Sale lũy kế</th><th class="c gh" colspan="2">Sale ngày</th><th class="c gh" rowspan="2">Tăng trưởng<br><span style="font-weight:500">D vs D-1</span></th><th class="l" rowspan="2">Xu hướng</th></tr>'
-    + '<tr><th class="gsep">GT tồn</th><th>Tồn BQ/CH</th><th>DIO</th><th>Độ phủ</th><th class="gsep">DT lũy kế</th><th>DT BQ/CH</th><th>No sale</th><th class="gsep">Sale D-1</th><th>Sale D</th></tr></thead><tbody>';
+  h += '<div class="wrapx"><table class="dt grt zt"><thead><tr><th class="l zh1" rowspan="2">' + (kr.length ? 'Nhóm SKUs <span style="font-weight:500;font-size:10.5px">(Nhóm SKUs Key)</span>' : 'Nhóm CTKM') + '</th><th rowspan="2" class="zh1">Số mã</th><th class="c gh zh4" colspan="4">Tồn kho</th><th class="c gh zh2" colspan="3">Sale lũy kế</th><th class="c gh zh3" colspan="2">Sale ngày</th><th class="c gh zh3" rowspan="2">Tăng trưởng<br><span style="font-weight:500">D vs D-1</span></th><th class="l zh4" rowspan="2">Xu hướng</th></tr>'
+    + '<tr><th class="gsep zs4">GT tồn</th><th class="zs4">Tồn BQ/CH</th><th class="zs4">DIO</th><th class="zs4">Độ phủ</th><th class="gsep zs2">DT lũy kế</th><th class="zs2">DT BQ/CH</th><th class="zs2">No sale</th><th class="gsep zs3">Sale D-1</th><th class="zs3">Sale D</th></tr></thead><tbody>';
   /* Nhóm SKUs (trên) · Nhóm CTKM (dưới), ngăn bằng đường mờ */
   if (kr.length){ for (const g of kr) h += grRow(g, false); h += '<tr class="ksep"><td class="l" colspan="13">Nhóm CTKM</td></tr>'; }
   for (const g of gr) h += grRow(g, false);
@@ -2335,7 +2340,7 @@ function renderDash(){
     const list = all.slice(0, DN[bk]);
     if (!list.length) return '<h4>' + title + '</h4><div class="dnone">Không có mã phù hợp.</div>';
     const lk = mode === 'lk';
-    let t = '<h4>' + title + ' <span style="text-transform:none;font-weight:500">(' + list.length + '/' + all.length + ')</span></h4><div class="wrapx"><table class="dt hm" style="min-width:' + (300 + 5 * 62 + gdvs.length * 42) + 'px"><colgroup><col style="width:300px">' + '<col style="width:62px">'.repeat(5) + '<col>'.repeat(gdvs.length) + '</colgroup><thead><tr><th class="l">SKU</th>' + (lk ? '<th>DT lũy kế</th><th>DT BQ/CH</th><th>% CH bán</th><th>GT tồn</th><th title="Tồn ÷ giá vốn bán TB/ngày 30 ngày">DIO</th>' : '<th>DT D</th><th>DT tăng thêm</th><th>%Δ DT</th><th>GT tồn</th><th title="SL tồn ÷ SL bán TB 2 ngày gần nhất (D, D-1)">DIO 2N</th>') + gdvs.map(g => '<th class="hc" title="' + esc((hmDim === 'code' ? g + ' - ' : '') + gMap.get(g)) + '">' + hmHead(g) + '</th>').join('') + '</tr></thead><tbody>';
+    let t = '<h4>' + title + ' <span style="text-transform:none;font-weight:500">(' + list.length + '/' + all.length + ')</span></h4><div class="wrapx"><table class="dt hm" style="min-width:' + (300 + 5 * 62 + gdvs.length * 42) + 'px"><colgroup><col style="width:300px">' + '<col style="width:62px">'.repeat(5) + '<col>'.repeat(gdvs.length) + '</colgroup><thead><tr class="zt"><th class="l zh1" rowspan="2">SKU</th><th class="c ' + (lk ? 'zh2' : 'zh3') + '" colspan="3">' + (lk ? 'Lũy kế' : 'Ngày D vs D-1') + '</th><th class="c zh4" colspan="2">Tồn kho</th><th class="c zh1" colspan="' + gdvs.length + '">' + (lk ? 'DT BQ/CH lũy kế' : '%Δ DT D vs D-1') + ' theo ' + hmLbl + '</th></tr><tr>' + (lk ? '<th class="zs2">DT lũy kế</th><th class="zs2">DT BQ/CH</th><th class="zs2">% CH bán</th><th class="zs4">GT tồn</th><th class="zs4" title="Tồn ÷ giá vốn bán TB/ngày 30 ngày">DIO</th>' : '<th class="zs3">DT D</th><th class="zs3">DT tăng thêm</th><th class="zs3">%Δ DT</th><th class="zs4">GT tồn</th><th class="zs4" title="SL tồn ÷ SL bán TB 2 ngày gần nhất (D, D-1)">DIO 2N</th>') + gdvs.map(g => '<th class="hc" title="' + esc((hmDim === 'code' ? g + ' - ' : '') + gMap.get(g)) + '">' + hmHead(g) + '</th>').join('') + '</tr></thead><tbody>';
     for (const r of list){ const mask = new Uint8Array(M.arts.length); mask[r.ai] = 1;
       const byG = new Map(aggregate(M, {...flt, artOK:mask}, hmDim).rows.map(g => [g.key, g]));
       r.gdvWorst = [...byG.values()].filter(g => g.key && g.key !== '(Trống)').map(g => [g.key, g.f[F.rD] - g.f[F.rD1]]).sort((a,b) => a[1] - b[1]).slice(0, 2).filter(x => x[1] < 0);
