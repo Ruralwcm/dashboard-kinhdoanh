@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Key Sale KM v4.29.0 — Win Rural</title>
+<title>Key Sale KM v4.29.1 — Win Rural</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 [hidden]{display:none!important}
@@ -538,7 +538,7 @@ body.dashOn .ctlBar .ctl:first-child,body.dashOn .ctl-sec,body.dashOn .ctl-sw{di
 <header class="hd">
   <div class="hd-in">
     <img id="lg" class="lg" alt="WinMart+">
-    <div class="tt">Key Sale KM <span id="fileinfo" title="">v4.29.0 · Win Rural · Theo dõi CTKM</span></div>
+    <div class="tt">Key Sale KM <span id="fileinfo" title="">v4.29.1 · Win Rural · Theo dõi CTKM</span></div>
     <div class="mainTabs hdTabs" id="mainTabs" role="tablist"></div>
     <div class="mt">
       <div class="ts hd-ts" title="Cỡ chữ">
@@ -1124,15 +1124,15 @@ const _EFF = d => _DM[d] || d;
 const effDim = () => _DM[S.dim] || S.dim;
 const LV_OF_VIEW = {full:'F', compact:'C', lite:'L'};
 
-const COLGROUPS = [
+const COLGROUPS = [   /* thứ tự trái → phải: (Stock · Độ phủ · FC) → Sale lũy kế → Sale D · D-1 */
   ['hq','Xếp hạng',[['rankT','Rank Total','rank'],['rankD1','Rank D-1','rank'],['rankD','Rank D','rank'],['rkTrend','Xu hướng','rkt'],['iV_D','Index DT D','idx'],['iQ_D','Index SL D','idx'],['iV_T','Index DT LK','idx'],['kmS_T','% KM/Total LK','pct'],['kmS_D','% KM/Total D','pct']]],
+  ['tk','Tồn kho',[['sQ','SL tồn','q'],['sV','GT tồn','v'],['tsQ','SL tồn TBCH','t'],['tsV','GT tồn TBCH','tv'],['dio','DIO','dio']]],
+  ['dr','Độ phủ',[['nDR','CH đạt Min TB','t1'],['dr','Độ phủ (DR)','pct']]],
+  ['fc','FC',[['fcQ','SL FC','q'],['fcV','GT FC','v']]],
   ['lk','Sale lũy kế',[['qLK','SL','q'],['rLK','Doanh thu','v'],['tqLK','SL TBCH','t'],['trLK','DT TBCH','tv']]],
   ['ns','No sale',[['nNo','CH×mã no sale','q'],['noSale','% No sale','nspct']]],
   ['d','Sale D',[['qD','SL','q'],['rD','DT','v'],['tqD','SL TBCH','t'],['trD','DT TBCH','tv']]],
   ['d1','Sale D-1',[['qD1','SL','q'],['rD1','DT','v'],['tqD1','SL TBCH','t'],['trD1','DT TBCH','tv']]],
-  ['tk','Tồn kho',[['sQ','SL tồn','q'],['sV','GT tồn','v'],['tsQ','SL tồn TBCH','t'],['tsV','GT tồn TBCH','tv'],['dio','DIO','dio']]],
-  ['dr','Độ phủ',[['nDR','CH đạt Min TB','t1'],['dr','Độ phủ (DR)','pct']]],
-  ['fc','FC',[['fcQ','SL FC','q'],['fcV','GT FC','v']]],
   ['po','PO',[['poQ','SL PO','q'],['poV','GT PO','v'],['ndQ','SL chờ giao','q'],['ndV','GT chờ giao','v']]],
   ['val','Validate',[['vQ','SL Validate','q'],['vV','GT Validate','v']]],
 ];
@@ -1356,7 +1356,7 @@ const TREND_GROUP = ['tr','🔥 Trending',[['trendScore','Điểm hạng','trs']
 const S = {
   M:null, dim:'dash', detDim:'overall', scope:'km', tb:'all', unit:1000,
   status:new Set(['Chạy KM','Ngày KM cuối']),
-  cols:new Set(COLGROUPS.map(g=>g[0]).filter(k => !['hq','fc','po','val'].includes(k))),   /* mặc định: Trend · Sale · No Sale · Sale D · D-1 · Stock · Độ phủ */
+  cols:new Set(COLGROUPS.map(g=>g[0]).filter(k => !['hq','fc','po','val'].includes(k))),   /* mặc định: Trend · Stock · Độ phủ · Sale · No Sale · Sale D · D-1 */
   sort:{k:'trendScore',asc:true}, page:200,
   cg:new Set(['brand','size','price','group']),
   open:new Set(), rows:[], fileName:'', tips:{},
