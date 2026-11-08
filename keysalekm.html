@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Key Sale KM v4.29.1 — Win Rural</title>
+<title>Key Sale KM v4.29.2 — Win Rural</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 [hidden]{display:none!important}
@@ -538,7 +538,7 @@ body.dashOn .ctlBar .ctl:first-child,body.dashOn .ctl-sec,body.dashOn .ctl-sw{di
 <header class="hd">
   <div class="hd-in">
     <img id="lg" class="lg" alt="WinMart+">
-    <div class="tt">Key Sale KM <span id="fileinfo" title="">v4.29.1 · Win Rural · Theo dõi CTKM</span></div>
+    <div class="tt">Key Sale KM <span id="fileinfo" title="">v4.29.2 · Win Rural · Theo dõi CTKM</span></div>
     <div class="mainTabs hdTabs" id="mainTabs" role="tablist"></div>
     <div class="mt">
       <div class="ts hd-ts" title="Cỡ chữ">
@@ -1124,7 +1124,7 @@ const _EFF = d => _DM[d] || d;
 const effDim = () => _DM[S.dim] || S.dim;
 const LV_OF_VIEW = {full:'F', compact:'C', lite:'L'};
 
-const COLGROUPS = [   /* thứ tự trái → phải: (Stock · Độ phủ · FC) → Sale lũy kế → Sale D · D-1 */
+const COLGROUPS = [   /* thứ tự trái → phải: (Stock · Độ phủ · FC) → Sale lũy kế → No sale → Trend → Sale D · D-1 */
   ['hq','Xếp hạng',[['rankT','Rank Total','rank'],['rankD1','Rank D-1','rank'],['rankD','Rank D','rank'],['rkTrend','Xu hướng','rkt'],['iV_D','Index DT D','idx'],['iQ_D','Index SL D','idx'],['iV_T','Index DT LK','idx'],['kmS_T','% KM/Total LK','pct'],['kmS_D','% KM/Total D','pct']]],
   ['tk','Tồn kho',[['sQ','SL tồn','q'],['sV','GT tồn','v'],['tsQ','SL tồn TBCH','t'],['tsV','GT tồn TBCH','tv'],['dio','DIO','dio']]],
   ['dr','Độ phủ',[['nDR','CH đạt Min TB','t1'],['dr','Độ phủ (DR)','pct']]],
@@ -1356,7 +1356,7 @@ const TREND_GROUP = ['tr','🔥 Trending',[['trendScore','Điểm hạng','trs']
 const S = {
   M:null, dim:'dash', detDim:'overall', scope:'km', tb:'all', unit:1000,
   status:new Set(['Chạy KM','Ngày KM cuối']),
-  cols:new Set(COLGROUPS.map(g=>g[0]).filter(k => !['hq','fc','po','val'].includes(k))),   /* mặc định: Trend · Stock · Độ phủ · Sale · No Sale · Sale D · D-1 */
+  cols:new Set(COLGROUPS.map(g=>g[0]).filter(k => !['hq','fc','po','val'].includes(k))),   /* mặc định: Stock · Độ phủ · Sale · No Sale · Trend · Sale D · D-1 */
   sort:{k:'trendScore',asc:true}, page:200,
   cg:new Set(['brand','size','price','group']),
   open:new Set(), rows:[], fileName:'', tips:{},
@@ -1853,7 +1853,12 @@ function visibleGroups(){
   const base = COLGROUPS.filter(g => S.cols.has(g[0])).map(([gk, l, cols]) => [gk, l, filterCols(gk, cols).filter(([k]) => !drop(gk, k))]).filter(g => g[2].length);
   if (S.trOff) return base;
   const tcols = filterCols(TREND_GROUP[0], TREND_GROUP[2], 'trend');
-  return [[TREND_GROUP[0], TREND_GROUP[1], tcols], ...base];
+  /* Trend đứng ngay sau No sale (nếu No sale tắt: sau Sale lũy kế, rồi tới trước Sale D) */
+  const tg = [TREND_GROUP[0], TREND_GROUP[1], tcols];
+  let at = base.findIndex(g => g[0] === 'ns');
+  if (at < 0) at = base.findIndex(g => g[0] === 'lk');
+  if (at < 0) { const j = base.findIndex(g => ['d','d1','po','val'].includes(g[0])); at = j < 0 ? base.length - 1 : j - 1; }
+  return [...base.slice(0, at + 1), tg, ...base.slice(at + 1)];
 }
 function kmTip(a, k){
   let h = '<div class="tt-h">' + esc(a.code) + ' - ' + esc(a.name) + '</div><div class="tt-s">' + esc(a.mch3) + (a.maQuyDoi?' · Quy đổi: '+esc(a.maQuyDoi):'') + (a.qdMembers ? ' · Gộp ' + a.qdMembers.length + ' mã: ' + esc(a.qdMembers.join(', ')) : '') + '</div>';
@@ -2863,7 +2868,7 @@ function initUI(){
 
   $('fScope').addEventListener('change', () => { S.scope = $('fScope').value; $('msStatus').classList.toggle('dim', S.scope === 'all'); render(); });
 
-  $('secChips').innerHTML = '<button type="button" data-c="tr" aria-pressed="' + !S.trOff + '" title="Bật/tắt section: Trending">Trend</button>' + COLGROUPS.map(([k,l]) => '<button type="button" data-c="' + k + '" aria-pressed="' + S.cols.has(k) + '" title="Bật/tắt section: ' + l + '">' + (SEC_SHORT[k] || l) + '</button>').join('');
+  $('secChips').innerHTML = COLGROUPS.map(([k,l]) => '<button type="button" data-c="' + k + '" aria-pressed="' + S.cols.has(k) + '" title="Bật/tắt section: ' + l + '">' + (SEC_SHORT[k] || l) + '</button>' + (k === 'ns' ? '<button type="button" data-c="tr" aria-pressed="' + !S.trOff + '" title="Bật/tắt section: Trending">Trend</button>' : '')).join('');
   $('secChips').addEventListener('click', e => { const b = e.target.closest('button[data-c]'); if (!b) return; const c = b.dataset.c;
     if (c === 'tr'){ S.trOff = !S.trOff; b.setAttribute('aria-pressed', String(!S.trOff)); savePrefs(); if (S.M) renderTable(); return; } S.cols.has(c) ? S.cols.delete(c) : S.cols.add(c); b.setAttribute('aria-pressed', String(S.cols.has(c))); savePrefs(); if (S.M) renderTable(); });
 
