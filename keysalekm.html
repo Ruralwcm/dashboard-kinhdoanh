@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Key Sale KM v4.29.2 — Win Rural</title>
+<title>Key Sale KM v4.29.3 — Win Rural</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 [hidden]{display:none!important}
@@ -538,7 +538,7 @@ body.dashOn .ctlBar .ctl:first-child,body.dashOn .ctl-sec,body.dashOn .ctl-sw{di
 <header class="hd">
   <div class="hd-in">
     <img id="lg" class="lg" alt="WinMart+">
-    <div class="tt">Key Sale KM <span id="fileinfo" title="">v4.29.2 · Win Rural · Theo dõi CTKM</span></div>
+    <div class="tt">Key Sale KM <span id="fileinfo" title="">v4.29.3 · Win Rural · Theo dõi CTKM</span></div>
     <div class="mainTabs hdTabs" id="mainTabs" role="tablist"></div>
     <div class="mt">
       <div class="ts hd-ts" title="Cỡ chữ">
@@ -1527,7 +1527,7 @@ function start(M, demo){
   $('drop').hidden = true; $('app').hidden = false; $('btnExport').hidden = false; $('btnSnap').hidden = !!demo;
   $('demoBanner').hidden = !demo;
   $('fileinfo').textContent = demo ? 'Dữ liệu demo' : S.fileName; $('fileinfo').title = $('fileinfo').textContent;
-  const w = $('warnBox'); w.hidden = !M.warn.length; w.textContent = M.warn.join(' ');
+  renderWarn();
   const kmArts = M.arts.filter(a => a.kms.length);
   fillSelect($('fGroup'), uniq(kmArts.flatMap(a => a.kms.map(k => k.group))), 'Tất cả');
   { const vals = uniq(kmArts.flatMap(a => a.kms.map(k => k.key))); S.keyVals = vals; if (S.keySel) S.keySel = new Set([...S.keySel].filter(v => vals.includes(v))); if (S.keySel && !S.keySel.size) S.keySel = null;
@@ -1604,7 +1604,16 @@ async function loadNhomSrc(){
     for (let i = 1; i < rn.length; i++){ const r = rn[i], k = skey(r[0]), n = String(r[2] || '').trim().toUpperCase(); if (k && NGRE.test(n)) byPair.set(k + '|' + mchKey(r[1]), n); }
     S.nhomSrc = {byStore, byPair, spd, at: new Date()}; S.nhomState = 'ok';
   } catch(e){ console.warn('Không đọc được Sheet gốc', e); S.nhomState = 'err'; S.nhomErr = String(e.message || e); }
-  if (S.M){ applyNhom(S.M); render(); }
+  if (S.M){ applyNhom(S.M); renderWarn(); render(); }
+}
+/* Cảnh báo thiếu Nhóm DT chỉ hiện khi KHÔNG có phân nhóm nào (file upload thiếu cột VÀ Sheet gốc không đọc được) */
+const NHOM_WARN_RE = /^STORELIST không có cột Nhóm DT/;
+function renderWarn(){ const M = S.M, w = $('warnBox'); if (!M || !w) return;
+  const hasNhom = M.stores.some(s => s.active && (s.nhomM3 || (s.nhomDt && s.nhomDt !== 'NSO')));
+  const list = M.warn.filter(x => !NHOM_WARN_RE.test(x));
+  if (M.warn.length !== list.length && !hasNhom && S.nhomState !== 'loading')
+    list.push('Chưa có phân nhóm CH: STORELIST trong file không có cột Nhóm DT và Sheet gốc (Storeslist/PhanNhomCH) ' + (S.nhomState === 'err' ? 'không đọc được' : 'không có dữ liệu') + ' — Index xếp hạng đang so với toàn bộ CH.');
+  w.hidden = !list.length; w.textContent = list.join(' ');
 }
 function applyNhom(M){
   const src = S.nhomSrc; if (!src) return;
