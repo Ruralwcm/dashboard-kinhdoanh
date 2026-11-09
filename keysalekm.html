@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Key Sale KM v4.29.3 — Win Rural</title>
+<title>Key Sale KM v4.30.0 — Win Rural</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 [hidden]{display:none!important}
@@ -538,7 +538,7 @@ body.dashOn .ctlBar .ctl:first-child,body.dashOn .ctl-sec,body.dashOn .ctl-sw{di
 <header class="hd">
   <div class="hd-in">
     <img id="lg" class="lg" alt="WinMart+">
-    <div class="tt">Key Sale KM <span id="fileinfo" title="">v4.29.3 · Win Rural · Theo dõi CTKM</span></div>
+    <div class="tt">Key Sale KM <span id="fileinfo" title="">v4.30.0 · Win Rural · Theo dõi CTKM</span></div>
     <div class="mainTabs hdTabs" id="mainTabs" role="tablist"></div>
     <div class="mt">
       <div class="ts hd-ts" title="Cỡ chữ">
@@ -546,7 +546,7 @@ body.dashOn .ctlBar .ctl:first-child,body.dashOn .ctl-sec,body.dashOn .ctl-sw{di
       </div>
       <button class="btn" id="btnFilters" aria-expanded="false">⚙ Bộ lọc <span id="fCount"></span></button>
       <button class="btn pri" id="btnSnap" hidden>💾 Lưu bản xem</button>
-      <button class="btn" id="btnExport" hidden>⬇ Lưu Excel</button>
+      <button class="btn" id="btnExport" hidden>⬇ Lưu Excel</button><select id="xlFmt" class="btn" style="padding:6px 6px" title="Định dạng file khi Lưu/Xuất Excel (áp dụng cho Báo cáo, Danh mục CTKM, SL Validate)"><option value="xlsx">.xlsx</option><option value="xlsb">.xlsb</option><option value="xls">.xls</option></select>
       <span class="hdSep"></span>
       <button class="btn" id="btnCtkm" title="Danh mục CTKM (cần đăng nhập)">🗂 Danh mục</button>
       <button class="btn" id="btnVal" title="SL Validate theo CH × mã (xem tự do; upload/sửa cần đăng nhập)">✅ SL Validate</button>
@@ -569,11 +569,11 @@ body.dashOn .ctlBar .ctl:first-child,body.dashOn .ctl-sec,body.dashOn .ctl-sw{di
   </div>
 </div>
 
-<input type="file" id="file" accept=".xlsx,.xls" hidden>
+<input type="file" id="file" accept=".xlsx,.xlsm,.xlsb,.xls,.csv" hidden>
 
 <div id="drop">
   <h1>📊 Key Sale KM</h1>
-  <p>Kéo-thả file Excel (có sheet <b>SALE</b>, <b>CTKM</b>, <b>FC</b>) vào đây, hoặc bấm mở file.<br>Số liệu được xử lý hoàn toàn trên máy bạn — không gửi đi đâu.</p>
+  <p>Kéo-thả file Excel <b>.xlsx / .xlsb / .xls</b> (có sheet <b>SALE</b>, <b>CTKM</b>, <b>FC</b>) vào đây, hoặc bấm mở file.<br>Số liệu được xử lý hoàn toàn trên máy bạn — không gửi đi đâu.</p>
   <div class="row">
     <button class="btn pri" id="btnOpen2">📂 Chọn file Excel</button>
     <button class="btn" id="btnDemo2">▶ Xem với dữ liệu demo</button>
@@ -1449,6 +1449,12 @@ async function loadFile(file){
   } catch(e){ console.error(e); alertBox('Không đọc được file: ' + e.message); }
   hideOverlay();
 }
+/* Lưu workbook theo định dạng chọn ở #xlFmt: xlsx / xlsb / xls (BIFF8 giới hạn 65.536 dòng × 256 cột → tự chuyển .xlsx nếu vượt) */
+function xlFmt(){ const el = document.getElementById('xlFmt'); return el && ['xlsx','xlsb','xls'].includes(el.value) ? el.value : 'xlsx'; }
+function saveWb(wb, base){ let f = xlFmt();
+  if (f === 'xls'){ let big = false; for (const n of wb.SheetNames){ const ref = wb.Sheets[n]['!ref']; if (!ref) continue; const r = XLSX.utils.decode_range(ref); if (r.e.r >= 65536 || r.e.c >= 256){ big = true; break; } }
+    if (big){ alert('Dữ liệu vượt giới hạn của .xls (65.536 dòng × 256 cột) → lưu sang .xlsx.'); f = 'xlsx'; } }
+  XLSX.writeFile(wb, base + '.' + f, {bookType: f === 'xls' ? 'biff8' : f, compression: f !== 'xls'}); }
 function alertBox(msg){ const b = $('warnBox'); b.textContent = msg; b.hidden = false; $('app').hidden = false; }
 
 /* ---- cascade filters ---- */
@@ -2041,7 +2047,7 @@ function exportExcel(){
   aoa.push(tl.concat(cols.map(([k,,t]) => val(t, S.totalRow[k]))));
   for (const r of S.rows) aoa.push(lead(r).concat(cols.map(([k,,t]) => val(t, r[k]))));
   const ws = XLSX.utils.aoa_to_sheet(aoa); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Key Sale KM');
-  XLSX.writeFile(wb, 'KeySaleKM_' + S.dim + (ed==='cg' ? '_gop' : '') + '_' + new Date().toISOString().slice(0,10) + '.xlsx');
+  saveWb(wb, 'KeySaleKM_' + S.dim + (ed==='cg' ? '_gop' : '') + '_' + new Date().toISOString().slice(0,10));
 }
 
 /* ---- demo ---- */
@@ -2708,7 +2714,7 @@ function renderCtkm(){
   let h = '<section class="dsec"><h3>🗂 Danh mục CTKM <span style="font-weight:500;font-size:12px;color:var(--ink2)">· ' + fmtQ(C.r.length) + ' dòng · ' + fmtQ(new Set(C.r.map(r => r.v[1])).size) + ' mã' + (C.at ? ' · lưu lúc ' + new Date(C.at).toLocaleString('vi-VN') : ' · từ file ' + esc(C.src || '')) + '</span></h3>'
     + '<div class="ctbar"><input type="search" id="ctQ" placeholder="Tìm mã, tên, group, cơ chế…" value="' + esc(S.ctQ || '') + '">'
     + '<button class="btn pri" id="ctAdd">＋ Thêm dòng</button><button class="btn" id="ctEq">🔍 Check SKUs tương đương</button><button class="btn" id="ctApply" title="Cập nhật nhóm, giá, ngày, Min, mã quy đổi vào các tab báo cáo">↻ Áp dụng vào báo cáo</button>'
-    + '<button class="btn" id="ctExp">⬇ Xuất Excel</button><label class="btn" style="cursor:pointer">📂 Nhập Excel<input type="file" id="ctImp" accept=".xlsx,.xls,.xlsb" hidden></label><button class="btn" id="ctReset" title="Bỏ mọi chỉnh sửa, nạp lại danh sách gốc">↺ Khôi phục gốc</button>'
+    + '<button class="btn" id="ctExp">⬇ Xuất Excel</button><label class="btn" style="cursor:pointer">📂 Nhập Excel<input type="file" id="ctImp" accept=".xlsx,.xlsm,.xlsb,.xls,.csv" hidden></label><button class="btn" id="ctReset" title="Bỏ mọi chỉnh sửa, nạp lại danh sách gốc">↺ Khôi phục gốc</button>'
     + '<span class="ctinfo">' + (q ? fmtQ(vis.length) + ' dòng khớp · ' : '') + (nDirty ? '<b style="color:var(--warn)">' + nDirty + ' dòng đã sửa/thêm</b> · ' : '') + '<span id="ctCloud" class="cloudb"></span></span></div>';
   if (S.ctEqOn){ const G = ctEquiv(), open = G.filter(x => !x.done);
     h += '<div class="dsum">🔍 Tìm thấy <b>' + G.length + '</b> nhóm SKU tương đương (cùng thương hiệu · cùng GROUP KM · giá KM lệch ≤ 3% · size lệch ≤ 15% · tên giống ≥ 40%) — <b>' + open.length + '</b> nhóm chưa gộp mã quy đổi. Đề xuất mã quy đổi = mã bán tốt nhất trong nhóm. <a href="#" id="ctEqClose">Đóng</a></div>';
@@ -2730,7 +2736,7 @@ function renderCtkm(){
   const cl = $('ctEqClose'); if (cl) cl.onclick = e => { e.preventDefault(); S.ctEqOn = false; renderCtkm(); };
   $('ctApply').onclick = () => { const r = ctApplyToReport(); C.applied = true; ctSave(); if (r){ r.g = applyQuyDoi(S.M); fillSelect($('fGroup'), uniq(S.M.arts.filter(a => a.kms.length).flatMap(a => a.kms.map(k => k.group))), 'Tất cả'); } if (r) alert('Đã áp dụng danh mục cho ' + r.n + ' mã trong báo cáo; ' + (r.g || 0) + ' nhóm mã quy đổi được gộp số liệu.' + (r.add ? ' ' + r.add + ' mã chưa có số liệu bán/tồn nên chưa hiện trong báo cáo.' : '')); };
   $('ctReset').onclick = () => { if (!confirm('Bỏ toàn bộ chỉnh sửa và nạp lại danh sách CTKM gốc?')) return; try { localStorage.removeItem(CT_KEY); } catch(e){} S.ct = null; renderCtkm(); };
-  $('ctExp').onclick = () => { if (typeof XLSX === 'undefined') return alert('Chưa tải được thư viện Excel.'); const aoa = [CT_COLS.map(c => c[0]).concat(['Trạng thái'])].concat(ctLoad().r.map(r => r.v.map((x, i) => CT_COLS[i][2] === 'n' && x !== '' ? Number(x) : x).concat([ctStatus(r.v)[0]]))); const ws = XLSX.utils.aoa_to_sheet(aoa), wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Danh sách CTKM'); XLSX.writeFile(wb, 'Danh_sach_CTKM_' + new Date().toISOString().slice(0,10) + '.xlsx'); };
+  $('ctExp').onclick = () => { if (typeof XLSX === 'undefined') return alert('Chưa tải được thư viện Excel.'); const aoa = [CT_COLS.map(c => c[0]).concat(['Trạng thái'])].concat(ctLoad().r.map(r => r.v.map((x, i) => CT_COLS[i][2] === 'n' && x !== '' ? Number(x) : x).concat([ctStatus(r.v)[0]]))); const ws = XLSX.utils.aoa_to_sheet(aoa), wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Danh sách CTKM'); saveWb(wb, 'Danh_sach_CTKM_' + new Date().toISOString().slice(0,10)); };
   $('ctImp').onchange = async e => { const f = e.target.files[0]; if (!f) return; if (typeof XLSX === 'undefined') return alert('Chưa tải được thư viện Excel.');
     try { const wb = XLSX.read(await f.arrayBuffer(), {type:'array', cellDates:true}), ws = wb.Sheets[wb.SheetNames[0]], aoa = XLSX.utils.sheet_to_json(ws, {header:1, raw:true, defval:''});
       const hd = (aoa[0] || []).map(x => vnFold(String(x).trim())), map = CT_COLS.map(c => hd.indexOf(vnFold(c[0])));
@@ -2795,7 +2801,7 @@ function renderVal(){
   const nCH = new Set(vis.map(r => r.v[0])).size, nSku = new Set(vis.map(r => r.v[2])).size;
   let h = '<section class="dsec"><h3>✅ SL Validate <span style="font-weight:500;font-size:12px;color:var(--ink2)">· ' + fmtQ(V.r.length) + ' dòng' + (V.at ? ' · lưu lúc ' + new Date(V.at).toLocaleString('vi-VN') : '') + (V.src ? ' · ' + esc(V.src) : '') + (V.applied ? ' · <span class="cell-good">đã áp dụng vào báo cáo</span>' : '') + '</span></h3>'
     + '<div class="ctbar"><input type="search" id="valQ" placeholder="Tìm mã CH, tên CH, mã hàng, tên SP…" value="' + esc(S.valQ || '') + '">'
-    + (can ? '<label class="btn pri" style="cursor:pointer">📂 Upload Excel<input type="file" id="valImp" accept=".xlsx,.xls,.xlsb,.csv" hidden></label><button class="btn" id="valAdd">＋ Thêm dòng</button><button class="btn" id="valApply" title="Thay SL/GT FC và Validate của các cặp CH × mã trong danh sách vào báo cáo">↻ Áp dụng vào báo cáo</button><button class="btn" id="valClear">🗑 Xoá hết</button>'
+    + (can ? '<label class="btn pri" style="cursor:pointer">📂 Upload Excel<input type="file" id="valImp" accept=".xlsx,.xlsm,.xlsb,.xls,.csv" hidden></label><button class="btn" id="valAdd">＋ Thêm dòng</button><button class="btn" id="valApply" title="Thay SL/GT FC và Validate của các cặp CH × mã trong danh sách vào báo cáo">↻ Áp dụng vào báo cáo</button><button class="btn" id="valClear">🗑 Xoá hết</button>'
            : '<button class="btn pri" id="valLogin">🔒 Đăng nhập để upload / sửa</button>')
     + '<button class="btn" id="valExp">⬇ Xuất Excel</button><span id="valCloud" class="cloudb"></span><span class="ctinfo">' + fmtQ(nCH) + ' CH · ' + fmtQ(nSku) + ' mã · SL FC <b>' + fmtQ(sFC) + '</b> · SL Validate <b>' + fmtQ(sV) + '</b> (' + (sFC ? fmtPct(sV / sFC) : '—') + ') · GT Validate <b>' + fmtV(sum(8)) + '</b></span></div>';
   if (!V.r.length) h += '<div class="dnone">Chưa có dữ liệu. ' + (can ? 'Bấm <b>Upload Excel</b> (cột: Mã CH · Tên CH · Mã hàng · Tên sản phẩm · ĐVT · SL FC · GT FC · SL Validate · GT Validate).' : 'Đăng nhập để upload file.') + '</div>';
@@ -2810,7 +2816,7 @@ function renderVal(){
   let tq; $('valQ').oninput = e => { clearTimeout(tq); tq = setTimeout(() => { S.valQ = e.target.value; renderVal(); const x = $('valQ'); x.focus(); x.setSelectionRange(x.value.length, x.value.length); }, 250); };
   const lg = $('valLogin'); if (lg) lg.onclick = () => needLogin(renderVal);
   const all = $('valAll'); if (all) all.onclick = () => { S.valAll = true; renderVal(); };
-  $('valExp').onclick = () => { if (typeof XLSX === 'undefined') return alert('Chưa tải được thư viện Excel.'); const aoa = [VAL_COLS.map(c => c[0])].concat(V.r.map(r => r.v.map((x, i) => VAL_COLS[i][1] === 'n' && x !== '' ? Number(x) : x))); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aoa), 'SL Validate'); XLSX.writeFile(wb, 'SL_Validate_' + new Date().toISOString().slice(0, 10) + '.xlsx'); };
+  $('valExp').onclick = () => { if (typeof XLSX === 'undefined') return alert('Chưa tải được thư viện Excel.'); const aoa = [VAL_COLS.map(c => c[0])].concat(V.r.map(r => r.v.map((x, i) => VAL_COLS[i][1] === 'n' && x !== '' ? Number(x) : x))); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aoa), 'SL Validate'); saveWb(wb, 'SL_Validate_' + new Date().toISOString().slice(0, 10)); };
   if (!can) return;
   $('valAdd').onclick = () => { V.r.unshift({id: V.seq++, v: VAL_COLS.map(() => ''), isNew: 1}); valSave(); S.valQ = ''; renderVal(); setTimeout(() => el.querySelector('tbody tr input[data-c="0"]')?.focus(), 30); };
   $('valClear').onclick = () => { if (!confirm('Xoá toàn bộ ' + V.r.length + ' dòng SL Validate?')) return; V.r = []; V.applied = false; valSave(); renderVal(); };
@@ -2992,6 +2998,7 @@ function initUI(){
 
   updateTabUI();
 
+  { const xf = $('xlFmt'); try { const v = localStorage.getItem('ksk_xlFmt'); if (v) xf.value = v; } catch(e){} xf.onchange = () => { try { localStorage.setItem('ksk_xlFmt', xf.value); } catch(e){} }; }
   $('btnExport').onclick = exportExcel; $('btnSnap').onclick = saveSnapshot;
 
   const dz = $('drop');
