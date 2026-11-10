@@ -1,117 +1,125 @@
 <!DOCTYPE html>
-<html lang="vi" data-theme="light">
+<html lang="vi">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>FC Pipeline — Dashboard Kinh Doanh</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-:root{
-  --bg:#f2f4f8;--card:#fff;--text:#0f1e3d;--text2:#64748b;--border:#e2e8f0;
-  --navy:#0b1b4d;--navy2:#1e3a8a;--accent:#10b981;--accent2:#f59e0b;
-  --red:#ef4444;--redbg:#fee2e2;--greenbg:#d1fae5;--orangebg:#fef3c7;
-  --shadow:0 1px 3px rgba(15,30,61,.08),0 4px 12px rgba(15,30,61,.04);
-  --radius:14px;
-  --hh:62px;
-}
+:root{--red:#d71920;--red2:#b71c1c;--navy:#1a3c6e;--gold:#ffc107;--green:#1e8e4e;
+  --bg:#f4f6fb;--card:#fff;--line:#e5e9f2;--txt:#1c2434;--mut:#6b7280;
+  --shadow:0 1px 6px rgba(20,30,60,.04);--shadow2:0 6px 18px rgba(26,60,110,.16)}
 *{margin:0;padding:0;box-sizing:border-box}
-html,body{height:100%}
-body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column;height:100vh;overflow:hidden}
-header{background:linear-gradient(120deg,var(--navy) 0%,var(--navy2) 100%);color:#fff;height:var(--hh);min-height:var(--hh);padding:0 22px;display:flex;align-items:center;justify-content:space-between;gap:16px;box-shadow:0 4px 20px rgba(11,27,77,.25);z-index:100}
-.hl{display:flex;align-items:center;gap:11px;min-width:0}
-.logo.brand{width:auto;height:34px;flex:0 0 auto;display:flex;align-items:center;padding:0}
-.logo.brand img{height:34px;width:auto;display:block;border-radius:6px}
-.hl>div{min-width:0}
-h1{font-size:16px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:44vw}
-.sub{font-size:11px;opacity:.72;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:44vw}
-nav{display:flex;gap:5px;align-items:center;flex-wrap:nowrap}
-nav a{display:inline-flex;align-items:center;justify-content:center;height:32px;padding:0 12px;border-radius:9px;font-size:12px;font-weight:600;text-decoration:none;color:#cbd5e1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);transition:.15s;white-space:nowrap}
-nav a:hover{background:rgba(255,255,255,.16);color:#fff}
+body{font-family:'Be Vietnam Pro',system-ui,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;display:flex;flex-direction:column;-webkit-font-smoothing:antialiased}
+
+header{background:linear-gradient(135deg,var(--navy),#2c4a8a);color:#fff;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;gap:14px;box-shadow:var(--shadow2);z-index:100;flex-wrap:wrap}
+.hl{display:flex;align-items:center;gap:10px;min-width:0}
+.hl img{height:32px;width:auto;border-radius:6px}
+.hl h1{font-size:16px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:40vw}
+.hl .sub{font-size:10.5px;opacity:.78;margin-top:1px;max-width:40vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+nav{display:flex;gap:4px;flex-wrap:wrap}
+nav a{display:inline-flex;align-items:center;justify-content:center;height:30px;padding:0 11px;border-radius:8px;font-size:11.5px;font-weight:600;text-decoration:none;color:rgba(255,255,255,.72);border:1px solid rgba(255,255,255,.15);transition:.15s;white-space:nowrap}
+nav a:hover,nav a.on{background:rgba(255,255,255,.16);color:#fff}
 nav a.on{background:#fff;color:var(--navy);border-color:#fff}
-main{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;width:100%;padding:14px 22px 18px}
-.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:11px;margin-bottom:14px}
-.kpi{background:var(--card);border-radius:var(--radius);padding:12px 14px;box-shadow:var(--shadow);border:1px solid var(--border);position:relative;overflow:hidden}
-.kpi::after{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--c,#3b82f6)}
-.kpi .lbl{font-size:10.5px;color:var(--text2);text-transform:uppercase;font-weight:700;letter-spacing:.6px}
-.kpi .val{font-size:21px;font-weight:800;letter-spacing:-.8px;margin-top:4px}
-.kpi .note{font-size:11px;color:var(--text2);margin-top:3px}
-.card{background:var(--card);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);border:1px solid var(--border);margin-bottom:14px}
-.ch{display:flex;justify-content:space-between;align-items:center;margin-bottom:11px;gap:10px;flex-wrap:wrap}
-.ch h3{font-size:14px;font-weight:700}
-.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
-.filters select,.filters input{padding:8px 11px;border-radius:9px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:12.5px;font-family:inherit;cursor:pointer}
-.filters input{cursor:text}
-.filters button{padding:8px 14px;border-radius:9px;border:none;background:linear-gradient(135deg,#10b981,#059669);color:#fff;font-size:12.5px;font-weight:600;cursor:pointer}
-.filters button.ghost{background:var(--card);color:var(--text);border:1px solid var(--border)}
-.filters .cnt{margin-left:auto;font-size:12px;color:var(--text2);font-weight:600}
-table{width:100%;border-collapse:collapse;font-size:12.5px}
-th,td{padding:7px 9px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
-th{color:var(--text2);font-size:10.5px;text-transform:uppercase;font-weight:700;letter-spacing:.4px;position:sticky;top:0;background:var(--card);z-index:2}
-tbody tr:hover{background:rgba(59,130,246,.05)}
+
+main{flex:1;width:100%;max-width:1300px;margin:0 auto;padding:14px 16px 18px;overflow-y:auto}
+
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.kpi{background:var(--card);border-radius:12px;padding:13px 15px;box-shadow:var(--shadow);border:1px solid var(--line);position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:0 3px 3px 0}
+.kpi.c1::before{background:#3b82f6}.kpi.c2::before{background:var(--green)}.kpi.c3::before{background:var(--gold)}.kpi.c4::before{background:var(--red)}
+.kpi .lbl{font-size:10px;color:var(--mut);text-transform:uppercase;font-weight:700;letter-spacing:.5px}
+.kpi .val{font-size:20px;font-weight:800;letter-spacing:-.6px;margin-top:3px}
+.kpi .note{font-size:10.5px;color:var(--mut);margin-top:2px}
+
+.card{background:var(--card);border-radius:12px;padding:14px 16px;box-shadow:var(--shadow);border:1px solid var(--line);margin-bottom:12px}
+.card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:11px;gap:10px;flex-wrap:wrap}
+.card-head h3{font-size:14px;font-weight:700;color:var(--navy)}
+.card-head .btns{display:flex;gap:6px}
+.card-head .btns button{padding:7px 13px;border-radius:8px;border:1px solid var(--line);background:var(--card);font-size:12px;font-weight:600;cursor:pointer;color:var(--mut);font-family:inherit;transition:.15s}
+.card-head .btns button.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+
+.filters{display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.filters select,.filters input{padding:7px 10px;border-radius:8px;border:1.5px solid var(--line);background:#fafbfd;color:var(--txt);font-size:12px;font-family:inherit;outline:none}
+.filters select{cursor:pointer;min-width:110px}.filters input{cursor:text;min-width:160px}
+.filters select:focus,.filters input:focus{border-color:var(--navy);background:#fff}
+.filters .cnt{margin-left:auto;font-size:11.5px;color:var(--mut);font-weight:600}
+
+.scroll{overflow:auto;max-height:calc(100vh - 370px);min-height:260px;border-radius:10px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th,td{padding:7px 9px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--mut);font-size:10px;text-transform:uppercase;font-weight:700;letter-spacing:.4px;position:sticky;top:0;background:#f8fafc;z-index:2}
+tbody tr:hover{background:rgba(26,60,110,.03)}
 td.num{text-align:right;font-variant-numeric:tabular-nums}
-.scroll{max-height:calc(100vh - 340px);min-height:280px;overflow:auto;border-radius:10px}
-.chip{display:inline-block;padding:2px 8px;border-radius:6px;font-size:10.5px;font-weight:700;background:var(--bg);border:1px solid var(--border);cursor:pointer}
-.chip:hover{opacity:.85}
-.st1{background:#e3f2fd;color:#1565c0;border-color:transparent}
-.st2{background:var(--orangebg);color:#d97706;border-color:transparent}
-.st3{background:#ffedd5;color:#ea580c;border-color:transparent}
-.st4{background:var(--greenbg);color:#059669;border-color:transparent}
-.st5{background:#ede9fe;color:#7c3aed;border-color:transparent}
-.edit-btn{padding:3px 9px;border-radius:6px;border:1px solid var(--border);background:var(--card);cursor:pointer;font-size:11px}
-.edit-btn:hover{background:var(--bg)}
-.modal{position:fixed;inset:0;background:rgba(15,30,61,.5);display:none;align-items:center;justify-content:center;z-index:1000}
-.modal.on{display:flex}
-.modal-box{background:var(--card);border-radius:14px;padding:20px;width:480px;max-width:94vw;max-height:86vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
-.modal-box h3{font-size:15px;margin-bottom:14px}
-.modal-box label{display:block;font-size:11px;color:var(--text2);font-weight:700;text-transform:uppercase;margin:10px 0 4px}
-.modal-box input,.modal-box select,.modal-box textarea{width:100%;padding:8px 11px;border-radius:9px;border:1px solid var(--border);font-size:13px;font-family:inherit}
-.modal-box textarea{min-height:60px;resize:vertical}
-.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
-.modal-actions button{padding:9px 16px;border-radius:9px;border:none;font-size:13px;font-weight:600;cursor:pointer}
-.btn-primary{background:linear-gradient(135deg,#10b981,#059669);color:#fff}
-.btn-ghost{background:var(--bg);color:var(--text);border:1px solid var(--border)!important}
-.btn-danger{background:var(--red);color:#fff}
-.toast{position:fixed;bottom:20px;right:20px;background:#0f1e3d;color:#fff;padding:12px 18px;border-radius:10px;font-size:13px;z-index:2000;display:none;box-shadow:0 6px 20px rgba(0,0,0,.3)}
-.toast.on{display:block}
+
+.chip{display:inline-block;padding:3px 9px;border-radius:20px;font-size:10.5px;font-weight:700;cursor:pointer;transition:.15s}
+.chip:hover{filter:brightness(.95)}
+.c1{background:#e3f2fd;color:#1565c0}.c2{background:#fef3c7;color:#d97706}
+.c3{background:#ffedd5;color:#ea580c}.c4{background:#d1fae5;color:#059669}
+.c5{background:#ede9fe;color:#7c3aed}
+
+.edit-btn{padding:3px 9px;border-radius:6px;border:1px solid var(--line);background:var(--card);cursor:pointer;font-size:11px;font-family:inherit;color:var(--mut)}
+.edit-btn:hover{background:var(--bg);color:var(--navy)}
+
 .kanban{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
-.kb-col{background:var(--bg);border-radius:12px;padding:10px;min-height:180px}
-.kb-col h4{font-size:12px;font-weight:700;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
-.kb-col .n{font-size:11px;color:var(--text2);font-weight:600}
-.kb-card{background:var(--card);border-radius:8px;padding:8px 10px;margin-bottom:6px;font-size:11.5px;border:1px solid var(--border);cursor:grab;box-shadow:var(--shadow)}
-.kb-card:hover{border-color:var(--navy2)}
-.kb-card .nm{font-weight:700}
-.kb-card .dt{color:var(--text2);font-size:10.5px;margin-top:2px}
-.empty{text-align:center;color:var(--text2);padding:30px;font-size:12px}
-.loading{padding:40px;text-align:center;color:var(--text2)}
-footer{border-top:1px solid var(--border);padding:8px 22px;font-size:11px;color:var(--text2)}
-@media(max-width:1100px){.kanban{grid-template-columns:repeat(2,1fr)}body{overflow:auto;height:auto}main{overflow:visible}}
-@media(max-width:640px){.kanban{grid-template-columns:1fr}}
+.kb-col{background:#f8fafc;border-radius:10px;padding:10px;min-height:160px;border:1px solid var(--line)}
+.kb-col h4{font-size:11.5px;font-weight:700;margin-bottom:7px;display:flex;justify-content:space-between;align-items:center}
+.kb-col .n{font-size:10.5px;color:var(--mut);font-weight:600}
+.kb-card{background:var(--card);border-radius:8px;padding:7px 9px;margin-bottom:5px;font-size:11px;border:1px solid var(--line);cursor:pointer;transition:.15s}
+.kb-card:hover{border-color:var(--navy);box-shadow:var(--shadow2)}
+.kb-card .nm{font-weight:700;font-size:11.5px}
+.kb-card .dt{color:var(--mut);font-size:10px;margin-top:2px}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:1000;padding:14px}
+.modal-overlay.on{display:flex}
+.modal-box{background:var(--card);border-radius:14px;padding:20px;width:480px;max-width:94vw;max-height:86vh;overflow:auto;box-shadow:0 8px 30px rgba(0,0,0,.15)}
+.modal-box h3{font-size:15px;font-weight:700;margin-bottom:11px;color:var(--navy)}
+.modal-box label{display:block;font-size:10.5px;color:var(--mut);font-weight:700;text-transform:uppercase;margin:10px 0 4px;letter-spacing:.3px}
+.modal-box input,.modal-box select,.modal-box textarea{width:100%;padding:8px 11px;border-radius:9px;border:1.5px solid var(--line);font-size:13px;font-family:inherit;outline:none;background:#fafbfd}
+.modal-box textarea{min-height:60px;resize:vertical}
+.modal-box input:focus,.modal-box select:focus,.modal-box textarea:focus{border-color:var(--navy);background:#fff}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+.modal-actions button{padding:9px 16px;border-radius:9px;border:none;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit}
+.btn-primary{background:var(--red);color:#fff;box-shadow:0 4px 12px rgba(215,25,32,.25)}
+.btn-ghost{background:var(--bg);color:var(--txt);border:1px solid var(--line)!important}
+.btn-danger{background:var(--red2);color:#fff}
+
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%) translateY(80px);background:#166534;color:#fff;padding:11px 20px;border-radius:10px;font-weight:600;font-size:12.5px;transition:.3s;box-shadow:0 6px 18px rgba(0,0,0,.18);z-index:2000;font-family:inherit}
+.toast.on{transform:translateX(-50%) translateY(0)}
+.toast.err{background:var(--red)}
+
+.empty,.loading{text-align:center;color:var(--mut);padding:30px;font-size:12px}
+footer{border-top:1px solid var(--line);padding:8px 16px;font-size:10.5px;color:var(--mut);text-align:center}
+
+@media(max-width:1100px){.kanban{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:640px){.kanban{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
+
 <header>
   <div class="hl">
-    <a class="logo brand" href="index.html"><img src="logo.png" alt="WinMart+"></a>
+    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 40'%3E%3Crect fill='%23fff' width='120' height='40' rx='6'/%3E%3Ctext x='60' y='27' text-anchor='middle' fill='%231a3c6e' font-weight='900' font-size='20' font-family='Arial'%3EWinMart+%3C/text%3E%3C/svg%3E" alt="WinMart+">
     <div><h1>FC Pipeline</h1><div class="sub">Forecast → GĐ Chuỗi duyệt → SC Valid → SC ra PO → NCC giao hàng</div></div>
   </div>
-  <div style="display:flex;gap:8px;align-items:center">
-    <nav>
-      <a href="index.html">Tổng quan</a>
-      <a href="dailysale.html">Kinh doanh</a>
-      <a href="fc-pipeline.html" class="on">FC Pipeline</a>
-      <a href="sl-report.html">S&L</a>
-    </nav>
-  </div>
+  <nav>
+    <a href="index.html">Tổng quan</a>
+    <a href="dailysale.html">Kinh doanh</a>
+    <a href="fc-pipeline.html" class="on">FC Pipeline</a>
+    <a href="sl-report.html">S&L</a>
+  </nav>
 </header>
 
 <main>
   <div class="kpis" id="kpis"></div>
 
   <div class="card">
-    <div class="ch">
+    <div class="card-head">
       <h3>📋 Danh sách FC</h3>
-      <div style="display:flex;gap:8px">
-        <button class="ghost" onclick="switchView('table')">📋 Bảng</button>
-        <button class="ghost" onclick="switchView('kanban')">📊 Kanban</button>
+      <div class="btns">
+        <button id="btn-table" class="on" onclick="switchView('table')">📋 Bảng</button>
+        <button id="btn-kanban" onclick="switchView('kanban')">📊 Kanban</button>
       </div>
     </div>
     <div class="filters" id="filters"></div>
@@ -119,13 +127,13 @@ footer{border-top:1px solid var(--border);padding:8px 22px;font-size:11px;color:
   </div>
 </main>
 
-<div class="modal" id="modal">
+<div class="modal-overlay" id="modal">
   <div class="modal-box">
     <h3 id="modal-title">Chỉnh sửa</h3>
     <div id="modal-body"></div>
     <div class="modal-actions">
       <button class="btn-ghost" onclick="closeModal()">Hủy</button>
-      <button class="btn-primary" id="modal-save" onclick="saveModal()">Lưu</button>
+      <button class="btn-primary" onclick="saveModal()">Lưu</button>
     </div>
   </div>
 </div>
@@ -133,262 +141,158 @@ footer{border-top:1px solid var(--border);padding:8px 22px;font-size:11px;color:
 <div class="toast" id="toast"></div>
 
 <script>
-// ─── Config ────────────────────────────────────────────────────────
-var GAS_URL = 'https://script.google.com/macros/s/AKfycbxMor1ISW7_zUw0lfLDkWyTTIsZE4TWPFu5Q0f8apAyxead-E_dV5ZGjoy2hMi5EAin/exec';
-var API_BASE = GAS_URL; // GAS doPost endpoint
+var GAS_URL='https://script.google.com/macros/s/AKfycbxMor1ISW7_zUw0lfLDkWyTTIsZE4TWPFu5Q0f8apAyxead-E_dV5ZGjoy2hMi5EAin/exec';
+var API_BASE=GAS_URL;
+var DATA_SNAPSHOT='https://ruralwcm.github.io/dashboard-kinhdoanh/fc_dashboard_data.json';
 
-// Nếu chưa có GAS, đọc từ snapshot JSON (chỉ đọc, không edit được)
-var DATA_SNAPSHOT = 'https://ruralwcm.github.io/dashboard-kinhdoanh/fc_dashboard_data.json';
-
-var STAGES = [
-  { id: 'FC', label: '1. FC', desc: 'Tạo Forecast', color: 'st1' },
-  { id: 'GD_CHUOI_DUYET', label: '2. GĐ Chuỗi duyệt', desc: 'Phê duyệt', color: 'st2' },
-  { id: 'SC_VALID', label: '3. SC Valid', desc: 'Supply Chain', color: 'st3' },
-  { id: 'SC_RA_PO', label: '4. SC ra PO', desc: 'Ra đơn hàng', color: 'st4' },
-  { id: 'NCC_XAC_NHAN', label: '5. NCC xác nhận', desc: 'Giao hàng', color: 'st5' }
+var STAGES=[
+  {id:'FC',label:'1. FC',desc:'Tạo Forecast',css:'c1'},
+  {id:'GD_CHUOI_DUYET',label:'2. GĐ Chuỗi duyệt',desc:'Phê duyệt',css:'c2'},
+  {id:'SC_VALID',label:'3. SC Valid',desc:'Supply Chain',css:'c3'},
+  {id:'SC_RA_PO',label:'4. SC ra PO',desc:'Ra đơn hàng',css:'c4'},
+  {id:'NCC_XAC_NHAN',label:'5. NCC xác nhận',desc:'Giao hàng',css:'c5'}
 ];
 
-var currentView = 'table';
-var allRows = [];
-var filteredRows = [];
-var editTarget = null;
-var user = localStorage.getItem('fc_user') || '';
+var currentView='table',allRows=[],filteredRows=[],editTarget=null;
+var user=localStorage.getItem('fc_user')||'';
 
-// ─── Init ─────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', function () {
-  if (!user) {
-    user = prompt('Nhập tên của bạn (để ghi nhận người duyệt/sửa):') || 'Unknown';
-    localStorage.setItem('fc_user', user);
-  }
+document.addEventListener('DOMContentLoaded',function(){
+  if(!user){user=prompt('Nhập tên của bạn (để ghi nhận người duyệt/sửa):')||'FC User';localStorage.setItem('fc_user',user)}
   loadData();
 });
 
-function loadData() {
-  if (API_BASE) {
-    loadFromGAS();
-  } else {
-    loadFromSnapshot();
-  }
+function loadData(){
+  if(API_BASE)loadFromGAS();else loadFromSnapshot();
 }
 
-function loadFromSnapshot() {
-  fetch(DATA_SNAPSHOT).then(r => r.json()).then(d => {
-    // Snapshot chỉ có tổng hợp, không có từng dòng
+function loadFromSnapshot(){
+  fetch(DATA_SNAPSHOT).then(r=>r.json()).then(d=>{
     renderKPISnapshot(d);
-    document.getElementById('view').innerHTML = '<div class="empty">⚠️ Chưa cấu hình GAS backend — chỉ hiển thị số liệu tổng hợp.<br>Cần deploy GAS để edit từng dòng SKU.</div>';
+    document.getElementById('view').innerHTML='<div class="empty">⚠️ Chưa cấu hình GAS backend — chỉ hiển thị số liệu tổng hợp.</div>';
   });
 }
 
-function renderKPISnapshot(d) {
-  var kpi = d.kpi[0] || d.kpi || {};
-  document.getElementById('kpis').innerHTML = [
-    kpiCard('Tổng dòng FC', (kpi.total_fc||0).toLocaleString(), kpi.total_files + ' files', '#3b82f6'),
-    kpiCard('Cửa hàng', (kpi.total_stores||0).toLocaleString(), '', '#10b981'),
-    kpiCard('Mã SP (SKU)', (kpi.total_skus||0).toLocaleString(), '', '#f59e0b'),
-    kpiCard('Tổng GT FC', Number(kpi.total_gt_fc_ty||0).toFixed(1) + ' tỷ', '', '#ef4444')
-  ].join('');
+function renderKPISnapshot(d){
+  var k=d.kpi||{};
+  document.getElementById('kpis').innerHTML=[kpiCard('Tổng dòng FC',(k.total_fc||0).toLocaleString(),(k.total_files||0)+' files','c1'),kpiCard('Cửa hàng',(k.total_stores||0).toLocaleString(),'','c2'),kpiCard('Mã SP (SKU)',(k.total_skus||0).toLocaleString(),'','c3'),kpiCard('Tổng GT FC',Number(k.total_gt_fc_ty||0).toFixed(1)+' tỷ','','c4')].join('');
+}
+function kpiCard(lbl,val,note,c){return'<div class="kpi '+c+'"><div class="lbl">'+lbl+'</div><div class="val">'+val+'</div>'+(note?'<div class="note">'+note+'</div>':'')+'</div>'}
+
+function loadFromGAS(){
+  var sql='SELECT * FROM `rural-data-analystic.fc.fc_pipeline` LIMIT 2000';
+  callGAS({action:'query',sql:sql}).then(res=>{
+    if(!res.ok){showToast('Lỗi: '+res.error,'err');return}
+    allRows=res.rows||[];buildFilters();renderKPIs();renderView();
+  }).catch(e=>{showToast('Không kết nối được GAS','err');loadFromSnapshot()});
 }
 
-function kpiCard(lbl, val, note, color) {
-  return '<div class="kpi" style="--c:' + color + '"><div class="lbl">' + lbl + '</div><div class="val">' + val + '</div>' + (note ? '<div class="note">' + note + '</div>' : '') + '</div>';
+function callGAS(payload){
+  return fetch(API_BASE,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)}).then(r=>r.json());
 }
 
-// ─── GAS load ─────────────────────────────────────────────────────
-function loadFromGAS() {
-  var sql = 'SELECT * FROM `rural-data-analystic.fc.fc_pipeline` LIMIT 2000';
-  callGAS({ action: 'query', sql: sql }).then(res => {
-    if (!res.ok) { showToast('Lỗi: ' + res.error); return; }
-    allRows = res.rows || [];
-    buildFilters();
-    renderKPIs();
-    renderTable();
-  });
-}
-
-function callGAS(payload) {
-  return fetch(API_BASE, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify(payload)
-  }).then(r => r.json());
-}
-
-// ─── Filters ──────────────────────────────────────────────────────
-function buildFilters() {
-  var types = [...new Set(allRows.map(r => r.fc_type).filter(Boolean))];
-  var miens = [...new Set(allRows.map(r => r.mien).filter(Boolean))];
-  var statuses = [...new Set(allRows.map(r => r.status).filter(Boolean))];
-
-  document.getElementById('filters').innerHTML =
-    select('type', ['Tất cả loại'].concat(types)) +
-    select('mien', ['Tất cả miền'].concat(miens)) +
-    select('status', ['Tất cả status'].concat(statuses)) +
-    '<input id="search" placeholder="Tìm Mã SAP / Mã SP / Tên SP..." oninput="applyFilters()">' +
+function buildFilters(){
+  var types=[...new Set(allRows.map(r=>r.fc_type).filter(Boolean))];
+  var miens=[...new Set(allRows.map(r=>r.mien).filter(Boolean))];
+  var statuses=[...new Set(allRows.map(r=>r.status).filter(Boolean))];
+  document.getElementById('filters').innerHTML=
+    sel('type',['Tất cả loại'].concat(types))+
+    sel('mien',['Tất cả miền'].concat(miens))+
+    sel('status',['Tất cả status'].concat(statuses))+
+    '<input id="search" placeholder="Tìm Mã SAP / Mã SP / Tên SP..." oninput="applyFilters()">'+
     '<span class="cnt" id="cnt"></span>';
-
-  document.querySelectorAll('#filters select').forEach(s => s.addEventListener('change', applyFilters));
+  document.querySelectorAll('#filters select').forEach(s=>s.addEventListener('change',applyFilters));
 }
+function sel(id,opts){return'<select id="'+id+'">'+opts.map(o=>'<option>'+o+'</option>').join('')+'</select>'}
 
-function select(id, opts) {
-  return '<select id="' + id + '">' + opts.map(o => '<option>' + o + '</option>').join('') + '</select>';
-}
-
-function applyFilters() {
-  var t = document.getElementById('type').value;
-  var m = document.getElementById('mien').value;
-  var s = document.getElementById('status').value;
-  var q = (document.getElementById('search').value || '').toLowerCase();
-
-  filteredRows = allRows.filter(r => {
-    if (t !== 'Tất cả loại' && r.fc_type !== t) return false;
-    if (m !== 'Tất cả miền' && r.mien !== m) return false;
-    if (s !== 'Tất cả status' && r.status !== s) return false;
-    if (q && !(String(r.ma_sap||'').toLowerCase().includes(q) || String(r.ma_sp||'').toLowerCase().includes(q) || String(r.ten_sp||'').toLowerCase().includes(q))) return false;
+function applyFilters(){
+  var t=document.getElementById('type').value,m=document.getElementById('mien').value;
+  var s=document.getElementById('status').value,q=(document.getElementById('search').value||'').toLowerCase();
+  filteredRows=allRows.filter(r=>{
+    if(t!=='Tất cả loại'&&r.fc_type!==t)return false;
+    if(m!=='Tất cả miền'&&r.mien!==m)return false;
+    if(s!=='Tất cả status'&&r.status!==s)return false;
+    if(q&&!(String(r.ma_sap||'').toLowerCase().includes(q)||String(r.ma_sp||'').toLowerCase().includes(q)||String(r.ten_sp||'').toLowerCase().includes(q)))return false;
     return true;
   });
-
-  document.getElementById('cnt').textContent = filteredRows.length.toLocaleString() + ' dòng';
-  if (currentView === 'table') renderTable();
-  else renderKanban();
+  document.getElementById('cnt').textContent=filteredRows.length.toLocaleString()+' dòng';
+  renderView();
 }
 
-// ─── KPI ──────────────────────────────────────────────────────────
-function renderKPIs() {
-  var total = allRows.length;
-  var stores = new Set(allRows.map(r => r.ma_sap)).size;
-  var skus = new Set(allRows.map(r => r.ma_sp)).size;
-  var gt = allRows.reduce((a, r) => a + (Number(r.gt_fc) || 0), 0);
-  var byStatus = {};
-  allRows.forEach(r => { byStatus[r.status] = (byStatus[r.status] || 0) + 1; });
-
-  document.getElementById('kpis').innerHTML = [
-    kpiCard('Tổng dòng FC', total.toLocaleString(), Object.keys(byStatus).length + ' status', '#3b82f6'),
-    kpiCard('Cửa hàng', stores.toLocaleString(), '', '#10b981'),
-    kpiCard('Mã SP (SKU)', skus.toLocaleString(), '', '#f59e0b'),
-    kpiCard('Tổng GT FC', (gt/1e9).toFixed(1) + ' tỷ', '', '#ef4444')
-  ].join('');
+function renderKPIs(){
+  var stores=new Set(allRows.map(r=>r.ma_sap)).size;
+  var skus=new Set(allRows.map(r=>r.ma_sp)).size;
+  var gt=allRows.reduce((a,r)=>a+(Number(r.gt_fc)||0),0);
+  document.getElementById('kpis').innerHTML=[kpiCard('Tổng dòng FC',allRows.length.toLocaleString(),'','c1'),kpiCard('Cửa hàng',stores.toLocaleString(),'','c2'),kpiCard('Mã SP (SKU)',skus.toLocaleString(),'','c3'),kpiCard('Tổng GT FC',(gt/1e9).toFixed(1)+' tỷ','','c4')].join('');
 }
 
-// ─── Table view ───────────────────────────────────────────────────
-function renderTable() {
-  var rows = filteredRows.slice(0, 500);
-  if (!rows.length) {
-    document.getElementById('view').innerHTML = '<div class="empty">Không có dữ liệu phù hợp</div>';
-    return;
-  }
-  var html = '<div class="scroll"><table><thead><tr>' +
-    '<th>Mã SAP</th><th>Mã SP</th><th>Tên SP</th><th>MCH3</th><th>Miền</th>' +
-    '<th class="num">SL FC</th><th class="num">SL Tổng</th><th class="num">GT FC</th>' +
-    '<th>Status</th><th></th></tr></thead><tbody>';
+function renderView(){if(currentView==='table')renderTable();else renderKanban()}
 
-  rows.forEach((r, i) => {
-    var st = STAGES.find(s => s.id === r.status) || { label: r.status || 'FC', color: 'st1' };
-    html += '<tr>' +
-      '<td>' + (r.ma_sap || '') + '</td>' +
-      '<td>' + (r.ma_sp || '') + '</td>' +
-      '<td style="max-width:220px;overflow:hidden;text-overflow:ellipsis">' + (r.ten_sp || '') + '</td>' +
-      '<td>' + (r.mch3 || '') + '</td>' +
-      '<td>' + (r.mien || '') + '</td>' +
-      '<td class="num">' + fmt(r.sl_fc) + '</td>' +
-      '<td class="num">' + fmt(r.sl_tong) + '</td>' +
-      '<td class="num">' + fmtMoney(r.gt_fc) + '</td>' +
-      '<td><span class="chip ' + st.color + '" onclick="cycleStatus(' + i + ')">' + st.label + '</span></td>' +
-      '<td><button class="edit-btn" onclick="openEdit(' + i + ')">✏️</button></td>' +
-      '</tr>';
+function renderTable(){
+  var rows=filteredRows.slice(0,500);
+  if(!rows.length){document.getElementById('view').innerHTML='<div class="empty">Không có dữ liệu phù hợp</div>';return}
+  var h='<div class="scroll"><table><thead><tr><th>Mã SAP</th><th>Mã SP</th><th>Tên SP</th><th>MCH3</th><th>Miền</th><th class="num">SL FC</th><th class="num">SL Tổng</th><th class="num">GT FC</th><th>Status</th><th></th></tr></thead><tbody>';
+  rows.forEach((r,i)=>{
+    var st=STAGES.find(s=>s.id===r.status)||{label:r.status||'FC',css:'c1'};
+    h+='<tr><td>'+esc(r.ma_sap)+'</td><td>'+esc(r.ma_sp)+'</td><td style="max-width:220px;overflow:hidden;text-overflow:ellipsis">'+esc(r.ten_sp)+'</td><td>'+esc(r.mch3)+'</td><td>'+esc(r.mien)+'</td><td class="num">'+fmt(r.sl_fc)+'</td><td class="num">'+fmt(r.sl_tong)+'</td><td class="num">'+fm(r.gt_fc)+'</td><td><span class="chip '+st.css+'" onclick="cycleStatus('+i+')">'+st.label+'</span></td><td><button class="edit-btn" onclick="openEdit('+i+')">✏️</button></td></tr>';
   });
-
-  html += '</tbody></table></div>';
-  document.getElementById('view').innerHTML = html;
+  h+='</tbody></table></div>';document.getElementById('view').innerHTML=h;
 }
 
-function fmt(v) { return v === null || v === undefined ? '—' : Number(v).toLocaleString(); }
-function fmtMoney(v) { return v === null || v === undefined ? '—' : Number(v).toLocaleString('vi-VN'); }
-
-// ─── Kanban view ──────────────────────────────────────────────────
-function renderKanban() {
-  var html = '<div class="kanban">';
-  STAGES.forEach(st => {
-    var items = filteredRows.filter(r => r.status === st.id).slice(0, 20);
-    html += '<div class="kb-col"><h4>' + st.label + ' <span class="n">' + items.length + '</span></h4>';
-    if (!items.length) html += '<div class="empty">—</div>';
-    items.forEach(r => {
-      html += '<div class="kb-card"><div class="nm">' + (r.ten_sp || r.ma_sp || '') + '</div>' +
-        '<div class="dt">' + (r.ma_sap || '') + ' · ' + (r.mien || '') + '</div>' +
-        '<div class="dt">SL: ' + fmt(r.sl_fc) + ' · GT: ' + fmtMoney(r.gt_fc) + '</div></div>';
+function renderKanban(){
+  var h='<div class="kanban">';
+  STAGES.forEach(st=>{
+    var items=filteredRows.filter(r=>r.status===st.id).slice(0,20);
+    h+='<div class="kb-col"><h4>'+st.label+' <span class="n">'+items.length+'</span></h4>';
+    if(!items.length)h+='<div class="empty">—</div>';
+    items.forEach(r=>{
+      h+='<div class="kb-card"><div class="nm">'+esc(r.ten_sp||r.ma_sp||'')+'</div><div class="dt">'+esc(r.ma_sap||'')+' · '+esc(r.mien||'')+'</div><div class="dt">SL: '+fmt(r.sl_fc)+' · GT: '+fm(r.gt_fc)+'</div></div>';
     });
-    html += '</div>';
+    h+='</div>';
   });
-  html += '</div>';
-  document.getElementById('view').innerHTML = html;
+  h+='</div>';document.getElementById('view').innerHTML=h;
 }
 
-function switchView(v) {
-  currentView = v;
-  document.querySelectorAll('.card .ch button').forEach((b, i) => {
-    b.style.background = (i === (v === 'table' ? 0 : 1)) ? 'linear-gradient(135deg,#10b981,#059669)' : '';
-    b.style.color = (i === (v === 'table' ? 0 : 1)) ? '#fff' : '';
-  });
-  if (v === 'table') renderTable(); else renderKanban();
+function switchView(v){
+  currentView=v;
+  document.getElementById('btn-table').className=v==='table'?'on':'';
+  document.getElementById('btn-kanban').className=v==='kanban'?'on':'';
+  renderView();
 }
 
-// ─── Edit modal ───────────────────────────────────────────────────
-function openEdit(i) {
-  editTarget = filteredRows[i];
-  if (!editTarget) return;
-  document.getElementById('modal-title').textContent = '✏️ Chỉnh sửa — ' + (editTarget.ten_sp || editTarget.ma_sp || '');
-  document.getElementById('modal-body').innerHTML =
-    '<label>Mã SAP</label><input value="' + (editTarget.ma_sap || '') + '" disabled>' +
-    '<label>Mã SP</label><input value="' + (editTarget.ma_sp || '') + '" disabled>' +
-    '<label>SL FC</label><input id="e-slfc" type="number" value="' + (editTarget.sl_fc ?? '') + '">' +
-    '<label>SL Tổng</label><input id="e-sltong" type="number" value="' + (editTarget.sl_tong ?? '') + '">' +
-    '<label>GT FC</label><input id="e-gtfc" type="number" value="' + (editTarget.gt_fc ?? '') + '">' +
-    '<label>Status</label><select id="e-status">' + STAGES.map(s => '<option ' + (s.id === editTarget.status ? 'selected' : '') + '>' + s.id + '</option>').join('') + '</select>' +
-    '<label>Ghi chú</label><textarea id="e-ghichu" placeholder="Lý do thay đổi...">' + (editTarget.ghi_chu || '') + '</textarea>';
+function openEdit(i){
+  editTarget=filteredRows[i];if(!editTarget)return;
+  document.getElementById('modal-title').textContent='✏️ Chỉnh sửa — '+(editTarget.ten_sp||editTarget.ma_sp||'');
+  document.getElementById('modal-body').innerHTML='<label>Mã SAP</label><input value="'+esc(editTarget.ma_sap)+'" disabled><label>Mã SP</label><input value="'+esc(editTarget.ma_sp)+'" disabled><label>SL FC</label><input id="e-slfc" type="number" value="'+(editTarget.sl_fc??'')+'"><label>SL Tổng</label><input id="e-sltong" type="number" value="'+(editTarget.sl_tong??'')+'"><label>GT FC</label><input id="e-gtfc" type="number" value="'+(editTarget.gt_fc??'')+'"><label>Status</label><select id="e-status">'+STAGES.map(s=>'<option '+(s.id===editTarget.status?'selected':'')+'>'+s.id+'</option>').join('')+'</select><label>Ghi chú</label><textarea id="e-ghichu" placeholder="Lý do thay đổi...">'+esc(editTarget.ghi_chu||'')+'</textarea>';
   document.getElementById('modal').classList.add('on');
 }
 
-function closeModal() { document.getElementById('modal').classList.remove('on'); }
+function closeModal(){document.getElementById('modal').classList.remove('on');}
 
-function saveModal() {
-  if (!API_BASE) { showToast('⚠️ Chưa cấu hình GAS backend'); return; }
-  var payload = {
-    action: 'updateSL',
-    ma_sap: editTarget.ma_sap,
-    ma_sp: editTarget.ma_sp,
-    file_name: editTarget.file_name,
-    sl_fc: document.getElementById('e-slfc').value,
-    sl_tong: document.getElementById('e-sltong').value,
-    gt_fc: document.getElementById('e-gtfc').value,
-    nguoi: user,
-    ghi_chu: document.getElementById('e-ghichu').value
-  };
-  var newStatus = document.getElementById('e-status').value;
-  callGAS(payload).then(res => {
-    if (res.ok) {
-      if (newStatus !== editTarget.status) {
-        return callGAS({
-          action: 'updateStatus', ma_sap: editTarget.ma_sap, ma_sp: editTarget.ma_sp,
-          file_name: editTarget.file_name, status: newStatus, nguoi: user, ghi_chu: payload.ghi_chu
-        });
-      }
+function saveModal(){
+  if(!API_BASE){showToast('⚠️ Chưa cấu hình GAS backend','err');return}
+  var newStatus=document.getElementById('e-status').value;
+  var payload={action:'updateSL',ma_sap:editTarget.ma_sap,ma_sp:editTarget.ma_sp,file_name:editTarget.file_name,sl_fc:document.getElementById('e-slfc').value,sl_tong:document.getElementById('e-sltong').value,gt_fc:document.getElementById('e-gtfc').value,nguoi:user,ghi_chu:document.getElementById('e-ghichu').value};
+  callGAS(payload).then(res=>{
+    if(res.ok&&newStatus!==editTarget.status){
+      return callGAS({action:'updateStatus',ma_sap:editTarget.ma_sap,ma_sp:editTarget.ma_sp,file_name:editTarget.file_name,status:newStatus,nguoi:user,ghi_chu:payload.ghi_chu})
     }
-  }).then(() => { closeModal(); showToast('✅ Đã lưu'); loadFromGAS(); });
+  }).then(()=>{closeModal();showToast('✅ Đã lưu');loadFromGAS()});
 }
 
-function cycleStatus(i) {
-  var r = filteredRows[i];
-  var idx = STAGES.findIndex(s => s.id === r.status);
-  var next = STAGES[(idx + 1) % STAGES.length];
-  if (!API_BASE) { showToast('⚠️ Chưa cấu hình GAS backend'); return; }
-  callGAS({ action: 'updateStatus', ma_sap: r.ma_sap, ma_sp: r.ma_sp, file_name: r.file_name, status: next.id, nguoi: user, ghi_chu: '' })
-    .then(res => { if (res.ok) { showToast('✅ → ' + next.label); loadFromGAS(); } });
+function cycleStatus(i){
+  var r=filteredRows[i];var idx=STAGES.findIndex(s=>s.id===r.status);var next=STAGES[(idx+1)%STAGES.length];
+  if(!API_BASE){showToast('⚠️ Chưa cấu hình GAS backend','err');return}
+  callGAS({action:'updateStatus',ma_sap:r.ma_sap,ma_sp:r.ma_sp,file_name:r.file_name,status:next.id,nguoi:user,ghi_chu:''}).then(res=>{if(res.ok){showToast('✅ → '+next.label);loadFromGAS()}});
 }
 
-function showToast(msg) {
-  var t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('on');
-  setTimeout(() => t.classList.remove('on'), 2500);
+function showToast(msg,cls){
+  var t=document.getElementById('toast');t.textContent=msg;t.className='toast on'+(cls==='err'?' err':'');
+  setTimeout(function(){t.className='toast'},2500);
 }
+
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function fmt(v){return v===null||v===undefined?'—':Number(v).toLocaleString()}
+function fm(v){return v===null||v===undefined?'—':Number(v).toLocaleString('vi-VN')}
 </script>
 </body>
 </html>
