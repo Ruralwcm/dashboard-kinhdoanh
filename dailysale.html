@@ -303,14 +303,29 @@ body{display:flex;flex-direction:column;overflow:hidden}
 .content{height:100%;overflow-y:auto;overscroll-behavior:contain;padding:14px 18px 78px;min-width:0;max-width:none;margin:0;width:100%}
 .content > .sec-h:first-child{margin-top:2px}
 .kpis{grid-template-columns:repeat(auto-fit,minmax(152px,1fr))}
-.kpis.kpgrid2{grid-template-columns:repeat(5,minmax(0,1fr))}
+.kpis.kpgrid2{grid-template-columns:repeat(6,minmax(0,1fr))}
+.kpis.kpday{grid-template-columns:repeat(3,minmax(0,1fr))}
+.kpi-h{margin:12px 2px 7px;font-size:11px;font-weight:800;color:#6F7E93;text-transform:uppercase;letter-spacing:.5px}
+.kpi .l2{margin-top:5px;font-size:12.5px;font-weight:700}
+.kpi .l3{margin-top:3px;font-size:11.5px;color:var(--ink2);line-height:1.35}
+.kpi .l3 b{color:var(--ink,#0F1F33)}
+.kpi .up{color:#0E9F6E} .kpi .dn{color:#DC2626}
+.trends{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+.tr-card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px 8px;box-shadow:var(--sh);min-width:0}
+.tr-card h3{margin:0 0 2px;font-size:13px;font-weight:800;color:#0F2A4A}
+.tr-card .tr-sub{font-size:11px;color:#6F7E93;margin-bottom:6px}
+.tr-card svg{width:100%;height:auto;display:block}
+.tr-card .tr-note{font-size:10.5px;color:#8A97AA;margin-top:4px}
+.tr-lg{display:flex;gap:12px;font-size:11px;color:#55657A;margin:2px 0 4px;flex-wrap:wrap}
+.tr-lg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px}
 .kpi.kp1{border-left:3px solid var(--navy2,#12245C)}
 .kpi.kp1 .vv{font-size:24px}
 .kpi.kp2{background:#FAFBFD;box-shadow:none;border:1px solid var(--line)}
 .kpi.kp2 .vv{font-size:17px}
 .kpi.kp2 .lb{font-size:10px}
 @media(max-width:1300px){.kpis.kpgrid2{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media(max-width:1100px){.kpis.kpgrid2{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.blk.closed > .trends,.blk.closed > .kpi-h{display:none}
+@media(max-width:1100px){.kpis.kpgrid2,.kpis.kpday{grid-template-columns:repeat(2,minmax(0,1fr))}.trends{grid-template-columns:1fr}}
 @media(max-width:1100px){
   html,body{height:auto}
   body{display:block;overflow:auto}
@@ -472,6 +487,13 @@ body.fullscreen .ptools{opacity:.9}
   <div class="blk" data-blk="kpi">
   <div class="sec-h"><h2>Key Performance</h2><span class="sub" id="kpiSub"></span></div>
   <section class="kpis" id="kpis"></section>
+  <div class="kpi-h">Ngày D-1</div>
+  <section class="kpis kpgrid2 kpday" id="kpisD"></section>
+  </div>
+  <div class="blk" data-blk="trend">
+  <div class="sec-h"><h2>Xu hướng</h2><span class="sub" id="trSub"></span>
+    <div class="seg" id="trSeg" style="margin-left:auto"><button data-tv="M" class="on">6 tháng</button><button data-tv="W">6 tuần</button></div></div>
+  <section class="trends" id="trends"><div class="tr-card"><div class="mut" style="padding:20px">Đang tải dữ liệu xu hướng…</div></div></section>
   </div>
 
   <div class="blk" data-blk="grp">
@@ -628,7 +650,8 @@ function loadData(){
   ]).then(([j,f])=>{
     D = j; ALL = j.stores || [];
     FCU = f;
-    initUI();
+    initUI(); loadHist();
+    document.querySelectorAll('#trSeg button').forEach(b=>b.onclick=()=>{ TV=b.dataset.tv; document.querySelectorAll('#trSeg button').forEach(x=>x.classList.toggle('on',x===b)); render(); });
   }).catch(e=>{ document.getElementById('main').innerHTML = '<div class="err">Không tải được dữ liệu báo cáo<br><span style="font-size:14px">'+e.message+'</span></div>'; });
 }
 
@@ -817,24 +840,122 @@ function renderChips(){
 function renderKPI(a, rows){
   const sgnTag = v => `<span class="tag ${v>=0?'t-good':'t-bad'}">${F.sgn(v)} vs LY</span>`;
   const htTag  = v => `<span class="tag ${HT0.tag(sane(v))}">${F.pct(sane(v))} HT target</span>`;
-
-  // ===== Key Performance: SPD · Bill · Total Sale · S&L · DIO =====
+  const MTDD = (D&&D.meta&&D.meta.mtdDays)||30;
+  const sum = (arr,k)=>arr.reduce((t,r)=>t+(r[k]||0),0);
+  const pc = (x,y)=> y>0 ? (x/y-1)*100 : NaN;
+  const sg = (v,suf=' vs LY')=> isFinite(v) ? `<span class="${v>=0?'up':'dn'}">(${F.sgn(v)}${suf})</span>` : '<span class="mut">—</span>';
+  const lfl = rows.filter(r=>r.gr==='LFL'), al = lfl.length ? agg(lfl) : null;
+  // SPD LFL gộp = tổng DT / tổng ngày có bán (cùng cách với biểu đồ xu hướng)
+  const pool = (rk,dk)=>{ let r=0,d=0; lfl.forEach(x=>{ if(x[rk]>0&&x[dk]>0){ r+=x[rk]; d+=x[rk]/x[dk]; } }); return d>0? r/d : NaN; };
+  const lflG = pc(pool('m','md'), pool('ml','mdl'));
+  // 1. Total Sale MTD
+  const nS = rows.filter(r=>r.m>0).length, nSL = rows.filter(r=>r.ml>0).length;
+  // 4. Store BE (chỉ CH có điểm hòa vốn)
+  const hasBE = rows.filter(r=>r.be>0);
+  const isBE = r => r.md>=r.be, isBElm = r => r.lmn>0 && (r.lmr/r.lmn)>=r.be;
+  const nBE = hasBE.filter(isBE).length, nBElm = hasBE.filter(isBElm).length;
+  const beOf = g => { const x = hasBE.filter(r=>g(r.gr||'')); const k = x.filter(isBE).length; return [k, x.length? k/x.length*100 : NaN, x.length]; };
+  const [nNso, pNso, tNso] = beOf(g=>/^NSO/.test(g)), [nStu, pStu, tStu] = beOf(g=>g==='STU');
+  // 5. S&L&C = shrink - loss + coupon
+  const rev = sum(rows,'m'), slc = sum(rows,'slc'), slcL = sum(rows,'slcl'), revL = sum(rows,'ml');
+  const slcM = sum(rows,'slcm'), revM = sum(rows,'lmr');
+  const rate = rev>0? slc/rev*100 : NaN, rateL = revL>0? slcL/revL*100 : NaN, rateM = revM>0? slcM/revM*100 : NaN;
+  const perDay = slc/MTDD, revDay = rev/MTDD;
+  const dpp = (r0)=>{ if(!isFinite(r0)||!isFinite(rate)) return '<span class="mut">—</span>';
+    const d = r0 - rate, w = d>=0?'Giảm':'Tăng';
+    return `<span class="${d>=0?'up':'dn'}">${w}: ${F.n2(Math.abs(d))} pp</span> (~${F.n(Math.abs(d)/100*revDay)} tr.đ/ngày)`; };
+  // 6. DIO
+  const d60 = rows.filter(r=>r.dio>60).length;
   const kp = [
-    {lb:'SPD (tr/CH/ngày)', v:F.spd(a.spd), u:' tr', sub:sgnTag(a.tt)},
-    {lb:'Bill (bill/CH/ngày)', v:F.n(a.bill/a.n), u:' bill', sub:sgnTag(a.billLV)},
-    {lb:'Total Sale ngày', v:F.money(a.revD), u:'', sub:`${htTag(a.ht)} ${sgnTag(a.tt)}`},
-    {lb:'S&L', v:F.pct(a.rev>0? (Math.abs(a.loss)+Math.abs(a.shrink))/a.rev*100 : NaN), u:' DT', sub:`<span class="tag ${(Math.abs(a.loss)+Math.abs(a.shrink))/a.rev*100>2?'t-bad':'t-warn'}">S&L ${F.money(Math.abs(a.loss)+Math.abs(a.shrink))}</span>`},
-    {lb:'DIO', v:F.n1(a.dio), u:' ngày', sub:`<span class="tag ${a.dio>60?'t-bad':a.dio>45?'t-warn':'t-good'}">Tồn kho ${F.money(a.stock)}</span>`}
+    {lb:'Total Sale MTD', u:'tỷ.đ', v:F.n1(rev/1000), l2:sg(pc(rev,revL)), l3:`#Store: <b>${F.n(nS)}</b> ${sg(pc(nS,nSL))}`},
+    {lb:'SPD MTD', u:'tr.đ/ngày', v:F.spd(a.md), l2:sg(a.ttM), l3:`#Store LFL: <b>${F.n(lfl.length)}</b> ${sg(lflG)}`},
+    {lb:'#Bill BQ MTD', u:'bill/CH/ngày', v:F.n(a.pd.m.bill), l2:sg(a.pd.m.billLV), l3:`#Store LFL: <b>${F.n(lfl.length)}</b> ${al?sg(al.pd.m.billLV):''}`},
+    {lb:'Store BE', u:`/ ${F.n(hasBE.length)} CH`, v:F.n(nBE), l2:`<span class="${nBE>=nBElm?'up':'dn'}">(${nBE-nBElm>=0?'+':''}${F.n(nBE-nBElm)} vs LM)</span>`,
+      l3:`#NSO BE: <b>${F.n(nNso)}</b> ~ ${F.pct(pNso)}<br>#STU BE: <b>${F.n(nStu)}</b> ~ ${F.pct(pStu)}`},
+    {lb:'S&L&C MTD', u:'% DT', v:F.n2(rate), l2:`~ ${F.n(perDay)} tr.đ/ngày`, l3:`${dpp(rateL)} vs LY<br>${dpp(rateM)} vs LM`},
+    {lb:'DIO', u:'ngày', v:F.n1(a.dio), l2:`Tồn kho ${F.money(a.stock)}`, l3:`#CH DIO &gt; 60: <b>${F.n(d60)}</b>`}
   ];
   const draw = (arr,cls)=>arr.map(c=>`
     <div class="kpi ${cls}">
       <div class="lb">${c.lb}</div>
       <div class="vv">${c.v}<small>${c.u||''}</small></div>
-      <div class="sb">${c.sub||''}</div>
+      ${c.l2!==undefined?`<div class="l2">${c.l2}</div>`:''}${c.l3?`<div class="l3">${c.l3}</div>`:''}
+      ${c.sub?`<div class="sb">${c.sub}</div>`:''}
     </div>`).join('');
   const el = document.getElementById('kpis');
-  el.innerHTML = draw(kp,'kp1');
-  el.classList.add('kpgrid2');
+  el.innerHTML = draw(kp,'kp1'); el.classList.add('kpgrid2');
+  // Ngày D-1 (giữ thẻ cũ)
+  const kd = [
+    {lb:'SPD ngày', v:F.spd(a.spd), u:' tr', sub:sgnTag(a.tt)},
+    {lb:'Bill ngày', v:F.n(a.bill/a.n), u:' bill/CH', sub:sgnTag(a.billLV)},
+    {lb:'Total Sale ngày', v:F.money(a.revD), u:'', sub:`${htTag(a.ht)} ${sgnTag(a.tt)}`}
+  ];
+  document.getElementById('kpisD').innerHTML = draw(kd,'kp1');
+  try{ renderTrends(rows); }catch(e){ console.warn('trend',e); }
+}
+
+/* ---- Xu hướng 6M / 6W (SVG) ---- */
+let HIST=null, TV='M';
+function loadHist(){
+  fetch('dailysale_hist.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{ HIST=j; if(D) render(); }).catch(()=>{});
+}
+function comboSVG(o){
+  // o: {lb:[], bar:[], line:[], barFmt, lineFmt, barCol, lineCol, proj:[bool]}
+  const W=520, H=250, L=14, R=14, T=22, B=26, n=o.lb.length, iw=W-L-R, ih=H-T-B, bw=iw/n*0.56;
+  const bmax = Math.max(1e-9, ...o.bar.filter(isFinite)) * 1.12;
+  const LB = 0.36, BT = T + ih*0.44; // đường: dải trên 36% · cột: dải dưới từ 44%
+  const lv = o.line.filter(isFinite), lmin0 = Math.min(0, ...lv), lmax0 = Math.max(0, ...lv);
+  const pad = (lmax0-lmin0)*0.15 || 1, lmin = lmin0 - pad, lmax = lmax0 + pad;
+  const x = i => L + iw*(i+0.5)/n, yb = v => T + ih - (T+ih-BT)*v/bmax, yl = v => T + ih*LB - ih*LB*(v-lmin)/(lmax-lmin);
+  let g = `<line x1="${L}" x2="${W-R}" y1="${T+ih}" y2="${T+ih}" stroke="#D5DEEA"/>`;
+  g += `<line x1="${L}" x2="${W-R}" y1="${T+ih*LB+12}" y2="${T+ih*LB+12}" stroke="#EEF2F7"/>`;
+  if(lmin0<0 && lmax0>0) g += `<line x1="${L}" x2="${W-R}" y1="${yl(0)}" y2="${yl(0)}" stroke="${o.lineCol}" stroke-opacity=".35" stroke-dasharray="3 3"/>`;
+  o.bar.forEach((v,i)=>{ if(!isFinite(v)) return; const y=yb(v), pj=o.proj&&o.proj[i];
+    g += `<rect x="${x(i)-bw/2}" y="${y}" width="${bw}" height="${T+ih-y}" rx="3" fill="${o.barCol}" fill-opacity="${pj?0.38:0.9}" ${pj?`stroke="${o.barCol}" stroke-dasharray="4 3"`:''}/>`;
+    g += `<text x="${x(i)}" y="${y-5}" text-anchor="middle" font-size="11" font-weight="700" fill="#33445C">${o.barFmt(v)}</text>`;
+    g += `<text x="${x(i)}" y="${H-10}" text-anchor="middle" font-size="11" fill="#6F7E93">${o.lb[i]}${pj?'*':''}</text>`; });
+  const pts = o.line.map((v,i)=>isFinite(v)?[x(i),yl(v)]:null);
+  const path = pts.filter(Boolean).map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+  g += `<path d="${path}" fill="none" stroke="${o.lineCol}" stroke-width="2.4"/>`;
+  pts.forEach((p,i)=>{ if(!p) return; const v=o.line[i];
+    g += `<circle cx="${p[0]}" cy="${p[1]}" r="3.6" fill="#fff" stroke="${o.lineCol}" stroke-width="2"/>`;
+    g += `<text x="${p[0]}" y="${p[1]-8}" text-anchor="middle" font-size="10.5" font-weight="800" fill="${o.lineCol}" paint-order="stroke" stroke="#fff" stroke-width="3">${o.lineFmt(v)}</text>`; });
+  return `<svg viewBox="0 0 ${W} ${H}" role="img">${g}</svg>`;
+}
+function renderTrends(rows){
+  const box = document.getElementById('trends'); if(!box) return;
+  if(!HIST){ return; }
+  const idx = HIST.bk.map((b,i)=>[b,i]).filter(([b])=>b.t===TV);
+  const F_ = HIST.f, ci = k => F_.indexOf(k);
+  const agg12 = (arr, k) => idx.map(([,i]) => arr.reduce((t,r)=>{ const h=HIST.s[r.sap]; return t + (h ? (h[ci(k)][i]||0) : 0); },0));
+  const lfl = rows.filter(r=>r.gr==='LFL');
+  const rv=agg12(lfl,'rv'), dn=agg12(lfl,'dn'), rvl=agg12(lfl,'rvl'), dnl=agg12(lfl,'dnl');
+  const spd = rv.map((v,i)=>dn[i]>0? v/dn[i] : NaN), spdl = rvl.map((v,i)=>dnl[i]>0? v/dnl[i] : NaN);
+  const gr = spd.map((v,i)=>spdl[i]>0? (v/spdl[i]-1)*100 : NaN);
+  const rA=agg12(rows,'rv'), sA=agg12(rows,'sl');
+  const proj = idx.map(([b])=>b.nd<b.full);
+  const slv = sA.map((v,i)=>{ const b=idx[i][0]; return b.nd<b.full ? v*b.full/b.nd : v; });
+  const slp = sA.map((v,i)=>rA[i]>0? v/rA[i]*100 : NaN);
+  const lb = idx.map(([b])=>b.lb);
+  const fx1 = v => v.toLocaleString('vi-VN',{minimumFractionDigits:1,maximumFractionDigits:1});
+  const pctS = v => (v>0?'+':'')+fx1(v)+'%';
+  const money = v => v>=1000 ? fx1(v/1000) : Math.round(v).toLocaleString('vi-VN');
+  const unit = Math.max(...slv.filter(isFinite))>=1000 ? 'tỷ.đ' : 'tr.đ';
+  const per = TV==='M' ? 'tháng' : 'tuần';
+  const hasGap = idx.some(([b])=>b.b0<='2026-10-31' && b.b1>='2026-10-31');
+  box.innerHTML = `
+  <div class="tr-card"><h3>SPD LFL / Growth vs LY</h3>
+    <div class="tr-sub">${F.n(lfl.length)} CH LFL cố định (KT trước ${(new Date(D.meta.reportDate)).getUTCFullYear()-1}) · SPD = DT / ngày có bán</div>
+    <div class="tr-lg"><span><i style="background:#1F4E79"></i>SPD (tr.đ/ngày)</span><span><i style="background:#0E9F6E"></i>Growth vs LY</span></div>
+    ${comboSVG({lb, bar:spd, line:gr, barFmt:fx1, lineFmt:pctS, barCol:'#1F4E79', lineCol:'#0E9F6E'})}
+  </div>
+  <div class="tr-card"><h3>S&amp;L&amp;C: %DT / Giá trị</h3>
+    <div class="tr-sub">Shrink + Loss + Coupon · ${F.n(rows.length)} CH${proj.some(Boolean)?` · * ${per} hiện tại dự phóng đủ ${per}`:''}</div>
+    <div class="tr-lg"><span><i style="background:#C2410C"></i>Giá trị (${unit})</span><span><i style="background:#7C3AED"></i>% doanh thu</span></div>
+    ${comboSVG({lb, bar:slv, line:slp, barFmt:money, lineFmt:v=>fx1(v)+'%', barCol:'#C2410C', lineCol:'#7C3AED', proj})}
+    ${hasGap?'<div class="tr-note">Lưu ý: dữ liệu doanh thu ngày 31/10 chưa có trong BigQuery → %DT kỳ chứa ngày này bị cao hơn thực tế.</div>':''}
+  </div>`;
+  document.getElementById('trSub').textContent = rows.length!==ALL.length ? 'theo bộ lọc hiện tại' : 'toàn hệ thống';
 }
 function lflSub(rows){
   const r = rows.filter(x=>x.gr==='LFL'); if(!r.length) return '<span class="tag t-gray">Không có CH LFL</span>';

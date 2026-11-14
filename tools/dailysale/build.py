@@ -68,8 +68,32 @@ def group(kt, D):
     return 'NSO'
 
 
-def build(sales, profile, src='admin_hr.store_profile_20261103'):
+def buckets(D):
+    """12 kỳ: 6 tháng (M-5..M) rồi 6 tuần (W-5..W) — khớp hist.sql."""
+    out = []
+    for i in range(6):
+        y, m = D.year, D.month - (5 - i)
+        while m <= 0:
+            y, m = y - 1, m + 12
+        b0 = dt.date(y, m, 1)
+        nxt = dt.date(y + (m == 12), m % 12 + 1, 1)
+        full = (nxt - b0).days
+        b1 = min(nxt - dt.timedelta(days=1), D)
+        out.append({'t': 'M', 'lb': f'T{m}' + (f'/{y % 100}' if m == 12 or i == 0 else ''), 'b0': b0.isoformat(),
+                    'b1': b1.isoformat(), 'nd': (b1 - b0).days + 1, 'full': full})
+    W0 = D - dt.timedelta(days=D.weekday())
+    for i in range(6):
+        b0 = W0 - dt.timedelta(days=7 * (5 - i))
+        b1 = min(b0 + dt.timedelta(days=6), D)
+        out.append({'t': 'W', 'lb': f'{b0.day:02d}/{b0.month:02d}', 'b0': b0.isoformat(), 'b1': b1.isoformat(),
+                    'nd': (b1 - b0).days + 1, 'full': 7})
+    return out
+
+
+def build(sales, profile, src='admin_hr.store_profile_20261103', hist=None, be=None):
     S = {r['store']: r for r in sales}
+    HI = {h['store']: h for h in (hist or [])}
+    BE = {str(b['store']).strip(): f(b['be']) for b in (be or []) if f(b.get('be')) > 0}
     rd = next((r['rd'] for r in sales if r.get('rd')), None)
     rdl = next((r['rdl'] for r in sales if r.get('rdl')), None)
     D = dt.date.fromisoformat(rd)
@@ -125,6 +149,14 @@ def build(sales, profile, src='admin_hr.store_profile_20261103'):
         r['wt'] = rnd(g('wt') if (W0.month == D.month) else g('dt') * ((D - W0).days + 1), 2)
         r['mt'] = rnd(g('mt'), 2)
         r['yt'] = rnd(g('ty') + g('mt'), 2)
+        # KPI bổ sung: điểm hòa vốn, tháng trước (LM), S&L&C (shrink - loss + coupon)
+        h = HI.get(sap)
+        if BE.get(sap):
+            r['be'] = BE[sap]
+        if h:
+            r['lmr'], r['lmn'] = rnd(h['rv'][4], 2), h['dn'][4]
+            r['slc'], r['slcl'] = rnd(h['sl'][5], 2), rnd(h['sll'][5], 2)
+            r['slcm'] = rnd(h['sl'][4], 2)
         # rút gọn: bỏ trường Retail trùng SO (trang tự lấy SO khi thiếu) và ô trống
         for k in [k for k in r if k.endswith('r') and k[:-1] in r and r[k] == r[k[:-1]] and k not in ('qu',)]:
             del r[k]
@@ -142,7 +174,15 @@ def build(sales, profile, src='admin_hr.store_profile_20261103'):
         'builtAt': dt.datetime.now(dt.timezone.utc).isoformat(timespec='seconds'),
         'salesNotInProfile': missing,
     }
-    return {'meta': meta, 'stores': stores}
+    out = {'meta': meta, 'stores': stores}
+    if hist:
+        bk = buckets(D)
+        keep = {r['sap'] for r in stores}
+        out['hist'] = {'bk': bk, 'f': ['rv', 'dn', 'rvl', 'dnl', 'sl', 'sll'],
+                       's': {h['store']: [[round(f(v), 1) if k in ('rv', 'rvl', 'sl', 'sll') else int(f(v)) for v in h[k]]
+                                          for k in ('rv', 'dn', 'rvl', 'dnl', 'sl', 'sll')]
+                             for h in hist if h['store'] in keep}}
+    return out
 
 
 def load_profile(path):
@@ -180,11 +220,20 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--sales')
     ap.add_argument('--profile')
+    ap.add_argument('--hist')
+    ap.add_argument('--be')
     ap.add_argument('--out', default='dailysale_v9.json')
     a = ap.parse_args()
     sales = json.load(open(a.sales, encoding='utf-8')) if a.sales else bq('sales.sql')
     profile = load_profile(a.profile) if a.profile else bq('profile.sql')
-    j = build(sales, profile, 'Storelist Rural (Storeslist)' if a.profile else 'admin_hr.store_profile_20261103')
+    hist = json.load(open(a.hist, encoding='utf-8')) if a.hist else bq('hist.sql')
+    be = json.load(open(a.be, encoding='utf-8')) if a.be else bq('be.sql')
+    j = build(sales, profile, 'Storelist Rural (Storeslist)' if a.profile else 'admin_hr.store_profile_20261103', hist, be)
+    hpart = j.pop('hist', None)
+    if hpart:
+        hp = os.path.join(os.path.dirname(os.path.abspath(a.out)), 'dailysale_hist.json')
+        with open(hp, 'w', encoding='utf-8') as fh:
+            json.dump(hpart, fh, ensure_ascii=False, separators=(',', ':'))
     with open(a.out, 'w', encoding='utf-8') as fh:
         json.dump(j, fh, ensure_ascii=False, separators=(',', ':'))
     m = j['meta']
