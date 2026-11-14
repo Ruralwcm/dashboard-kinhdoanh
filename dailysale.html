@@ -487,8 +487,6 @@ body.fullscreen .ptools{opacity:.9}
   <div class="blk" data-blk="kpi">
   <div class="sec-h"><h2>Key Performance</h2><span class="sub" id="kpiSub"></span></div>
   <section class="kpis" id="kpis"></section>
-  <div class="kpi-h">Ngày D-1</div>
-  <section class="kpis kpgrid2 kpday" id="kpisD"></section>
   </div>
   <div class="blk" data-blk="trend">
   <div class="sec-h"><h2>Xu hướng</h2><span class="sub" id="trSub"></span>
@@ -884,13 +882,6 @@ function renderKPI(a, rows){
     </div>`).join('');
   const el = document.getElementById('kpis');
   el.innerHTML = draw(kp,'kp1'); el.classList.add('kpgrid2');
-  // Ngày D-1 (giữ thẻ cũ)
-  const kd = [
-    {lb:'SPD ngày', v:F.spd(a.spd), u:' tr', sub:sgnTag(a.tt)},
-    {lb:'Bill ngày', v:F.n(a.bill/a.n), u:' bill/CH', sub:sgnTag(a.billLV)},
-    {lb:'Total Sale ngày', v:F.money(a.revD), u:'', sub:`${htTag(a.ht)} ${sgnTag(a.tt)}`}
-  ];
-  document.getElementById('kpisD').innerHTML = draw(kd,'kp1');
   try{ renderTrends(rows); }catch(e){ console.warn('trend',e); }
 }
 
