@@ -113,6 +113,9 @@ main > .sec-h:first-child{margin-top:4px}
 .kt thead th.cntc,.kt td.cntc{position:sticky;left:var(--nameW,190px);z-index:3;text-align:center;width:56px;border-right:1px solid #C9D6E6}
 .kt thead th.cntc{z-index:5}
 /* cột cố định phải có nền đặc để số cuộn ngang không hiện xuyên qua */
+#tStore th:first-child,#tStore td:first-child{position:sticky;left:0;z-index:2;background:#fff;box-shadow:1px 0 0 #EDF1F7}
+#tStore th:first-child{z-index:4;background:#FAFBFD}
+#tStore tbody tr:hover td:first-child{background:#F8FAFD}
 .kt td.name,.kt td.cntc{background:#fff}
 .kt tr.clickable:hover td.name,.kt tr.clickable:hover td.cntc{background:#F8FAFD}
 .kt tr.lvl1 td.cntc,.kt tr.lvl1 td.name{background:#EAF1FA}
@@ -143,11 +146,11 @@ main > .sec-h:first-child{margin-top:4px}
 .kt tr.lvl1 td{background:#EAF1FA;font-weight:800}
 .kt tr.lvl1:hover td{background:#E1EBF8}
 .kt tr.lvl2 td{background:#fff}
-.kt tr.lvl2 td.name{padding-left:24px;font-weight:600;position:relative}
+.kt tr.lvl2 td.name{padding-left:24px;font-weight:600;position:sticky}
 .kt tr.lvl2 td.name:before{content:"";position:absolute;left:12px;top:50%;width:6px;height:1px;background:#C4D0E0}
 .kt tr.lvl2:hover td{background:#F8FAFD}
 /* level 2+ : lùi vào theo độ sâu (--indent do renderDim set) */
-.kt tr.indented td.name{padding-left:calc(12px + var(--indent,20px));font-weight:600;position:relative}
+.kt tr.indented td.name{padding-left:calc(12px + var(--indent,20px));font-weight:600;position:sticky}
 .kt tr.indented td.name:before{left:calc(var(--indent,20px) + 2px)}
 .kt tr.total td{background:#0F2A4A;color:#fff;font-weight:800;border-bottom:0}
 .kt tr.total td .cnt{color:#B9C9DC}
