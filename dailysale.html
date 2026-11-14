@@ -110,8 +110,11 @@ main > .sec-h:first-child{margin-top:4px}
 .kt thead th.name{text-align:left;min-width:190px;width:190px}
 .kt thead th.name,.kt td.name{position:sticky;left:0;z-index:3}
 .kt thead th.name{z-index:5}
-.kt thead th.cntc,.kt td.cntc{position:sticky;left:190px;z-index:3;text-align:center;width:56px;border-right:1px solid #C9D6E6}
+.kt thead th.cntc,.kt td.cntc{position:sticky;left:var(--nameW,190px);z-index:3;text-align:center;width:56px;border-right:1px solid #C9D6E6}
 .kt thead th.cntc{z-index:5}
+/* cột cố định phải có nền đặc để số cuộn ngang không hiện xuyên qua */
+.kt td.name,.kt td.cntc{background:#fff}
+.kt tr.clickable:hover td.name,.kt tr.clickable:hover td.cntc{background:#F8FAFD}
 .kt tr.lvl1 td.cntc,.kt tr.lvl1 td.name{background:#EAF1FA}
 .kt tr.lvl2 td.cntc,.kt tr.lvl2 td.name{background:#fff}
 .kt tr.total td.cntc,.kt tr.total td.name{background:#0F2A4A}
@@ -929,6 +932,8 @@ function fitTables(){
   [document.getElementById('tDim'),document.getElementById('tGrp'),document.getElementById('tStore')].forEach(t=>{
     if(!t) return;
     t.style.setProperty('--cw',cw+'px');
+    // cột #CH dính sát mép phải cột tên (cột tên có thể rộng hơn 190px khi chữ dài / phóng to)
+    const thn = t.querySelector('thead th.name'); if(thn) t.style.setProperty('--nameW', thn.offsetWidth+'px');
     t.style.setProperty('--fs',fs);
     // adjust td font
     t.querySelectorAll('td.num').forEach(td=>td.style.fontSize=fs);
