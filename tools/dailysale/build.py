@@ -3,7 +3,8 @@
 
 Nguồn (project rural-data-analystic):
   - sales.sql   : daily_sale_new_report (asia-southeast1) — doanh thu, bill, target, hủy, shrink, tồn kho
-  - profile.sql : admin_hr.store_profile_20261103 (US) — thuộc tính CH (miền, vùng, tỉnh cũ, GĐV, QLKV, khai trương)
+  - Thuộc tính CH: ưu tiên Google Sheet "Storelist Rural" › Storeslist (bản mới nhất) qua --profile;
+                  nếu không truyền --profile thì dùng profile.sql (admin_hr.store_profile_20261103, bản chụp 03/11)
 Hai dataset khác vùng nên chạy 2 truy vấn rồi ghép ở đây.
 
 Chạy (máy đã đăng nhập gcloud/bq):
@@ -17,7 +18,7 @@ Quy tắc:
   - Nhóm CH theo ngày khai trương (Y = năm của D, M = tháng của D):
       LFL < Y-1 · STU = Y-1 · NSO1 = tháng M · NSO2 = tháng M-1 · NSO = các tháng còn lại của năm Y.
       SKT = khai trương sau ngày báo cáo · KHAC = không có ngày khai trương.
-  - Tỉnh dùng tên tỉnh cũ (trước 1/7).
+  - Tỉnh dùng tên tỉnh cũ (trước 1/7). Vùng Bắc Trung Bộ luôn thuộc Miền Trung.
   - Hủy/Shrink = lũy kế tháng. DIO = tồn kho / giá vốn bình quân ngày 30 ngày.
 """
 import argparse, json, os, subprocess, sys, datetime as dt
@@ -67,7 +68,7 @@ def group(kt, D):
     return 'NSO'
 
 
-def build(sales, profile):
+def build(sales, profile, src='admin_hr.store_profile_20261103'):
     S = {r['store']: r for r in sales}
     rd = next((r['rd'] for r in sales if r.get('rd')), None)
     rdl = next((r['rdl'] for r in sales if r.get('rdl')), None)
@@ -86,8 +87,11 @@ def build(sales, profile):
         if tt.startswith('Sắp khai trương') and kt and kt[:10] <= rd and g('d_s') > 0:
             tt = 'Đang hoạt động'
         gr = group(kt, D)
+        mi = p.get('mi') or ''
+        if (p.get('vu') or '') == 'Bắc Trung Bộ':
+            mi = 'Miền Trung'   # quy ước: vùng Bắc Trung Bộ thuộc Miền Trung
         r = {
-            'sap': sap, 'nm': p.get('nm') or '', 'mi': p.get('mi') or '', 'vu': p.get('vu') or '',
+            'sap': sap, 'nm': p.get('nm') or '', 'mi': mi, 'vu': p.get('vu') or '',
             'ti': p.get('ti') or '', 'qu': p.get('qu') or '', 'gd': p.get('gd') or '', 'ql': p.get('ql') or '',
             'gr': gr, 'nh': gr, 'tt': tt, 'kt': kt, 'ky': int(kt[:4]) if kt else None,
             'lo': rnd(g('lo'), 2), 'sh': rnd(g('sh'), 2), 'st': rnd(g('st'), 2),
@@ -134,11 +138,42 @@ def build(sales, profile):
         'mtdDays': D.day, 'daysInMonth': month_days,
         'wtdDays': (D - W0).days + 1, 'ytdDays': D.timetuple().tm_yday,
         'basis': 'Revenue',
-        'src': 'BQ daily_sale_new_report + admin_hr.store_profile_20261103',
+        'src': 'BQ daily_sale_new_report + ' + src,
         'builtAt': dt.datetime.now(dt.timezone.utc).isoformat(timespec='seconds'),
         'salesNotInProfile': missing,
     }
     return {'meta': meta, 'stores': stores}
+
+
+def load_profile(path):
+    """Nhận JSON từ bq (profile.sql) hoặc JSON xuất từ Google Sheet 'Storelist Rural' › Storeslist
+    dạng {"values": [...]} với các cột A:J, P (Phân vùng), AF (QLKV), AJ (GĐV) — cột theo vị trí."""
+    j = json.load(open(path, encoding='utf-8'))
+    if isinstance(j, list):
+        return j
+    V = j['values']
+    H = V[0]
+    ix = {name: H.index(name) for name in H}
+    def col(r, name):
+        i = ix.get(name)
+        return (r[i].strip() if i is not None and i < len(r) else '')
+    out = []
+    for r in V[1:]:
+        sap = col(r, 'Mã SAP')
+        if not sap:
+            continue
+        kt = col(r, 'Khai Trương')
+        try:
+            kt = (dt.date(1899, 12, 30) + dt.timedelta(days=int(float(kt)))).isoformat()
+        except ValueError:
+            try:
+                kt = dt.datetime.strptime(kt, '%d/%m/%Y').date().isoformat()
+            except ValueError:
+                kt = None
+        out.append({'sap': sap, 'nm': col(r, 'Tên cửa hàng'), 'tt': col(r, 'Tình Trạng'), 'kt': kt,
+                    'mi': col(r, 'Miền'), 'ti': col(r, 'Tỉnh/TP cũ trước 1/7'), 'qu': col(r, 'Quận/ huyện cũ trước 1/7'),
+                    'vu': col(r, 'Phân vùng'), 'ql': col(r, 'QLKV'), 'gd': col(r, 'GĐV')})
+    return out
 
 
 def main():
@@ -148,8 +183,8 @@ def main():
     ap.add_argument('--out', default='dailysale_v9.json')
     a = ap.parse_args()
     sales = json.load(open(a.sales, encoding='utf-8')) if a.sales else bq('sales.sql')
-    profile = json.load(open(a.profile, encoding='utf-8')) if a.profile else bq('profile.sql')
-    j = build(sales, profile)
+    profile = load_profile(a.profile) if a.profile else bq('profile.sql')
+    j = build(sales, profile, 'Storelist Rural (Storeslist)' if a.profile else 'admin_hr.store_profile_20261103')
     with open(a.out, 'w', encoding='utf-8') as fh:
         json.dump(j, fh, ensure_ascii=False, separators=(',', ':'))
     m = j['meta']
