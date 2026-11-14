@@ -359,45 +359,22 @@ body.fullscreen .ptools{opacity:.9}
 .ly-legend{display:inline-flex;gap:3px;align-items:center;margin-left:8px;font-size:10.5px;color:#5A6B82}
 .ly-legend i{display:inline-block;width:22px;height:9px;border-radius:2px;border:1px solid rgba(0,0,0,.06)}
 
-/* === FORECAST SECTION (blue/white) === */
-.blk[data-blk="fc"]{background:#fff;border:1px solid #DBEAFE;border-radius:12px}
-.blk[data-blk="fc"] .sec-h{border-bottom:1px solid #DBEAFE;padding:10px 14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.blk[data-blk="fc"] .sec-h .ttl{color:#1E40AF;font-weight:700;font-size:15px}
-.blk[data-blk="fc"] .sec-h .rt{margin-left:auto;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-.blk[data-blk="fc"] .seg{display:flex;gap:2px;background:#EFF6FF;border-radius:8px;padding:2px}
-.blk[data-blk="fc"] .seg button{border:none;background:none;padding:4px 10px;border-radius:6px;font-size:12px;color:#64748B;cursor:pointer;font-weight:500;white-space:nowrap}
-.blk[data-blk="fc"] .seg button.on{background:#1E40AF;color:#fff}
-.fckpi{display:flex;gap:10px;padding:10px 14px;flex-wrap:wrap}
-.fckpi .fc{flex:1;min-width:140px;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:10px;padding:10px 12px}
-.fckpi .fc .lb{font-size:11px;color:#64748B;margin-bottom:2px}
-.fckpi .fc .vl{font-size:18px;font-weight:700;color:#1E40AF}
-.fckpi .fc .sb{font-size:10.5px;color:#94A3B8;margin-top:2px}
-.fckpi .fc.warn{background:#FEF3C7;border-color:#FCD34D}.fckpi .fc.warn .vl{color:#B45309}
-.fckpi .fc.bad{background:#FEE2E2;border-color:#FECACA}.fckpi .fc.bad .vl{color:#DC2626}
-.fctbl{margin:0 14px 10px;overflow-x:auto}
-.fctbl table{width:100%;border-collapse:collapse;font-size:12.5px}
-.fctbl thead th{position:sticky;top:0;background:#EFF6FF;color:#1E40AF;font-weight:600;padding:7px 8px;border-bottom:2px solid #BFDBFE;white-space:nowrap;text-align:right}
-.fctbl thead th.name{text-align:left;min-width:90px}
-.fctbl thead th.cn{text-align:center;width:44px}
-.fctbl tbody td{padding:6px 8px;text-align:right;border-bottom:1px solid #F1F5F9;white-space:nowrap}
-.fctbl tbody td.name{text-align:left;font-weight:600;color:#1E293B}
-.fctbl tbody td.cn{text-align:center;color:#64748B}
-.fctbl tbody td.gap-neg{color:#DC2626;font-weight:600}
-.fctbl tbody td.gap-pos{color:#059669}
-.fctbl tbody td.ht-lo{color:#DC2626;font-weight:700}
-.fctbl tbody td.ht-md{color:#D97706;font-weight:600}
-.fctbl tbody td.ht-hi{color:#059669}
-.fctbl tbody tr.row-warn{background:#FFFBEB}
-.fctbl tbody tr.row-bad{background:#FEF2F2}
-.fctbl tbody tr.row-sub{background:#F8FAFC;color:#64748B;font-size:11.5px}
-.fctbl tbody tr.row-sub td.name{padding-left:24px;font-weight:500}
-.fctbl tbody tr.row-sub td{color:#64748B}
-.fcnote{margin:0 14px 10px;padding:10px 14px;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;font-size:12px;color:#1E40AF;line-height:1.55}
-.fcnote b{color:#1E40AF}
-.fcnote .tag{display:inline-block;padding:1px 8px;border-radius:10px;font-size:10.5px;font-weight:600;margin:0 2px}
-.fcnote .tag.w{background:#FEF3C7;color:#B45309}
-.fcnote .tag.d{background:#FEE2E2;color:#DC2626}
-
+/* === TREND SECTIONS: LFL Growth + SLC === */
+.trnd{background:#fff;border:1px solid #DBEAFE;border-radius:12px;margin-bottom:14px}
+.trnd .sec-h{border-bottom:1px solid #DBEAFE;padding:10px 14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.trnd .sec-h .ttl{color:#1E40AF;font-weight:700;font-size:15px}
+.trnd .sec-h .rt{margin-left:auto;display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:12px;color:#64748B}
+.tkpi{display:flex;gap:10px;padding:10px 14px;flex-wrap:wrap}
+.tkpi .tc{flex:1;min-width:120px;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:10px;padding:10px 12px}
+.tkpi .tc .lb{font-size:11px;color:#64748B;margin-bottom:2px}
+.tkpi .tc .vl{font-size:18px;font-weight:700;color:#1E40AF}
+.tkpi .tc .sb{font-size:10.5px;color:#94A3B8;margin-top:2px}
+.tkpi .tc.warn{background:#FEF3C7;border-color:#FCD34D}.tkpi .tc.warn .vl{color:#B45309}
+.tkpi .tc.bad{background:#FEE2E2;border-color:#FECACA}.tkpi .tc.bad .vl{color:#DC2626}
+.tkpi .tc.good{background:#ECFDF5;border-color:#A7F3D0}.tkpi .tc.good .vl{color:#059669}
+.tchart{margin:0 14px 10px;position:relative;height:260px}
+.tchart canvas{width:100%!important;height:100%!important}
+</style>
 </style>
 </head>
 <body>
@@ -466,19 +443,17 @@ body.fullscreen .ptools{opacity:.9}
   <section class="kpis" id="kpis"></section>
   </div>
 
-    <div class="blk" data-blk="fc">
-    <div class="sec-h">
-      <span class="ttl">📊 Dự báo doanh thu</span>
-      <div class="rt">
-        <span style="font-size:11px;color:#64748B;">Kỳ:</span>
-        <div class="seg" id="fcPer"><button data-fp="p1" class="on">T11/2026</button><button data-fp="p2">T12/2026</button></div>
-        <span style="font-size:11px;color:#64748B;margin-left:4px;">View:</span>
-        <div class="seg" id="fcView"><button data-fv="w" class="on">W · 14 ngày tới</button><button data-fv="m">M · Các tuần còn lại</button></div>
-      </div>
-    </div>
-    <div id="fcBody"></div>
-    <div class="fcnote" id="fcNote"></div>
+      <div class="trnd" data-blk="trnd" id="tLFL">
+    <div class="sec-h"><span class="ttl">📈 Trend Growth LFL — 6 Tháng</span><span class="rt" id="lflRange"></span></div>
+    <div class="tkpi" id="lflKpi"></div>
+    <div class="tchart"><canvas id="lflChart"></canvas></div>
   </div>
+  <div class="trnd" data-blk="trnd" id="tSLC">
+    <div class="sec-h"><span class="ttl">💸 Trend S&L&C — 7 Tháng</span><span class="rt" id="slcRange"></span></div>
+    <div class="tkpi" id="slcKpi"></div>
+    <div class="tchart"><canvas id="slcChart"></canvas></div>
+  </div>
+
 
   <div class="blk" data-blk="grp">
   <div class="sec-h"><h2>Hiệu quả theo nhóm cửa hàng</h2><span class="sub">LFL · STU · NSO</span>
@@ -630,7 +605,7 @@ let FCU=null, FCP='p1', FCV='w', FCDIM='mi';
 function loadData(){
   return Promise.all([
     fetch('dailysale_v9.json',{cache:'no-store'}).then(r=>{ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); }),
-    fetch('forecast_ui.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null)
+    /* trends loaded inline */
   ]).then(([j,f])=>{
     D = j; ALL = j.stores || [];
     FCU = f;
@@ -719,81 +694,68 @@ document.getElementById('tsMinus').onclick=()=>{ TS=Math.max(.7,TS-.05); applyTS
 document.getElementById('tsPlus').onclick=()=>{ TS=Math.min(1.5,TS+.05); applyTS(); try{localStorage.setItem('ds_ts',TS)}catch(e){} };
 applyTS();
   refreshFilters();
-  initFC();
+  initTrends();
   render();
   document.getElementById('load').style.display='none';
 }
 
 
-/* ================= DỰ BÁO DOANH THU ================= */
-function fcTag(v){ return v>=100?['t-good','Vượt']:v>=97?['t-mid','Sát']:v>=93?['t-warn','Cần đẩy']:['t-bad','Cảnh báo']; }
-function initFC(){
-  document.querySelectorAll('#fcPer button').forEach(b=>{ b.onclick=()=>{
-    FCP=b.dataset.fp; document.querySelectorAll('#fcPer button').forEach(x=>x.classList.toggle('on',x===b));
-    if(FCP==='p2'){ FCV='m'; document.querySelectorAll('#fcView button').forEach(x=>x.classList.toggle('on',x.dataset.fv==='m')); }
-    else{ FCV='w'; document.querySelectorAll('#fcView button').forEach(x=>x.classList.toggle('on',x.dataset.fv==='w')); }
-    renderFC();
-  }});
-  document.querySelectorAll('#fcView button').forEach(b=>{ b.onclick=()=>{
-    FCV=b.dataset.fv; document.querySelectorAll('#fcView button').forEach(x=>x.classList.toggle('on',x===b));
-    renderFC();
-  }});
+/* ================= /* ================= TREND LFL & SLC ================= */
+var LFL=[{"month": "2026-05", "rev_b": 0.0, "rev_ly_b": 0.0, "growth_pct": 61.0, "stores": 2315}, {"month": "2026-06", "rev_b": 0.0, "rev_ly_b": 0.0, "growth_pct": 61.8, "stores": 2378}, {"month": "2026-07", "rev_b": 0.0, "rev_ly_b": 0.0, "growth_pct": 48.8, "stores": 2462}, {"month": "2026-08", "rev_b": 0.0, "rev_ly_b": 0.0, "growth_pct": 54.1, "stores": 2555}, {"month": "2026-09", "rev_b": 0.0, "rev_ly_b": 0.0, "growth_pct": 46.3, "stores": 2631}, {"month": "2026-10", "rev_b": 0.0, "rev_ly_b": 0.0, "growth_pct": 40.6, "stores": 2720}, {"month": "2026-11", "rev_b": 0.0, "rev_ly_b": 0.0, "growth_pct": -39.3, "stores": 2746}];
+var SLC=[{"month": "2026-05", "shrink_pct": 3.38, "loss_pct": -0.31, "coupon_pct": 0.72, "total_pct": 3.79, "shrink_m": 0.0, "loss_m": -0.0, "coupon_m": 0.0}, {"month": "2026-06", "shrink_pct": 3.25, "loss_pct": -0.35, "coupon_pct": 0.7, "total_pct": 3.6, "shrink_m": 0.0, "loss_m": -0.0, "coupon_m": 0.0}, {"month": "2026-07", "shrink_pct": 3.42, "loss_pct": -0.28, "coupon_pct": 0.73, "total_pct": 3.87, "shrink_m": 0.0, "loss_m": -0.0, "coupon_m": 0.0}, {"month": "2026-08", "shrink_pct": 3.43, "loss_pct": -0.38, "coupon_pct": 0.63, "total_pct": 3.68, "shrink_m": 0.0, "loss_m": -0.0, "coupon_m": 0.0}, {"month": "2026-09", "shrink_pct": 3.53, "loss_pct": -0.37, "coupon_pct": 0.73, "total_pct": 3.89, "shrink_m": 0.0, "loss_m": -0.0, "coupon_m": 0.0}, {"month": "2026-10", "shrink_pct": 4.22, "loss_pct": -0.45, "coupon_pct": 0.82, "total_pct": 4.59, "shrink_m": 0.1, "loss_m": -0.0, "coupon_m": 0.0}, {"month": "2026-11", "shrink_pct": 3.54, "loss_pct": -0.28, "coupon_pct": 1.35, "total_pct": 4.61, "shrink_m": 0.0, "loss_m": -0.0, "coupon_m": 0.0}];
+function initTrends(){
+  try{
+  if(!LFL||!LFL.length) return;
+  var months=LFL.map(function(d){return d.month.slice(5);});
+  var gPct=LFL.map(function(d){return d.growth_pct||0;});
+  var revB=LFL.map(function(d){return d.rev_b;});
+  var cur=LFL[LFL.length-1];
+  var cls=cur.growth_pct>=20?'good':cur.growth_pct>=0?'warn':'bad';
+  document.getElementById('lflRange').textContent='T'+String.fromCharCode(104)+String.fromCharCode(225)+'ng '+LFL[0].month+' \u2192 '+cur.month;
+  document.getElementById('lflKpi').innerHTML=
+    '<div class="tc '+cls+'"><div class="lb">LFL Growth (th'+String.fromCharCode(225)+'ng n'+String.fromCharCode(224)+'y)</div><div class="vl">'+(cur.growth_pct!=null?(cur.growth_pct>=0?'+':'')+cur.growth_pct.toFixed(1)+'%':'\u2014')+'</div><div class="sb">7 th'+String.fromCharCode(225)+'ng | '+(cur.stores||'')+' CH LFL</div></div>'+
+    '<div class="tc"><div class="lb">Doanh thu th'+String.fromCharCode(225)+'ng (t'+String.fromCharCode(7927)+')</div><div class="vl">'+cur.rev_b.toLocaleString('vi-VN')+'B</div><div class="sb">LY: '+cur.rev_ly_b.toLocaleString('vi-VN')+'B</div></div>'+
+    '<div class="tc"><div class="lb">T'+String.fromCharCode(259)+'ng tr'+String.fromCharCode(432)+String.fromCharCode(7903)+'ng TB</div><div class="vl">'+(LFL.reduce(function(s,d){return s+(d.growth_pct||0);},0)/LFL.length).toFixed(1)+'%</div><div class="sb">Cao nh'+String.fromCharCode(7845)+'t: '+Math.max.apply(null,gPct).toFixed(1)+'% | Th'+String.fromCharCode(7845)+'p nh'+String.fromCharCode(7845)+'t: '+Math.min.apply(null,gPct).toFixed(1)+'%</div></div>';
+  if(typeof Chart!=='undefined'){
+    new Chart(document.getElementById('lflChart'),{type:'line',data:{labels:months,
+      datasets:[
+        {label:'Growth % vs LY',data:gPct,borderColor:'#1E40AF',backgroundColor:'rgba(30,64,175,0.08)',fill:true,tension:0.3,pointRadius:4,pointBackgroundColor:'#1E40AF',yAxisID:'y'},
+        {label:'Rev (B)',data:revB,borderColor:'#10B981',backgroundColor:'rgba(16,185,129,0.05)',fill:true,tension:0.3,pointRadius:3,pointBackgroundColor:'#10B981',yAxisID:'y1',borderDash:[4,3]}
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+        plugins:{legend:{position:'top',labels:{usePointStyle:true,padding:15,font:{size:11}}},tooltip:{callbacks:{label:function(c){return c.dataset.label+': '+(c.dataset.yAxisID==='y'?c.raw.toFixed(1)+'%':c.raw.toFixed(1)+'B');}}}}},
+        scales:{y:{type:'linear',position:'left',grid:{color:'#E2E8F0'},ticks:{callback:function(v){return v+'%';},font:{size:10}},title:{display:true,text:'Growth %',font:{size:10}}},
+          y1:{type:'linear',position:'right',grid:{display:false},ticks:{callback:function(v){return v+'B';},font:{size:10}},title:{display:true,text:'Revenue (B)',font:{size:10}}},
+          x:{grid:{display:false},ticks:{font:{size:10}}}}});}
+  
+  if(!SLC||!SLC.length) return;
+  var sc=SLC.map(function(d){return d.total_pct;});
+  var ss=SLC.map(function(d){return d.shrink_pct;});
+  var sl=SLC.map(function(d){return d.loss_pct;});
+  var scpn=SLC.map(function(d){return d.coupon_pct;});
+  var sCur=SLC[SLC.length-1];
+  var sCls=sCur.total_pct<3?'good':sCur.total_pct<5?'warn':'bad';
+  document.getElementById('slcRange').textContent='T'+String.fromCharCode(104)+String.fromCharCode(225)+'ng '+SLC[0].month+' \u2192 '+sCur.month;
+  document.getElementById('slcKpi').innerHTML=
+    '<div class="tc '+sCls+'"><div class="lb">S&L&C % (th'+String.fromCharCode(225)+'ng n'+String.fromCharCode(224)+'y)</div><div class="vl">'+sCur.total_pct.toFixed(2)+'%</div><div class="sb">Shrink '+sCur.shrink_pct.toFixed(1)+'% | Loss '+sCur.loss_pct.toFixed(1)+'% | Coupon '+sCur.coupon_pct.toFixed(1)+'%</div></div>'+
+    '<div class="tc"><div class="lb">Shrinkage (M VND)</div><div class="vl">'+sCur.shrink_m.toLocaleString('vi-VN')+'M</div><div class="sb">'+sCur.shrink_pct.toFixed(2)+'% doanh thu</div></div>'+
+    '<div class="tc '+(sCur.loss_pct<0?'bad':'')+'"><div class="lb">Loss (M VND)</div><div class="vl">'+sCur.loss_m.toLocaleString('vi-VN')+'M</div><div class="sb">'+sCur.loss_pct.toFixed(2)+'% doanh thu</div></div>';
+  if(typeof Chart!=='undefined'){
+    new Chart(document.getElementById('slcChart'),{type:'bar',data:{labels:months,
+      datasets:[
+        {label:'Shrinkage %',data:ss,backgroundColor:'#EF4444',stack:'s'},
+        {label:'Loss %',data:sl,backgroundColor:'#F59E0B',stack:'s'},
+        {label:'Coupon %',data:scpn,backgroundColor:'#3B82F6',stack:'s'}
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+        plugins:{legend:{position:'top',labels:{usePointStyle:true,padding:15,font:{size:11}}},tooltip:{callbacks:{label:function(c){return c.dataset.label+': '+c.raw.toFixed(2)+'%';}}}},
+        scales:{y:{stacked:true,grid:{color:'#E2E8F0'},ticks:{callback:function(v){return v+'%';},font:{size:10}},title:{display:true,text:'% Doanh Thu',font:{size:10}}},
+          x:{stacked:true,grid:{display:false},ticks:{font:{size:10}}}}});}
+  }catch(e){console.log('Trend init error:',e);}
 }
-
-function renderFC(){
-  const body=document.getElementById('fcBody'), note=document.getElementById('fcNote');
-  if(!FCU){ body.innerHTML='<div style="padding:20px;text-align:center;color:#94A3B8;">Chưa có dữ liệu dự báo</div>'; note.innerHTML=''; return; }
-  const pd=FCU[FCP]; if(!pd){ body.innerHTML='<div style="padding:20px;text-align:center;color:#94A3B8;">Không có dữ liệu cho kỳ này</div>'; note.innerHTML=''; return; }
-  const vd=pd[FCV==='w'?'view_w':'view_m'];
-  if(!vd||!vd.nhom||!Object.keys(vd.nhom).length){ body.innerHTML='<div style="padding:20px;text-align:center;color:#94A3B8;">Không có dữ liệu cho view này</div>'; note.innerHTML=''; return; }
-  const nhom=vd.nhom, meta=FCU.meta, elapsedPct=meta.elapsed_pct||0;
-  let totalSale=0,totalTarget=0,totalCH=0;
-  for(const g of ['LFL','STU','NSO','KHAC']){ const n=nhom[g]; if(!n) continue; totalSale+=n.total_sale; totalTarget+=n.total_target; totalCH+=n.nCH; }
-  const totalGap=totalSale-totalTarget, totalDays=vd.meta.reduce((s,w)=>s+w.days,0);
-  const totalSPD=totalCH>0&&totalDays>0?totalSale/(totalCH*totalDays):0;
-  const gapCls=totalGap<0?'bad':(totalTarget>0&&totalGap<totalTarget*0.02?'warn':'');
-  const gapSign=totalGap>=0?'+':'−';
-  let kpi='<div class="fckpi">';
-  kpi+='<div class="fc"><div class="lb">SPD dự báo</div><div class="vl">'+F.money(totalSPD)+' tr</div><div class="sb">/CH/ngày · '+F.n(totalCH)+' CH</div></div>';
-  kpi+='<div class="fc"><div class="lb">Total Sale dự báo</div><div class="vl">'+F.money(totalSale/1000)+' tỷ</div><div class="sb">'+vd.label+' · '+totalDays+' ngày</div></div>';
-  kpi+='<div class="fc"><div class="lb">Target</div><div class="vl">'+F.money(totalTarget/1000)+' tỷ</div><div class="sb">cho '+totalDays+' ngày</div></div>';
-  kpi+='<div class="fc '+gapCls+'"><div class="lb">GAP</div><div class="vl">'+gapSign+F.money(Math.abs(totalGap)/1000)+' tỷ</div><div class="sb">'+(totalTarget>0?F.pct(totalSale/totalTarget*100)+'% target':'')+' · '+(totalGap<0?'thiếu':'vượt')+'</div></div>';
-  kpi+='<div class="fc"><div class="lb">Tháng đã qua</div><div class="vl">'+elapsedPct+'%</div><div class="sb">'+meta.p1_days+' ngày · còn ~'+(meta.p1_days-Math.round(elapsedPct*meta.p1_days/100))+' ngày</div></div>';
-  kpi+='</div>';
-  let tbl='<div class="fctbl"><table><thead><tr><th class="name">Nhóm CH</th><th class="cn">#CH</th>';
-  tbl+='<th>SPD<br><span class="u">tr/ngày</span></th><th>Total Sale<br><span class="u">triệu</span></th><th>Target<br><span class="u">triệu</span></th><th>%HT<br><span class="u">dự báo</span></th><th>GAP<br><span class="u">triệu</span></th>';
-  tbl+='</tr></thead><tbody>';
-  const ORDER=['LFL','STU','NSO','KHAC']; let risks=[];
-  for(const g of ORDER){ const n=nhom[g]; if(!n) continue;
-    const ht=n.total_ht, htCls=ht===null?'':(ht>=97?'ht-hi':(ht>=93?'ht-md':'ht-lo'));
-    const gapC=n.total_gap<0?'gap-neg':(n.total_gap>0?'gap-pos':'');
-    const rowCls=(ht!==null&&ht<93)?'row-bad':((ht!==null&&ht<97)?'row-warn':'');
-    tbl+='<tr class="'+rowCls+'"><td class="name">'+g+'</td><td class="cn">'+F.n(n.nCH)+'</td>';
-    tbl+='<td>'+F.money(n.spd)+'</td><td>'+F.money(n.total_sale)+'</td><td>'+F.money(n.total_target)+'</td>';
-    tbl+='<td class="'+htCls+'">'+(ht!==null?F.pct(ht)+'%':'—')+'</td>';
-    tbl+='<td class="'+gapC+'">'+(n.total_gap<0?'−'+F.money(-n.total_gap):(n.total_gap>0?'+'+F.money(n.total_gap):F.money(0)))+'</td></tr>';
-    if(ht!==null&&ht<97) risks.push({g,n,ht});
-    if(n.weeks&&n.weeks.length){ for(const w of n.weeks){
-      const wht=w.ht,whtCls=wht===null?'':(wht>=97?'ht-hi':(wht>=93?'ht-md':'ht-lo'));
-      const wgapC=w.gap<0?'gap-neg':(w.gap>0?'gap-pos':'');
-      tbl+='<tr class="row-sub"><td class="name">↳ '+w.label+' ('+w.days+'d)</td><td class="cn"></td>';
-      tbl+='<td>'+F.money(w.spd)+'</td><td>'+F.money(w.sale)+'</td><td>'+F.money(w.target)+'</td>';
-      tbl+='<td class="'+whtCls+'">'+(wht!==null?F.pct(wht)+'%':'—')+'</td>';
-      tbl+='<td class="'+wgapC+'">'+(w.gap<0?'−'+F.money(-w.gap):(w.gap>0?'+'+F.money(w.gap):F.money(0)))+'</td></tr>';
-    }}
-  }
-  tbl+='</tbody></table></div>';
-  let riskNote='';
-  if(risks.length){ riskNote='<b>⚠️ Rủi ro:</b> '+risks.map(r=>r.g+' <span class="tag d">'+F.pct(r.ht)+'%</span>').join(' · ')+'<br>'; }
-  if(totalGap<0){ riskNote+='<b>💡 Hành động:</b> GAP <b>−'+F.money(Math.abs(totalGap))+'tr</b> trong '+totalDays+' ngày tới. Cần tăng SPD thêm <b>'+F.money(Math.abs(totalGap)/totalCH/totalDays)+'tr/CH/ngày</b> hoặc điều chỉnh target.<br>'; }
-  if(totalGap>=0){ riskNote+='<b>✅ Dự báo vượt target</b> +'+F.money(totalGap)+'tr trong '+totalDays+' ngày tới.<br>'; }
-  riskNote+='<span style="color:#94A3B8;">Dự báo đến '+meta.today+' · baseline theo thứ × growth × hệ số ngày lễ · '+FCU.meta.p1_label+'</span>';
-  body.innerHTML=kpi+tbl; note.innerHTML=riskNote;
-}
-
-
-
-/* ================= render ================= */
+document.addEventListener('DOMContentLoaded',function(){
+  setTimeout(function(){if(typeof LFL!=='undefined')initTrends();},800);
+});/* ================= render ================= */
 const RVF=['d','dl','w','wl','m','md','mdl','y','yl','yd','ydl','bs','dbs','wbs','wbsl','mbs','mbsl','ybs','ybsl'];
 function applyBasis(rows){
   if(FILT.rv!=='retail') return rows;
